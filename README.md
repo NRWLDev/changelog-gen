@@ -4,7 +4,7 @@
 [![image](https://img.shields.io/pypi/pyversions/changelog_gen.svg)](https://pypi.org/project/changelog_gen/)
 ![style](https://github.com/NRWLDev/changelog-gen/workflows/style/badge.svg)
 ![tests](https://github.com/NRWLDev/changelog-gen/workflows/tests/badge.svg)
-[![codecov](https://codecov.io/gh/NRWLDev/changelog-gen/branch/main/graph/badge.svg)](https://codecov.io/gh/EdgyEdgemond/changelog-gen)
+[![codecov](https://codecov.io/gh/NRWLDev/changelog-gen/branch/main/graph/badge.svg)](https://codecov.io/gh/NRWLDev/changelog-gen)
 
 # Details
 
