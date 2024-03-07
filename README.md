@@ -2,13 +2,9 @@
 [![image](https://img.shields.io/pypi/v/changelog_gen.svg)](https://pypi.org/project/changelog_gen/)
 [![image](https://img.shields.io/pypi/l/changelog_gen.svg)](https://pypi.org/project/changelog_gen/)
 [![image](https://img.shields.io/pypi/pyversions/changelog_gen.svg)](https://pypi.org/project/changelog_gen/)
-![style](https://github.com/EdgyEdgemond/changelog-gen/workflows/style/badge.svg)
-![tests](https://github.com/EdgyEdgemond/changelog-gen/workflows/tests/badge.svg)
-[![codecov](https://codecov.io/gh/EdgyEdgemond/changelog-gen/branch/main/graph/badge.svg)](https://codecov.io/gh/EdgyEdgemond/changelog-gen)
-
-# Archived
-
-This repository has migrated to [NRWLDev](https://github.com/NRWLDev/changelog-gen).
+![style](https://github.com/NRWLDev/changelog-gen/workflows/style/badge.svg)
+![tests](https://github.com/NRWLDev/changelog-gen/workflows/tests/badge.svg)
+[![codecov](https://codecov.io/gh/NRWLDev/changelog-gen/branch/main/graph/badge.svg)](https://codecov.io/gh/EdgyEdgemond/changelog-gen)
 
 # Details
 
@@ -214,7 +210,7 @@ General configuration is grouped in a `[changelog_gen]` section.
 
 ```toml
 [tool.changelog_gen]
-issue_link = "http://github.com/EdgyEdgemond/changelog-gen/issues/::issue_ref::"
+issue_link = "http://github.com/NRWLDev/changelog-gen/issues/::issue_ref::"
 ```
 
 #### `commit_link =`
@@ -228,7 +224,7 @@ issue_link = "http://github.com/EdgyEdgemond/changelog-gen/issues/::issue_ref::"
 
 ```toml
 [tool.changelog_gen]
-commit_link = "http://github.com/EdgyEdgemond/changelog-gen/commit/::commit_hash::"
+commit_link = "http://github.com/NRWLDev/changelog-gen/commit/::commit_hash::"
 ```
 
 #### `version_string =`
