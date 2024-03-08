@@ -55,7 +55,7 @@ def test_get_current_info_branch(multiversion_repo):
 
     info = Git().get_current_info()
 
-    assert info["branch"] == "master"
+    assert info["branch"] == "main"
 
 
 @pytest.mark.usefixtures("multiversion_repo")
@@ -233,7 +233,7 @@ def test_commit_no_changes():
     with pytest.raises(errors.VcsError) as ex:
         Git().commit("0.0.3")
 
-    assert str(ex.value) == "Unable to commit: On branch master\nnothing to commit, working tree clean"
+    assert str(ex.value) == "Unable to commit: On branch main\nnothing to commit, working tree clean"
 
 
 def test_revert(multiversion_repo):

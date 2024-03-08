@@ -101,7 +101,7 @@ class ReleaseNoteExtractor:
         # Build a conventional commit regex based on configured sections
         #   ^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test){1}(\([\w\-\.]+\))?(!)?: ([\w ])+([\s\S]*)
         types = "|".join(self.type_headers.keys())
-        reg = re.compile(rf"^({types}){{1}}(\([\w\-\.]+\))?(!)?: ([\w .,`-\/]+)+([\s\S]*)")
+        reg = re.compile(rf"^({types}){{1}}(\([\w\-\.]+\))?(!)?: ([\w .,`\-\/]+)+([\s\S]*)")
         logger.warning("Extracting commit log changes.")
 
         for i, (short_hash, commit_hash, log) in enumerate(logs):
