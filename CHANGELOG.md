@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.9.3 - 2024-03-08
+
+### Bug fixes
+
+- Suppport `-` in commit messages [9608763](https://github.com/EdgyEdgemond/changelog-gen/commit/9608763ff5f28447bbf11596a6494b001a107d8a)
+
 ## v0.9.2 - 2024-03-08
 
 ### Bug fixes
