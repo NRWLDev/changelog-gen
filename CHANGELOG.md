@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.9.2 - 2024-03-08
+
+### Bug fixes
+
+- Clean up link generation format in MDWriter [b46d2fe](https://github.com/EdgyEdgemond/changelog-gen/commit/b46d2fe6fba5a170f25dffbf8697868d14a4e73e)
+
 ## v0.9.1 - 2024-03-04
 
 ### Bug fixes
