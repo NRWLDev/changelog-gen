@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.9.5 - 2024-03-11
+
+### Bug fixes
+
+- Restore [[4c9114e](https://github.com/EdgyEdgemond/changelog-gen/commit/4c9114e34d238359e687ffdbb7cee928df0f10da)]
+
 ## v0.9.4 - 2024-03-11
 
 ### Bug fixes
