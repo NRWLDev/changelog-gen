@@ -25,6 +25,9 @@ T = TypeVar("T", bound="BumpVersion")
 
 def parse_bump_my_version_info(semver: str, lines: list[str]) -> tuple[str, str]:
     """Parse output from bump-my-version info command."""
+    # Handle warning if setup.cfg exists
+    if lines[0] == "WARNING:":
+        lines = lines[4:]
     reg = re.compile(rf".*({semver}) [-]+ (.*)")
 
     current = lines[0].split(" -- ")[0].strip()

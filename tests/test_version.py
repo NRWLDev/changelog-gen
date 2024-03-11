@@ -18,6 +18,23 @@ def test_parse_bump_my_version_info():
     ) == ("1.2.3", "1.2.4rc0")
 
 
+def test_parse_bump_my_version_info_handles_setup_cfg():
+    assert version.parse_bump_my_version_info(
+        "patch",
+        [
+            "WARNING:",
+            "",
+            "setup.cfg is deprecated message.",
+            "",
+            "1.2.3 -- bump -+- major --- 2.0.0rc0",
+            "               +- minor --- 1.3.0rc0",
+            "               +- patch --- 1.2.4rc0",
+            '               +- release - invalid: The part has already the maximum value among ["rc", "final"] and cannot be bumped.',  # noqa: E501
+            "               +- build --- 1.2.3final1",
+        ],
+    ) == ("1.2.3", "1.2.4rc0")
+
+
 def test_parse_bump2version_info():
     assert version.parse_bump2version_info(
         "patch",
