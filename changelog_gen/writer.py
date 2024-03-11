@@ -127,12 +127,12 @@ class MdWriter(BaseWriter):
         if change.issue_ref.startswith("__"):
             line = f"- {description}"
         elif self.issue_link:
-            line = f"- {description} [#::issue_ref::]({self.issue_link})"
+            line = f"- {description} [[#::issue_ref::]({self.issue_link})]"
         else:
             line = f"- {description} [#::issue_ref::]"
 
         if self.commit_link and change.commit_hash:
-            line = f"{line} [{change.short_hash}]({self.commit_link})"
+            line = f"{line} [[{change.short_hash}]({self.commit_link})]"
 
         line = line.replace("::issue_ref::", change.issue_ref)
         line = line.replace("::commit_hash::", change.commit_hash or "")
