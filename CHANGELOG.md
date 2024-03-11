@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.9.4 - 2024-03-11
+
+### Bug fixes
+
+- Handle warning message from bump-my-version if setup.cfg exists [a95fd80](https://github.com/EdgyEdgemond/changelog-gen/commit/a95fd80d939985ab4b51a864676dda234e345d47)
+
 ## v0.9.3 - 2024-03-08
 
 ### Bug fixes
