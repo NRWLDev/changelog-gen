@@ -10,19 +10,19 @@
 
 ### Bug fixes
 
-- Handle warning message from bump-my-version if setup.cfg exists [a95fd80](https://github.com/EdgyEdgemond/changelog-gen/commit/a95fd80d939985ab4b51a864676dda234e345d47)
+- Handle warning message from bump-my-version if setup.cfg exists [[a95fd80](https://github.com/EdgyEdgemond/changelog-gen/commit/a95fd80d939985ab4b51a864676dda234e345d47)]
 
 ## v0.9.3 - 2024-03-08
 
 ### Bug fixes
 
-- Suppport `-` in commit messages [9608763](https://github.com/EdgyEdgemond/changelog-gen/commit/9608763ff5f28447bbf11596a6494b001a107d8a)
+- Suppport `-` in commit messages [[9608763](https://github.com/EdgyEdgemond/changelog-gen/commit/9608763ff5f28447bbf11596a6494b001a107d8a)]
 
 ## v0.9.2 - 2024-03-08
 
 ### Bug fixes
 
-- Clean up link generation format in MDWriter [b46d2fe](https://github.com/EdgyEdgemond/changelog-gen/commit/b46d2fe6fba5a170f25dffbf8697868d14a4e73e)
+- Clean up link generation format in MDWriter [[b46d2fe](https://github.com/EdgyEdgemond/changelog-gen/commit/b46d2fe6fba5a170f25dffbf8697868d14a4e73e)]
 
 ## v0.9.1 - 2024-03-04
 
