@@ -242,7 +242,7 @@ class TestMdWriter:
 
         w._add_section_line("line", Change("1", "line", "fix"))
 
-        assert w.content == ["- line [#1](http://url/issues/1)"]
+        assert w.content == ["- line [[#1](http://url/issues/1)]"]
 
     def test_add_section_line_with_issue_link_ignores_placeholder(self, changelog_md):
         cfg = Config(issue_link="http://url/issues/::issue_ref::")
@@ -258,7 +258,7 @@ class TestMdWriter:
 
         w._add_section_line("line", Change("__1__", "line", "fix", short_hash="1234567", commit_hash="commit-hash"))
 
-        assert w.content == ["- line [1234567](http://url/commit/commit-hash)"]
+        assert w.content == ["- line [[1234567](http://url/commit/commit-hash)]"]
 
     def test_add_section_line_with_commit_link_ignores_null_commit_hash(self, changelog_md):
         cfg = Config(commit_link="http://url/commit/::commit_hash::")
