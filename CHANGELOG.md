@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.9.6 - 2024-03-13
+
+### Bug fixes
+
+- Relax rtoml pin [[e7d3b1d](https://github.com/EdgyEdgemond/changelog-gen/commit/e7d3b1d1484ce42673de2af2958cc8e93b978e23)]
+
 ## v0.9.5 - 2024-03-11
 
 ### Bug fixes
