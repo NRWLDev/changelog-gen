@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.9.7 - 2024-04-08
+
+### Miscellaneous
+
+- Unlock typer version to 0.X [[2e25deb](https://github.com/EdgyEdgemond/changelog-gen/commit/2e25deb902710343a0f85f40323762752eef4a45)]
+
 ## v0.9.6 - 2024-03-13
 
 ### Bug fixes
