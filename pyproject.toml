@@ -11,7 +11,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.9"
 
-typer = "^0.9"
+typer = "^0"
 httpx = "^0.25"
 rtoml = ">=0.9"
 bump-my-version = { version = "^0.18.3", optional = true }
