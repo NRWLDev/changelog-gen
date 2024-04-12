@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.9.8 - 2024-04-12
+
+### Features and Improvements
+
+- Open changes in editor before confirmation, to allow modification. [[#1](https://github.com/EdgyEdgemond/changelog-gen/issues/1)] [[a4e1449](https://github.com/EdgyEdgemond/changelog-gen/commit/a4e1449bf44f370c671cc679d4bf9cfd75e68cbf)]
+- Block generation if local/remote are out of sync. [[#2](https://github.com/EdgyEdgemond/changelog-gen/issues/2)] [[c314b6b](https://github.com/EdgyEdgemond/changelog-gen/commit/c314b6b8a32f4ce5c05869f0accd24bb4e6097f2)]
+
+### Bug fixes
+
+- Support `?` in commit log messages. [[#3](https://github.com/EdgyEdgemond/changelog-gen/issues/3)] [[2d70733](https://github.com/EdgyEdgemond/changelog-gen/commit/2d7073328aa18cb031a13c3c79f773db58500541)]
+
 ## v0.9.7 - 2024-04-08
 
 ### Miscellaneous
