@@ -52,8 +52,10 @@ def test_get_missing_local_failure():
     with pytest.raises(errors.VcsError) as ex:
         Git()._get_missing_local(["branch"])
 
-    assert "Unable to get remote status: fatal: ambiguous argument 'HEAD..origin/branch': unknown revision or path not in the working tree." in str(ex.value)  # noqa: E501
-
+    assert (
+        "Unable to get remote status: fatal: ambiguous argument 'HEAD..origin/branch': unknown revision or path not in the working tree."  # noqa: E501
+        in str(ex.value)
+    )
 
 
 @pytest.mark.usefixtures("multiversion_repo")
@@ -77,8 +79,10 @@ def test_get_missing_remote_failure():
     with pytest.raises(errors.VcsError) as ex:
         Git()._get_missing_remote(["branch"])
 
-    assert "Unable to get remote status: fatal: ambiguous argument 'origin/branch..HEAD': unknown revision or path not in the working tree." in str(ex.value)  # noqa: E501
-
+    assert (
+        "Unable to get remote status: fatal: ambiguous argument 'origin/branch..HEAD': unknown revision or path not in the working tree."  # noqa: E501
+        in str(ex.value)
+    )
 
 
 @pytest.mark.usefixtures("multiversion_repo")

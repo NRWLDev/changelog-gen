@@ -221,7 +221,10 @@ allow_missing = false
     result = gen_cli_runner.invoke()
 
     assert result.exit_code == 1
-    assert result.output.strip() == "Current local branch is missing commits from remote main. Use `allow_missing`   \nconfiguration to ignore."  # noqa: E501
+    assert (
+        result.output.strip()
+        == "Current local branch is missing commits from remote main. Use `allow_missing`   \nconfiguration to ignore."
+    )
 
 
 @pytest.mark.usefixtures("changelog", "_conventional_commits")
@@ -262,7 +265,10 @@ allow_missing = false
     result = gen_cli_runner.invoke()
 
     assert result.exit_code == 1
-    assert result.output.strip() == "Current remote branch is missing commits from local main. Use `allow_missing`   \nconfiguration to ignore."  # noqa: E501
+    assert (
+        result.output.strip()
+        == "Current remote branch is missing commits from local main. Use `allow_missing`   \nconfiguration to ignore."
+    )
 
 
 @pytest.mark.usefixtures("changelog", "_conventional_commits")

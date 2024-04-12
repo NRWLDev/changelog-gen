@@ -41,6 +41,7 @@ VERBOSITY = {
 
 tempfile_prefix = "_tmp_changelog"
 
+
 def setup_logging(verbose: int = 0) -> None:
     """Configure the logging."""
     logging.basicConfig(
