@@ -13,6 +13,8 @@ from changelog_gen.config import PostProcessConfig
 def mock_git(monkeypatch):
     mock_git = mock.Mock()
     mock_git.get_current_info.return_value = {
+        "missing_local": False,
+        "missing_remote": False,
         "dirty": False,
         "branch": "main",
     }
@@ -195,6 +197,87 @@ def test_generate_continues_if_allow_dirty_configured(gen_cli_runner, cwd):
         """
 [tool.changelog_gen]
 allow_dirty = true
+""",
+    )
+    result = gen_cli_runner.invoke()
+
+    assert result.exit_code == 0
+
+
+@pytest.mark.usefixtures("changelog", "_conventional_commits")
+def test_generate_aborts_if_missing_local(gen_cli_runner, cwd, mock_git):
+    mock_git.get_current_info.return_value = {
+        "missing_local": True,
+        "dirty": False,
+        "branch": "main",
+    }
+    p = cwd / "pyproject.toml"
+    p.write_text(
+        """
+[tool.changelog_gen]
+allow_missing = false
+""",
+    )
+    result = gen_cli_runner.invoke()
+
+    assert result.exit_code == 1
+    assert result.output.strip() == "Current local branch is missing commits from remote main. Use `allow_missing`   \nconfiguration to ignore."  # noqa: E501
+
+
+@pytest.mark.usefixtures("changelog", "_conventional_commits")
+def test_generate_continues_if_allow_missing_configured_missing_local(gen_cli_runner, cwd, mock_git):
+    mock_git.get_current_info.return_value = {
+        "missing_remote": False,
+        "missing_local": True,
+        "dirty": False,
+        "branch": "main",
+    }
+    p = cwd / "pyproject.toml"
+    p.write_text(
+        """
+[tool.changelog_gen]
+allow_missing = true
+""",
+    )
+    result = gen_cli_runner.invoke()
+
+    assert result.exit_code == 0
+
+
+@pytest.mark.usefixtures("changelog", "_conventional_commits")
+def test_generate_aborts_if_missing_remote(gen_cli_runner, cwd, mock_git):
+    mock_git.get_current_info.return_value = {
+        "missing_remote": True,
+        "missing_local": False,
+        "dirty": False,
+        "branch": "main",
+    }
+    p = cwd / "pyproject.toml"
+    p.write_text(
+        """
+[tool.changelog_gen]
+allow_missing = false
+""",
+    )
+    result = gen_cli_runner.invoke()
+
+    assert result.exit_code == 1
+    assert result.output.strip() == "Current remote branch is missing commits from local main. Use `allow_missing`   \nconfiguration to ignore."  # noqa: E501
+
+
+@pytest.mark.usefixtures("changelog", "_conventional_commits")
+def test_generate_continues_if_allow_missing_configured_missing_remote(gen_cli_runner, cwd, mock_git):
+    mock_git.get_current_info.return_value = {
+        "missing_remote": True,
+        "missing_local": False,
+        "dirty": False,
+        "branch": "main",
+    }
+    p = cwd / "pyproject.toml"
+    p.write_text(
+        """
+[tool.changelog_gen]
+allow_missing = true
 """,
     )
     result = gen_cli_runner.invoke()

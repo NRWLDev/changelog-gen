@@ -58,10 +58,12 @@ class TestPyprojectToml:
             ("release = true", "release", True),
             ("commit = true", "commit", True),
             ("allow_dirty = true", "allow_dirty", True),
+            ("allow_missing = true", "allow_missing", True),
             ("reject_empty = true", "reject_empty", True),
             ("release = false", "release", False),
             ("commit = false", "commit", False),
             ("allow_dirty = false", "allow_dirty", False),
+            ("allow_missing = false", "allow_missing", False),
             ("reject_empty = false", "reject_empty", False),
         ],
     )

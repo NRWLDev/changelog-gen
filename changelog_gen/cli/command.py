@@ -91,6 +91,20 @@ def process_info(info: dict, cfg: config.Config, *, dry_run: bool) -> None:
         logger.error("Working directory is not clean. Use `allow_dirty` configuration to ignore.")
         raise typer.Exit(code=1)
 
+    if info["missing_local"] and not cfg.allow_missing:
+        logger.error(
+            "Current local branch is missing commits from remote %s. Use `allow_missing` configuration to ignore.",
+            info["branch"],
+        )
+        raise typer.Exit(code=1)
+
+    if info["missing_remote"] and not cfg.allow_missing:
+        logger.error(
+            "Current remote branch is missing commits from local %s. Use `allow_missing` configuration to ignore.",
+            info["branch"],
+        )
+        raise typer.Exit(code=1)
+
     allowed_branches = cfg.allowed_branches
     if allowed_branches and info["branch"] not in allowed_branches:
         logger.error("Current branch not in allowed generation branches.")
@@ -162,6 +176,7 @@ def gen(  # noqa: PLR0913
     *,
     dry_run: bool = typer.Option(False, help="Don't write release notes, check for errors."),  # noqa: FBT003
     allow_dirty: Optional[bool] = typer.Option(None, help="Don't abort if branch contains uncommitted changes."),
+    allow_missing: Optional[bool] = typer.Option(None, help="Don't abort if branch missing commits on origin."),
     release: Optional[bool] = typer.Option(None, help="Use bumpversion to tag the release."),
     commit: Optional[bool] = typer.Option(None, help="Commit changes made to changelog after writing."),
     reject_empty: Optional[bool] = typer.Option(None, help="Don't accept changes if there are no release notes."),
@@ -187,6 +202,7 @@ def gen(  # noqa: PLR0913
     cfg = config.read(
         release=release,
         allow_dirty=allow_dirty,
+        allow_missing=allow_missing,
         commit=commit,
         reject_empty=reject_empty,
         date_format=date_format,

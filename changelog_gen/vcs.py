@@ -18,6 +18,52 @@ class Git:
         self._commit = commit
         self.dry_run = dry_run
 
+    def _get_missing_local(self: T, branch: list[str]) -> list[str]:
+        try:
+            return (
+                subprocess.check_output(
+                    [  # noqa: S603, S607
+                        "git",
+                        "rev-list",
+                        f"HEAD..origin/{branch[0]}",
+                    ],
+                    stderr=subprocess.STDOUT,
+                )
+                .decode()
+                .strip()
+                .split("\n")
+            )
+        except subprocess.CalledProcessError as e:
+            msg = (
+                f"Unable to get remote status: {e.output.decode().strip()}"
+                if e.output
+                else "Unable to get current remote status."
+            )
+            raise errors.VcsError(msg) from e
+
+    def _get_missing_remote(self: T, branch: list[str]) -> list[str]:
+        try:
+            return (
+                subprocess.check_output(
+                    [  # noqa: S603, S607
+                        "git",
+                        "rev-list",
+                        f"origin/{branch[0]}..HEAD",
+                    ],
+                    stderr=subprocess.STDOUT,
+                )
+                .decode()
+                .strip()
+                .split("\n")
+            )
+        except subprocess.CalledProcessError as e:
+            msg = (
+                f"Unable to get remote status: {e.output.decode().strip()}"
+                if e.output
+                else "Unable to get current remote status."
+            )
+            raise errors.VcsError(msg) from e
+
     def get_current_info(self: T) -> dict[str, str]:
         """Get current state info from git."""
         changed_files = (
@@ -53,7 +99,12 @@ class Git:
             )
             raise errors.VcsError(msg) from e
 
+        missing_local = self._get_missing_local(branch)
+        missing_remote = self._get_missing_remote(branch)
+
         return {
+            "missing_local": missing_local != [""],
+            "missing_remote": missing_remote != [""],
             "dirty": changed_files != [""],  # Any changed files == dirty
             "branch": branch[0],
         }

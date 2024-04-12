@@ -3,7 +3,7 @@ from unittest import mock
 
 import pytest
 
-from changelog_gen import errors
+from changelog_gen import errors, vcs
 from changelog_gen.vcs import Git
 
 
@@ -47,7 +47,59 @@ def multiversion_v_repo(git_repo):
     return git_repo
 
 
-def test_get_current_info_branch(multiversion_repo):
+@pytest.mark.usefixtures("multiversion_repo")
+def test_get_missing_local_failure():
+    with pytest.raises(errors.VcsError) as ex:
+        Git()._get_missing_local(["branch"])
+
+    assert "Unable to get remote status: fatal: ambiguous argument 'HEAD..origin/branch': unknown revision or path not in the working tree." in str(ex.value)  # noqa: E501
+
+
+
+@pytest.mark.usefixtures("multiversion_repo")
+def test_get_missing_local_up_to_date(monkeypatch):
+    monkeypatch.setattr(vcs.subprocess, "check_output", mock.Mock(return_value=b""))
+    missing_local = Git()._get_missing_local(["branch"])
+
+    assert missing_local == [""]
+
+
+@pytest.mark.usefixtures("multiversion_repo")
+def test_get_missing_local(monkeypatch):
+    monkeypatch.setattr(vcs.subprocess, "check_output", mock.Mock(return_value=b"commit"))
+    missing_local = Git()._get_missing_local(["branch"])
+
+    assert missing_local == ["commit"]
+
+
+@pytest.mark.usefixtures("multiversion_repo")
+def test_get_missing_remote_failure():
+    with pytest.raises(errors.VcsError) as ex:
+        Git()._get_missing_remote(["branch"])
+
+    assert "Unable to get remote status: fatal: ambiguous argument 'origin/branch..HEAD': unknown revision or path not in the working tree." in str(ex.value)  # noqa: E501
+
+
+
+@pytest.mark.usefixtures("multiversion_repo")
+def test_get_missing_remote_up_to_date(monkeypatch):
+    monkeypatch.setattr(vcs.subprocess, "check_output", mock.Mock(return_value=b""))
+    missing_remote = Git()._get_missing_remote(["branch"])
+
+    assert missing_remote == [""]
+
+
+@pytest.mark.usefixtures("multiversion_repo")
+def test_get_missing_remote(monkeypatch):
+    monkeypatch.setattr(vcs.subprocess, "check_output", mock.Mock(return_value=b"commit"))
+    missing_remote = Git()._get_missing_remote(["branch"])
+
+    assert missing_remote == ["commit"]
+
+
+def test_get_current_info_branch(multiversion_repo, monkeypatch):
+    monkeypatch.setattr(Git, "_get_missing_local", mock.Mock(return_value=[""]))
+    monkeypatch.setattr(Git, "_get_missing_remote", mock.Mock(return_value=[""]))
     path = multiversion_repo.workspace
     f = path / "hello.txt"
 
@@ -59,13 +111,17 @@ def test_get_current_info_branch(multiversion_repo):
 
 
 @pytest.mark.usefixtures("multiversion_repo")
-def test_get_current_info_clean():
+def test_get_current_info_clean(monkeypatch):
+    monkeypatch.setattr(Git, "_get_missing_local", mock.Mock(return_value=[""]))
+    monkeypatch.setattr(Git, "_get_missing_remote", mock.Mock(return_value=[""]))
     info = Git().get_current_info()
 
     assert info["dirty"] is False
 
 
-def test_get_current_info_dirty(multiversion_repo):
+def test_get_current_info_dirty(multiversion_repo, monkeypatch):
+    monkeypatch.setattr(Git, "_get_missing_local", mock.Mock(return_value=[""]))
+    monkeypatch.setattr(Git, "_get_missing_remote", mock.Mock(return_value=[""]))
     path = multiversion_repo.workspace
     f = path / "hello.txt"
 
@@ -74,6 +130,26 @@ def test_get_current_info_dirty(multiversion_repo):
     info = Git().get_current_info()
 
     assert info["dirty"] is True
+
+
+@pytest.mark.usefixtures("multiversion_repo")
+def test_get_current_info_missing_local(monkeypatch):
+    monkeypatch.setattr(Git, "_get_missing_local", mock.Mock(return_value=["commit"]))
+    monkeypatch.setattr(Git, "_get_missing_remote", mock.Mock(return_value=[""]))
+
+    info = Git().get_current_info()
+
+    assert info["missing_local"] is True
+
+
+@pytest.mark.usefixtures("multiversion_repo")
+def test_get_current_info_missing_remote(monkeypatch):
+    monkeypatch.setattr(Git, "_get_missing_local", mock.Mock(return_value=[""]))
+    monkeypatch.setattr(Git, "_get_missing_remote", mock.Mock(return_value=["commit"]))
+
+    info = Git().get_current_info()
+
+    assert info["missing_remote"] is True
 
 
 @pytest.mark.usefixtures("git_repo")

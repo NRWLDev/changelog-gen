@@ -192,6 +192,7 @@ class Config:
     release: bool = False
     commit: bool = False
     allow_dirty: bool = False
+    allow_missing: bool = False
     reject_empty: bool = False
 
     post_process: PostProcessConfig | None = None
@@ -271,6 +272,7 @@ def _process_setup_cfg(setup: Path) -> dict:
         ("release", extract_boolean_value),
         ("commit", extract_boolean_value),
         ("allow_dirty", extract_boolean_value),
+        ("allow_missing", extract_boolean_value),
         ("reject_empty", extract_boolean_value),
     ]:
         value = extract_func(parser, valuename)
