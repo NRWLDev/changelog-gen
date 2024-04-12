@@ -291,7 +291,7 @@ def test_git_commit_extraction_picks_up_additional_allowed_characted(multiversio
     f = path / "hello.txt"
     hashes = []
     for msg in [
-        """fix: Ensure one/two chars are allowed `and` highlighting, but random PR link ignored. (#20)
+        """fix: Ensure one/two chars? are allowed `and` highlighting, but random PR link ignored. (#20)
 
 With some details
 
@@ -315,7 +315,7 @@ Refs: #1
         "Bug fixes": {
             "1": Change(
                 "1",
-                "Ensure one/two chars are allowed `and` highlighting, but random PR link ignored.",
+                "Ensure one/two chars? are allowed `and` highlighting, but random PR link ignored.",
                 breaking=True,
                 short_hash=hashes[0][:7],
                 commit_hash=hashes[0],
