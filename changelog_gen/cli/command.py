@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import contextlib
 import importlib.metadata
 import json
 import logging
 import logging.config
+import shlex
+import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 from typing import Optional
 from warnings import warn
 
@@ -35,6 +39,7 @@ VERBOSITY = {
     3: logging.DEBUG,
 }
 
+tempfile_prefix = "_tmp_changelog"
 
 def setup_logging(verbose: int = 0) -> None:
     """Configure the logging."""
@@ -174,12 +179,13 @@ def gen(  # noqa: PLR0913
     ),
     date_format: Optional[str] = typer.Option(None, help="The date format for strftime - empty string allowed."),
     *,
-    dry_run: bool = typer.Option(False, help="Don't write release notes, check for errors."),  # noqa: FBT003
+    dry_run: bool = typer.Option(default=False, help="Don't write release notes, check for errors."),
     allow_dirty: Optional[bool] = typer.Option(None, help="Don't abort if branch contains uncommitted changes."),
     allow_missing: Optional[bool] = typer.Option(None, help="Don't abort if branch missing commits on origin."),
     release: Optional[bool] = typer.Option(None, help="Use bumpversion to tag the release."),
     commit: Optional[bool] = typer.Option(None, help="Commit changes made to changelog after writing."),
     reject_empty: Optional[bool] = typer.Option(None, help="Don't accept changes if there are no release notes."),
+    interactive: Optional[bool] = typer.Option(default=True, help="Open changes in an editor before confirmation."),
     verbose: int = typer.Option(0, "-v", "--verbose", help="Set output verbosity.", count=True, max=3),
     _version: Optional[bool] = typer.Option(
         None,
@@ -212,10 +218,44 @@ def gen(  # noqa: PLR0913
     )
 
     try:
-        _gen(cfg, version_part, version_tag, dry_run=dry_run)
+        _gen(cfg, version_part, version_tag, dry_run=dry_run, interactive=interactive)
     except errors.ChangelogException as ex:
         logger.error("%s", ex)  # noqa: TRY400
         raise typer.Exit(code=1) from ex
+
+
+def create_with_editor(content: str, extension: writer.Extension) -> str:
+    """Open temporary file in editor to allow modifications."""
+    editor = util.get_editor()
+    tmpfile = NamedTemporaryFile(
+        mode="w",
+        encoding="UTF-8",
+        prefix=tempfile_prefix,
+        suffix=f".{extension.value}",
+        delete=False,
+    )
+    try:
+        with tmpfile as f:
+            f.write(content)
+
+        editor = [part.format(tmpfile.name) for part in shlex.split(editor)]
+        if not any(tmpfile.name in part for part in editor):
+            editor.append(tmpfile.name)
+
+        try:
+            subprocess.call(editor)  # noqa: S603
+        except OSError as e:
+            logger.error("Error: could not open editor!")  # noqa: TRY400
+            raise typer.Exit(code=1) from e
+
+        with Path(tmpfile.name).open() as f:
+            content = f.read()
+
+    finally:
+        with contextlib.suppress(OSError):
+            Path(tmpfile.name).unlink()
+
+    return content
 
 
 def _gen(
@@ -224,6 +264,7 @@ def _gen(
     version_tag: str | None = None,
     *,
     dry_run: bool = False,
+    interactive: bool = True,
 ) -> None:
     bv = BumpVersion(verbose=cfg.verbose, dry_run=dry_run)
     git = Git(dry_run=dry_run)
@@ -263,7 +304,9 @@ def _gen(
     w.add_version(version_string)
     w.consume(cfg.type_headers, sections)
 
-    logger.error(str(w))
+    changes = create_with_editor(str(w), extension) if interactive else str(w)
+
+    logger.error(changes)
 
     processed = _finalise(w, e, version_tag, extension, cfg, dry_run=dry_run)
 
