@@ -5,6 +5,7 @@ import importlib.metadata
 import json
 import logging
 import logging.config
+import platform
 import shlex
 import subprocess
 from datetime import datetime, timezone
@@ -217,6 +218,10 @@ def gen(  # noqa: PLR0913
         post_process_auth_env=post_process_auth_env,
         verbose=verbose,
     )
+
+    if platform.system == "Windows" and interactive:
+        logger.debug("Disabling interactive on windows.")
+        interactive = False
 
     try:
         _gen(cfg, version_part, version_tag, dry_run=dry_run, interactive=interactive)
