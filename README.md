@@ -281,7 +281,8 @@ allowed_branches = [
 
 #### `commit_types = `
   _**[optional]**_<br />
-  **default**: ```
+  **default**:
+  ```
     feat.header = "Features and Improvements"
     feat.semver = "minor"
     fix.header = "Bug fixes"
