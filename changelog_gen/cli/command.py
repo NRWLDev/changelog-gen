@@ -100,14 +100,14 @@ def process_info(info: dict, cfg: config.Config, *, dry_run: bool) -> None:
 
     if info["missing_local"] and not cfg.allow_missing:
         logger.error(
-            "Current local branch is missing commits from remote %s. Use `allow_missing` configuration to ignore.",
+            "Current local branch is missing commits from remote %s.\nUse `allow_missing` configuration to ignore.",
             info["branch"],
         )
         raise typer.Exit(code=1)
 
     if info["missing_remote"] and not cfg.allow_missing:
         logger.error(
-            "Current remote branch is missing commits from local %s. Use `allow_missing` configuration to ignore.",
+            "Current remote branch is missing commits from local %s.\nUse `allow_missing` configuration to ignore.",
             info["branch"],
         )
         raise typer.Exit(code=1)

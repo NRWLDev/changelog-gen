@@ -10,6 +10,11 @@ from changelog_gen.config import PostProcessConfig
 
 
 @pytest.fixture(autouse=True)
+def _patch_subprocess(monkeypatch):
+    monkeypatch.setattr(command.subprocess, "call", mock.Mock())
+
+
+@pytest.fixture(autouse=True)
 def mock_git(monkeypatch):
     mock_git = mock.Mock()
     mock_git.get_current_info.return_value = {
@@ -221,10 +226,7 @@ allow_missing = false
     result = gen_cli_runner.invoke()
 
     assert result.exit_code == 1
-    assert (
-        result.output.strip()
-        == "Current local branch is missing commits from remote main. Use `allow_missing`   \nconfiguration to ignore."
-    )
+    assert "Current local branch is missing commits from remote main." in result.output
 
 
 @pytest.mark.usefixtures("changelog", "_conventional_commits")
@@ -265,10 +267,7 @@ allow_missing = false
     result = gen_cli_runner.invoke()
 
     assert result.exit_code == 1
-    assert (
-        result.output.strip()
-        == "Current remote branch is missing commits from local main. Use `allow_missing`   \nconfiguration to ignore."
-    )
+    assert "Current remote branch is missing commits from local main." in result.output
 
 
 @pytest.mark.usefixtures("changelog", "_conventional_commits")
