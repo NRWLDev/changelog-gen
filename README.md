@@ -324,12 +324,13 @@ fix.header = "Bugfixes"
 #### `sections =`
   _**[Deprecated]**_<br />
   _**[optional]**_<br />
-  **default**: { <br />
-      "feat": "Features and Improvements", <br />
-      "fix": "Bug fixes", <br />
-      "docs": "Documentation", <br />
-      "misc": "Miscellaneous", <br />
-  }
+  **default**: 
+  ```toml
+      feat = "Features and Improvements"
+      fix = "Bug fixes"
+      docs = "Documentation"
+      misc = "Miscellaneous"
+  ```
 
   Define custom headers or new sections/headers, new sections will require a
   matching section_mapping configuration.
@@ -349,17 +350,18 @@ fix = "Bugfixes"
 #### `section_mapping =`
   _**[Deprecated]**_<br />
   _**[optional]**_<br />
-  **default**: { <br />
-      "bug": "fix", <br />
-      "chore": "misc", <br />
-      "ci": "misc", <br />
-      "docs": "docs", <br />
-      "perf": "misc", <br />
-      "refactor": "misc", <br />
-      "revert": "misc", <br />
-      "style": "misc", <br />
-      "test": "misc", <br />
-  }
+  **default**:
+  ```toml
+      bug = "fix"
+      chore = "misc"
+      ci = "misc"
+      docs = "docs"
+      perf = "misc"
+      refactor = "misc"
+      revert = "misc"
+      style = "misc"
+      test = "misc"
+  ```
 
   Configure additional supported commit types to supported changelog sections.
 
