@@ -281,52 +281,30 @@ allowed_branches = [
 
 #### `commit_types = `
   _**[optional]**_<br />
-  **default**: ```{ <br />
-      "feat": { <br />
-        "header": "Features and Improvements", <br />
-        "semver": "minor",
-      }<br />
-      "fix": {<br />
-        "header": "Bug fixes", <br />
-        "semver": "patch",<br />
-      },<br />
-      "docs": {<br />
-        "header": "Documentation", <br />
-        "semver": "patch",<br />
-      },<br />
-      "bug": {<br />
-        "header": "Bug fixes", <br />
-        "semver": "patch",<br />
-      },<br />
-      "chore": {<br />
-        "header": "Miscellaneous", <br />
-        "semver": "patch",<br />
-      },<br />
-      "ci": {<br />
-        "header": "Miscellaneous", <br />
-        "semver": "patch",<br />
-      },<br />
-      "perf": {<br />
-        "header": "Miscellaneous", <br />
-        "semver": "patch",<br />
-      },<br />
-      "refactor": {<br />
-        "header": "Miscellaneous", <br />
-        "semver": "patch",<br />
-      },<br />
-      "revert": {<br />
-        "header": "Miscellaneous", <br />
-        "semver": "patch",<br />
-      },<br />
-      "style": {<br />
-        "header": "Miscellaneous", <br />
-        "semver": "patch",<br />
-      },<br />
-      "test": {<br />
-        "header": "Miscellaneous", <br />
-        "semver": "patch",<br />
-      },<br />
-  }```
+  **default**: ```toml
+    feat.header = "Features and Improvements"
+    feat.semver = "minor"
+    fix.header = "Bug fixes"
+    fix.semver = "patch"
+    docs.header = "Documentation"
+    docs.semver = "patch
+    bug.header = "Bug fixes"
+    bug.semver = "patch
+    chore.header = "Miscellaneous"
+    chore.semver = "patch
+    ci.header = "Miscellaneous"
+    ci.semver = "patch
+    perf.header = "Miscellaneous"
+    perf.semver = "patch
+    refactor.header = "Miscellaneous"
+    refactor.semver = "patch
+    revert.header = "Miscellaneous"
+    revert.semver = "patch
+    style.header = "Miscellaneous"
+    style.semver = "patch
+    test.header = "Miscellaneous"
+    test.semver = "patch
+  ```
 
   Define commit types and which headers and semver in the changelog they should map to, default semver is `patch`.
 
