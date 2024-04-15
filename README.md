@@ -281,29 +281,29 @@ allowed_branches = [
 
 #### `commit_types = `
   _**[optional]**_<br />
-  **default**: ```toml
+  **default**: ``toml
     feat.header = "Features and Improvements"
     feat.semver = "minor"
     fix.header = "Bug fixes"
     fix.semver = "patch"
     docs.header = "Documentation"
-    docs.semver = "patch
+    docs.semver = "patch"
     bug.header = "Bug fixes"
-    bug.semver = "patch
+    bug.semver = "patch"
     chore.header = "Miscellaneous"
-    chore.semver = "patch
+    chore.semver = "patch"
     ci.header = "Miscellaneous"
-    ci.semver = "patch
+    ci.semver = "patch"
     perf.header = "Miscellaneous"
-    perf.semver = "patch
+    perf.semver = "patch"
     refactor.header = "Miscellaneous"
-    refactor.semver = "patch
+    refactor.semver = "patch"
     revert.header = "Miscellaneous"
-    revert.semver = "patch
+    revert.semver = "patch"
     style.header = "Miscellaneous"
-    style.semver = "patch
+    style.semver = "patch"
     test.header = "Miscellaneous"
-    test.semver = "patch
+    test.semver = "patch"
   ```
 
   Define commit types and which headers and semver in the changelog they should map to, default semver is `patch`.
