@@ -219,7 +219,7 @@ def gen(  # noqa: PLR0913
         verbose=verbose,
     )
 
-    if platform.system == "Windows" and interactive:
+    if platform.system() == "Windows" and interactive:
         logger.debug("Disabling interactive on windows.")
         interactive = False
 
