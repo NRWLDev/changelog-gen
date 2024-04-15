@@ -281,7 +281,7 @@ allowed_branches = [
 
 #### `commit_types = `
   _**[optional]**_<br />
-  **default**: { <br />
+  **default**: ```{ <br />
       "feat": { <br />
         "header": "Features and Improvements", <br />
         "semver": "minor",
@@ -326,7 +326,7 @@ allowed_branches = [
         "header": "Miscellaneous", <br />
         "semver": "patch",<br />
       },<br />
-  }
+  }```
 
   Define commit types and which headers and semver in the changelog they should map to, default semver is `patch`.
 
