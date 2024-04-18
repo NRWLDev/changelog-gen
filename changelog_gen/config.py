@@ -218,6 +218,7 @@ class Config:
         return cls(**data)
 
     def to_dict(self: Config) -> dict:
+        """Convert a Config object to a dictionary of key value pairs."""
         return dataclasses.asdict(self)
 
 

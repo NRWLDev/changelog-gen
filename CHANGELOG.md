@@ -4,6 +4,7 @@
 
 ### Features and Improvements
 
+- Allow partial override of configured commit_types. [[#5](https://github.com/EdgyEdgemond/changelog-gen/issues/5)] [[85259d0](https://github.com/EdgyEdgemond/changelog-gen/commit/85259d08151770c0d564266d3b05ec2db35a4d53)]
 - Add `changelog config` command to display current settings. [[55ac7b8](https://github.com/EdgyEdgemond/changelog-gen/commit/55ac7b8d8e63459198adccd321197589a9bb1bd1)]
 
 ## v0.9.8 - 2024-04-12

@@ -324,7 +324,7 @@ fix.header = "Bugfixes"
 #### `sections =`
   _**[Deprecated]**_<br />
   _**[optional]**_<br />
-  **default**: 
+  **default**:
   ```toml
 feat = "Features and Improvements"
 fix = "Bug fixes"

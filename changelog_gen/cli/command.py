@@ -17,8 +17,8 @@ from warnings import warn
 import click
 import rtoml
 import typer
-from rich.logging import RichHandler
 from pygments import formatters, highlight, lexers
+from rich.logging import RichHandler
 
 from changelog_gen import (
     config,
@@ -130,6 +130,7 @@ def display_config() -> None:
             formatters.TerminalFormatter(),
         ),
     )
+
 
 @init_app.command("changelog-init")
 @app.command("init")
