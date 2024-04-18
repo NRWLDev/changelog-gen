@@ -216,6 +216,9 @@ class Config:
                 data["commit_types"][k] = CommitType(**value)
         return cls(**data)
 
+    def to_dict(self: Config) -> dict:
+        return dataclasses.asdict(self)
+
 
 def _process_overrides(overrides: dict) -> tuple[dict, PostProcessConfig | None]:
     """Process provided overrides.

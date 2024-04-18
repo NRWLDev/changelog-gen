@@ -18,6 +18,7 @@ import click
 import rtoml
 import typer
 from rich.logging import RichHandler
+from pygments import formatters, highlight, lexers
 
 from changelog_gen import (
     config,
@@ -117,6 +118,18 @@ def process_info(info: dict, cfg: config.Config, *, dry_run: bool) -> None:
         logger.error("Current branch not in allowed generation branches.")
         raise typer.Exit(code=1)
 
+
+@app.command("config")
+def display_config() -> None:
+    """Display current configuration."""
+    cfg = config.read()
+    typer.echo(
+        highlight(
+            rtoml.dumps(cfg.to_dict(), pretty=True),
+            lexers.TOMLLexer(),
+            formatters.TerminalFormatter(),
+        ),
+    )
 
 @init_app.command("changelog-init")
 @app.command("init")
