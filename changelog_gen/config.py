@@ -213,7 +213,8 @@ class Config:
         if "commit_types" in data:
             for k, v in data["commit_types"].items():
                 value = json.loads(v) if isinstance(v, str) else v
-                data["commit_types"][k] = CommitType(**value)
+                ct = CommitType(**value) if isinstance(value, dict) else value
+                data["commit_types"][k] = ct
         return cls(**data)
 
     def to_dict(self: Config) -> dict:
@@ -248,6 +249,9 @@ def _process_pyproject(pyproject: Path) -> dict:
         if "tool" not in data or "changelog_gen" not in data["tool"]:
             return cfg
 
+        commit_types = SUPPORTED_TYPES.copy()
+        commit_types.update(data["tool"]["changelog_gen"].get("commit_types", {}))
+        data["tool"]["changelog_gen"]["commit_types"] = commit_types
         return data["tool"]["changelog_gen"]
 
 
