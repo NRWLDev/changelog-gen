@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.9.9 - 2024-04-18
+
+### Features and Improvements
+
+- Add `changelog config` command to display current settings. [[55ac7b8](https://github.com/EdgyEdgemond/changelog-gen/commit/55ac7b8d8e63459198adccd321197589a9bb1bd1)]
+
 ## v0.9.8 - 2024-04-12
 
 ### Features and Improvements
