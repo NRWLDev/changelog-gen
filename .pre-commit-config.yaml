@@ -31,4 +31,4 @@ repos:
       - id: remove-crlf
         exclude: docs/favicon.svg
       - id: remove-tabs
-        exclude: docs/favicon.svg
+        exclude: Makefile|docs/favicon.svg
