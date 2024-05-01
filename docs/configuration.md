@@ -173,7 +173,7 @@ style.header = "Miscellaneous"
 style.semver = "patch"
 test.header = "Miscellaneous"
 test.semver = "patch"
-  ```
+```
 
   Define commit types and which headers and semver in the changelog they should map to, default semver is `patch`.
 
@@ -199,7 +199,7 @@ feat = "Features and Improvements"
 fix = "Bug fixes"
 docs = "Documentation"
 misc = "Miscellaneous"
-  ```
+```
 
   Define custom headers or new sections/headers, new sections will require a
   matching section_mapping configuration.
@@ -231,7 +231,7 @@ refactor = "misc"
 revert = "misc"
 style = "misc"
 test = "misc"
-  ```
+```
 
   Configure additional supported commit types to supported changelog sections.
 
