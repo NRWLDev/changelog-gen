@@ -30,21 +30,6 @@ release = true
 allow_dirty = false
 ```
 
-Example `pyproject.toml`:
-
-```toml
-[tool.changelog_gen]
-commit = true
-release = true
-allow_dirty = false
-
-[tool.changelog_gen.post_process]
-  url = "https://your-domain.atlassian.net/rest/api/2/issue/ISSUE-::issue_ref::/comment"
-  verb = "POST"
-  body = '{"body": "Released on v::version::"}'
-  auth_env = "JIRA_AUTH"
-```
-
 ## Configuration file -- Global configuration
 
 General configuration is grouped in a `[changelog_gen]` section.
@@ -164,7 +149,8 @@ allowed_branches = [
 ### `commit_types = `
   _**[optional]**_<br />
   **default**:
-  ```toml
+
+```toml
 feat.header = "Features and Improvements"
 feat.semver = "minor"
 fix.header = "Bug fixes"
@@ -207,7 +193,8 @@ fix.header = "Bugfixes"
   _**[Deprecated]**_<br />
   _**[optional]**_<br />
   **default**:
-  ```toml
+
+```toml
 feat = "Features and Improvements"
 fix = "Bug fixes"
 docs = "Documentation"
@@ -233,7 +220,8 @@ fix = "Bugfixes"
   _**[Deprecated]**_<br />
   _**[optional]**_<br />
   **default**:
-  ```toml
+
+```toml
 bug = "fix"
 chore = "misc"
 ci = "misc"
