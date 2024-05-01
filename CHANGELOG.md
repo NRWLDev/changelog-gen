@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.9.10 - 2024-05-01
+
+### Bug fixes
+
+- Fix test for update instead of overwrite of commit types. [[55a3ffa](https://github.com/EdgyEdgemond/changelog-gen/commit/55a3ffaf89f627c7a94c2512ed8f60d12a8bc669)]
+
 ## v0.9.9 - 2024-04-18
 
 ### Features and Improvements
