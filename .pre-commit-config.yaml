@@ -29,5 +29,6 @@ repos:
     rev: v1.3.1
     hooks:
       - id: remove-crlf
+        exclude: docs/favicon.svg
       - id: remove-tabs
-        exclude: Makefile
+        exclude: docs/favicon.svg
