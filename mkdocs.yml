@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
+site_name: Changelog Generator
+site_url: https://nrwldev.github.io/changelog-gen/
+repo_name: changelog-gen
+repo_url: https://github.com/NRWLDev/changelog-gen
+nav:
+  - index.md
+  - install.md
+  - usage.md
+  - configuration.md
+theme:
+  name: material
+  favicon: favicon.ico
+  icon:
+    logo: fontawesome/solid/shield-halved
+    repo: fontawesome/brands/git-alt
+  features:
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.sections
+    - navigation.tracking
+    - toc.follow
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+extra:
+  social:
+    - icon: fontawesome/solid/envelope
+      link: mailto:admin@nrwl.co
