@@ -12,6 +12,8 @@
 with [bump-my-version](https://github.com/callowayproject/bump-my-version) to generate
 changelogs and create release tags.
 
+See the [docs](https://nrwldev.github.io/changelog-gen) for more details.
+
 ## Migrating to 0.9 (Conventioanl Commit support)
 Check the discussion
 [here](https://github.com/EdgyEdgemond/changelog-gen/discussions/98) for
@@ -31,8 +33,6 @@ or clone this repo and install with poetry.
 ```bash
 poetry install --extras=bump-my-version
 ```
-
-[Docs](https://nrwldev.github.io/changelog-gen)
 
 ## Contributing
 
