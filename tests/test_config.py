@@ -136,6 +136,8 @@ test.header = "Bug fixes"
             "bug": config.CommitType(
                 header="Bug fixes",
             ),
+            "chore": config.CommitType(header="Miscellaneous", semver="patch"),
+            "ci": config.CommitType(header="Miscellaneous", semver="patch"),
             "docs": config.CommitType(
                 header="Documentation",
             ),
@@ -153,6 +155,10 @@ test.header = "Bug fixes"
             "misc": config.CommitType(
                 header="Miscellaneous",
             ),
+            "perf": config.CommitType(header="Miscellaneous", semver="patch"),
+            "refactor": config.CommitType(header="Miscellaneous", semver="patch"),
+            "revert": config.CommitType(header="Miscellaneous", semver="patch"),
+            "style": config.CommitType(header="Miscellaneous", semver="patch"),
             "test": config.CommitType(
                 header="Bug fixes",
             ),
