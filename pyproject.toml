@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "changelog_gen"
-version = "0.9.10"
+version = "0.9.11"
 description = "Changelog generation tool"
 authors = ["Daniel Edgecombe <edgy.edgemond@gmail.com>"]
 license = "Apache-2.0"
@@ -37,7 +37,7 @@ ruff = "^0.4.0"
 pre-commit = "^3.0.2"
 
 [tool.bumpversion]
-current_version = "0.9.10"
+current_version = "0.9.11"
 commit = true
 tag = true
 
