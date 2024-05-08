@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.9.11 - 2024-05-08
+
+### Bug fixes
+
+- Loosen httpx pin [[0c197cb](https://github.com/EdgyEdgemond/changelog-gen/commit/0c197cba90073138f10592b22b8c7377feef1fc3)]
+
 ## v0.9.10 - 2024-05-01
 
 ### Bug fixes
