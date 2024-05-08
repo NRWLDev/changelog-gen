@@ -12,7 +12,7 @@ readme = "README.md"
 python = "^3.9"
 
 typer = "^0"
-httpx = "^0.25"
+httpx = "^0"
 rtoml = ">=0.9"
 bump-my-version = { version = "^0.18.3", optional = true }
 bump2version = { version = "^1.0.1", optional = true }

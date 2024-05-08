@@ -1209,4 +1209,4 @@ bump2version = ["bump2version"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "4598dd2140c65d3c557de9716071485d732995e36936e03f6e373e6c348b5449"
+content-hash = "49dce1062b515ad319381079c4131f640a6ee57ed2bca8c78a19dfbba0c6d0b4"
