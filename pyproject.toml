@@ -4,8 +4,8 @@ version = "0.9.11"
 description = "Changelog generation tool"
 authors = ["Daniel Edgecombe <edgy.edgemond@gmail.com>"]
 license = "Apache-2.0"
-repository="https://github.com/EdgyEdgemond/changelog-gen/"
-homepage="https://github.com/EdgyEdgemond/changelog-gen/"
+repository="https://github.com/NRWLDev/changelog-gen/"
+homepage="https://github.com/NRWLDev/changelog-gen/"
 readme = "README.md"
 
 [tool.poetry.dependencies]
