@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.9.12 - 2024-05-15
+
+### Bug fixes
+
+- Maintain changes from editor in final saved changelog. [[281d4be](https://github.com/EdgyEdgemond/changelog-gen/commit/281d4bee9559c8a89b673dcc27b5bc9a95fb9ca5)]
+
 ## v0.9.11 - 2024-05-08
 
 ### Bug fixes
