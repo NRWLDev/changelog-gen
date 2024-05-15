@@ -327,6 +327,7 @@ def _gen(
     changes = create_with_editor(str(w), extension) if interactive else str(w)
 
     logger.error(changes)
+    w.content = changes.split("\n")[2:-2]
 
     processed = _finalise(w, e, version_tag, extension, cfg, dry_run=dry_run)
 
