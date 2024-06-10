@@ -58,6 +58,15 @@ The description is used to populate the changelog file. If the type includes
 the optional `!` flag, or the `BREAKING CHANGE` footer, this will lead to a
 major release being suggested.
 
+### Include all
+
+Getting started with conventional commits can take some dedication, and its
+easy to let some commits slip through the cracks. When generating changelogs
+the `--include-all` flag is available to pick up all commits, even those that
+don't fit the conventional commit format. All non conventional commits will be
+included under a `Miscellaneous` heading. Combined with the `--interactive`
+commits can be included under the correct headings and/or excluded completely.
+
 ## Release Notes
 
 Files in the folder should use the format `{issue_number}.{type}`.
