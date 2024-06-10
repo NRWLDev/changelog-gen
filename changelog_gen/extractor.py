@@ -40,10 +40,13 @@ SectionDict = dict[str, dict[str, Change]]
 class ReleaseNoteExtractor:
     """Parse release notes and generate section dictionaries."""
 
-    def __init__(self: typing.Self, cfg: config.Config, git: Git, *, dry_run: bool = False) -> None:
+    def __init__(self: typing.Self, cfg: config.Config, git: Git, *, dry_run: bool = False, include_all: bool = False) -> None:
         self.release_notes = Path("./release_notes")
         self.dry_run = dry_run
+        self.include_all = include_all
         self.type_headers = cfg.type_headers
+        if self.include_all:
+            self.type_headers["_misc"] = "Miscellaneous"
         self.git = git
 
         self.has_release_notes = self.release_notes.exists() and self.release_notes.is_dir()
@@ -106,8 +109,6 @@ class ReleaseNoteExtractor:
 
         for i, (short_hash, commit_hash, log) in enumerate(logs):
             m = reg.match(log)
-            if m is None:
-                logger.debug("  Skipping commit log (not conventional): %s", log.strip())
             if m:
                 logger.debug("  Parsing commit log: %s", log.strip())
                 commit_type = m[1]
@@ -151,6 +152,23 @@ class ReleaseNoteExtractor:
 
                 header = self.type_headers.get(commit_type, commit_type)
                 sections[header][change.issue_ref] = change
+            elif self.include_all:
+                logger.debug("  Including non-conventional commit log (include-all): %s", log.strip())
+                issue_ref = f"__{i}__"
+                change = Change(
+                    description=log.strip().split("\n")[0],
+                    issue_ref=issue_ref,
+                    breaking=False,
+                    scope="",
+                    short_hash=short_hash,
+                    commit_hash=commit_hash,
+                    commit_type="_misc",
+                )
+                header = self.type_headers.get(change.commit_type, change.commit_type)
+                sections[header][change.issue_ref] = change
+
+            else:
+                logger.debug("  Skipping commit log (not conventional): %s", log.strip())
 
     def extract(self: typing.Self, current_version: str) -> SectionDict:
         """Iterate over release note files extracting sections and issues."""
