@@ -65,7 +65,8 @@ easy to let some commits slip through the cracks. When generating changelogs
 the `--include-all` flag is available to pick up all commits, even those that
 don't fit the conventional commit format. All non conventional commits will be
 included under a `Miscellaneous` heading. Combined with the `--interactive`
-commits can be included under the correct headings and/or excluded completely.
+flag commits can be included under the correct headings and/or excluded
+completely.
 
 ## Release Notes
 
