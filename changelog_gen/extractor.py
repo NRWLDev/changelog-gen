@@ -40,7 +40,14 @@ SectionDict = dict[str, dict[str, Change]]
 class ReleaseNoteExtractor:
     """Parse release notes and generate section dictionaries."""
 
-    def __init__(self: typing.Self, cfg: config.Config, git: Git, *, dry_run: bool = False, include_all: bool = False) -> None:
+    def __init__(
+        self: typing.Self,
+        cfg: config.Config,
+        git: Git,
+        *,
+        dry_run: bool = False,
+        include_all: bool = False,
+    ) -> None:
         self.release_notes = Path("./release_notes")
         self.dry_run = dry_run
         self.include_all = include_all

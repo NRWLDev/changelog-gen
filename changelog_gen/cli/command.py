@@ -201,7 +201,10 @@ def gen(  # noqa: PLR0913
     release: Optional[bool] = typer.Option(None, help="Use bumpversion to tag the release."),
     commit: Optional[bool] = typer.Option(None, help="Commit changes made to changelog after writing."),
     reject_empty: Optional[bool] = typer.Option(None, help="Don't accept changes if there are no release notes."),
-    include_all: Optional[bool] = typer.Option(default=False, help="Include all commits, even ones that are incorrectly formatted."),  # noqa: E501
+    include_all: Optional[bool] = typer.Option(
+        default=False,
+        help="Include all commits, even ones that are incorrectly formatted.",
+    ),
     interactive: Optional[bool] = typer.Option(default=True, help="Open changes in an editor before confirmation."),
     verbose: int = typer.Option(0, "-v", "--verbose", help="Set output verbosity.", count=True, max=3),
     _version: Optional[bool] = typer.Option(
