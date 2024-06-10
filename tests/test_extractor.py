@@ -175,6 +175,66 @@ def test_git_commit_extraction(conventional_commits):
     }
 
 
+def test_git_commit_extraction_include_all(conventional_commits):
+    hashes = conventional_commits
+    cfg = Config()
+    git = Git()
+
+    e = ReleaseNoteExtractor(cfg, git, include_all=True)
+
+    sections = e.extract("0.0.2")
+
+    assert sections == {
+        "Features and Improvements": {
+            "2": Change("2", "Detail about 2", short_hash=hashes[5][:7], commit_hash=hashes[5], commit_type="feat"),
+            "3": Change(
+                "3",
+                "Detail about 3",
+                breaking=True,
+                scope="(`docs`)",
+                short_hash=hashes[2][:7],
+                commit_hash=hashes[2],
+                commit_type="feat",
+            ),
+        },
+        "Bug fixes": {
+            "1": Change(
+                "1",
+                "Detail about 1",
+                breaking=True,
+                short_hash=hashes[3][:7],
+                commit_hash=hashes[3],
+                commit_type="fix",
+            ),
+            "4": Change(
+                "4",
+                "Detail about 4",
+                scope="(`config`)",
+                short_hash=hashes[0][:7],
+                commit_hash=hashes[0],
+                commit_type="fix",
+            ),
+        },
+        "Miscellaneous": {
+            "__1__": Change(
+                "__1__",
+                "update readme",
+                breaking=False,
+                short_hash=hashes[4][:7],
+                commit_hash=hashes[4],
+                commit_type="_misc",
+            ),
+            "__4__": Change(
+                "__4__",
+                "fix typo",
+                short_hash=hashes[1][:7],
+                commit_hash=hashes[1],
+                commit_type="_misc",
+            ),
+        },
+    }
+
+
 def test_git_commit_extraction_handles_random_tags(conventional_commits, multiversion_repo):
     hashes = conventional_commits
     multiversion_repo.api.create_tag("a-random-tag")

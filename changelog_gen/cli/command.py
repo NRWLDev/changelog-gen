@@ -201,6 +201,10 @@ def gen(  # noqa: PLR0913
     release: Optional[bool] = typer.Option(None, help="Use bumpversion to tag the release."),
     commit: Optional[bool] = typer.Option(None, help="Commit changes made to changelog after writing."),
     reject_empty: Optional[bool] = typer.Option(None, help="Don't accept changes if there are no release notes."),
+    include_all: Optional[bool] = typer.Option(
+        default=False,
+        help="Include all commits, even ones that are incorrectly formatted.",
+    ),
     interactive: Optional[bool] = typer.Option(default=True, help="Open changes in an editor before confirmation."),
     verbose: int = typer.Option(0, "-v", "--verbose", help="Set output verbosity.", count=True, max=3),
     _version: Optional[bool] = typer.Option(
@@ -238,7 +242,7 @@ def gen(  # noqa: PLR0913
         interactive = False
 
     try:
-        _gen(cfg, version_part, version_tag, dry_run=dry_run, interactive=interactive)
+        _gen(cfg, version_part, version_tag, dry_run=dry_run, interactive=interactive, include_all=include_all)
     except errors.ChangelogException as ex:
         logger.error("%s", ex)  # noqa: TRY400
         raise typer.Exit(code=1) from ex
@@ -278,13 +282,14 @@ def create_with_editor(content: str, extension: writer.Extension) -> str:
     return content
 
 
-def _gen(
+def _gen(  # noqa: PLR0913
     cfg: config.Config,
     version_part: str | None = None,
     version_tag: str | None = None,
     *,
     dry_run: bool = False,
     interactive: bool = True,
+    include_all: bool = False,
 ) -> None:
     bv = BumpVersion(verbose=cfg.verbose, dry_run=dry_run)
     git = Git(dry_run=dry_run)
@@ -298,7 +303,7 @@ def _gen(
     process_info(git.get_current_info(), cfg, dry_run=dry_run)
 
     version_info_ = bv.get_version_info("patch")
-    e = extractor.ReleaseNoteExtractor(cfg=cfg, git=git, dry_run=dry_run)
+    e = extractor.ReleaseNoteExtractor(cfg=cfg, git=git, dry_run=dry_run, include_all=include_all)
     sections = e.extract(version_info_["current"])
 
     unique_issues = e.unique_issues(sections)

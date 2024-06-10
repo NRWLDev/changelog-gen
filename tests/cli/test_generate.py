@@ -90,6 +90,10 @@ Refs: #4
 
 Refs: #3
 """,
+            "skip me",
+            """skip me as well
+
+multiline""",
             """feat: Detail about 2
 
 Refs: #2
@@ -447,6 +451,42 @@ def test_generate_writes_to_file(
 
 - Detail about 1 [#1]
 - Detail about 4 [#4]
+""".lstrip()
+    )
+
+
+@pytest.mark.usefixtures("_conventional_commits")
+def test_generate_writes_to_file_include_all(
+    gen_cli_runner,
+    changelog,
+    monkeypatch,
+):
+    monkeypatch.setattr(typer, "confirm", mock.MagicMock(return_value=True))
+    result = gen_cli_runner.invoke("--include-all")
+
+    assert result.exit_code == 0
+
+    assert (
+        changelog.read_text()
+        == """
+# Changelog
+
+## v0.0.1
+
+### Features and Improvements
+
+- Detail about 2 [#2]
+- Detail about 3 [#3]
+
+### Bug fixes
+
+- Detail about 1 [#1]
+- Detail about 4 [#4]
+
+### Miscellaneous
+
+- skip me
+- skip me as well
 """.lstrip()
     )
 
