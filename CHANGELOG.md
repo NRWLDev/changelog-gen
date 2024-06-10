@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.9.13 - 2024-06-10
+
+### Features and Improvements
+
+- Add include-all flag to pick up non conventional commits. [[#7](https://github.com/EdgyEdgemond/changelog-gen/issues/7)] [[8c8ccfd](https://github.com/EdgyEdgemond/changelog-gen/commit/8c8ccfdabb8937f65b7cf24bcf4e3a412f89900c)]
+
 ## v0.9.12 - 2024-05-15
 
 ### Bug fixes
