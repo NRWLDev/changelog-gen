@@ -1,0 +1,846 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://nrwldev.github.io/changelog-gen/configuration/">
+      
+      
+        <link rel="prev" href="../usage/">
+      
+      
+      
+      <link rel="icon" href="../favicon.svg">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.27">
+    
+    
+      
+        <title>Configuration - Changelog Generator</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.6543a935.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#configuration" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Changelog Generator" class="md-header__button md-logo" aria-label="Changelog Generator" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M0 96c0-35.3 28.7-64 64-64h384c35.3 0 64 28.7 64 64v320c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V96zm64 0v64h64V96H64zm384 0H192v64h256V96zM64 224v64h64v-64H64zm384 0H192v64h256v-64zM64 352v64h64v-64H64zm384 0H192v64h256v-64z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Changelog Generator
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Configuration
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/NRWLDev/changelog-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    changelog-gen
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Changelog Generator" class="md-nav__button md-logo" aria-label="Changelog Generator" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M0 96c0-35.3 28.7-64 64-64h384c35.3 0 64 28.7 64 64v320c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V96zm64 0v64h64V96H64zm384 0H192v64h256V96zM64 224v64h64v-64H64zm384 0H192v64h256v-64zM64 352v64h64v-64H64zm384 0H192v64h256v-64z"/></svg>
+
+    </a>
+    Changelog Generator
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/NRWLDev/changelog-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    changelog-gen
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Usage
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Configuration
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Configuration
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-file-global-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration file -- Global configuration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration file -- Global configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#commit-true-false" class="md-nav__link">
+    <span class="md-ellipsis">
+      commit = (True | False)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#release-true-false" class="md-nav__link">
+    <span class="md-ellipsis">
+      release = (True | False)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#allow_dirty-true-false" class="md-nav__link">
+    <span class="md-ellipsis">
+      allow_dirty = (True | False)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reject_empty-true-false" class="md-nav__link">
+    <span class="md-ellipsis">
+      reject_empty = (True | False)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue_link" class="md-nav__link">
+    <span class="md-ellipsis">
+      issue_link =
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#commit_link" class="md-nav__link">
+    <span class="md-ellipsis">
+      commit_link =
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#version_string" class="md-nav__link">
+    <span class="md-ellipsis">
+      version_string =
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#date_format" class="md-nav__link">
+    <span class="md-ellipsis">
+      date_format =
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#allowed_branches" class="md-nav__link">
+    <span class="md-ellipsis">
+      allowed_branches =
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#commit_types" class="md-nav__link">
+    <span class="md-ellipsis">
+      commit_types =
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post_process" class="md-nav__link">
+    <span class="md-ellipsis">
+      post_process =
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pre-release-flows" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pre-release flows
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-file-global-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration file -- Global configuration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration file -- Global configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#commit-true-false" class="md-nav__link">
+    <span class="md-ellipsis">
+      commit = (True | False)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#release-true-false" class="md-nav__link">
+    <span class="md-ellipsis">
+      release = (True | False)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#allow_dirty-true-false" class="md-nav__link">
+    <span class="md-ellipsis">
+      allow_dirty = (True | False)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reject_empty-true-false" class="md-nav__link">
+    <span class="md-ellipsis">
+      reject_empty = (True | False)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue_link" class="md-nav__link">
+    <span class="md-ellipsis">
+      issue_link =
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#commit_link" class="md-nav__link">
+    <span class="md-ellipsis">
+      commit_link =
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#version_string" class="md-nav__link">
+    <span class="md-ellipsis">
+      version_string =
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#date_format" class="md-nav__link">
+    <span class="md-ellipsis">
+      date_format =
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#allowed_branches" class="md-nav__link">
+    <span class="md-ellipsis">
+      allowed_branches =
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#commit_types" class="md-nav__link">
+    <span class="md-ellipsis">
+      commit_types =
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post_process" class="md-nav__link">
+    <span class="md-ellipsis">
+      post_process =
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pre-release-flows" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pre-release flows
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="configuration">Configuration</h1>
+<p>Of the command line arguments, most of them can be configured in <code>pyproject.toml</code> to remove
+the need to pass them in every time.</p>
+<p>Example:</p>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">[tool.changelog_gen]</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">commit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">release</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">allow_dirty</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="k">[tool.changelog_gen.post_process]</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="n">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;https://your-domain.atlassian.net/rest/api/2/issue/ISSUE-::issue_ref::/comment&quot;</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="n">verb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;POST&quot;</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="n">body</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;{&quot;body&quot;: &quot;Released on v::version::&quot;}&#39;</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="n">auth_env</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;JIRA_AUTH&quot;</span>
+</span></code></pre></div>
+<h2 id="configuration-file-global-configuration">Configuration file -- Global configuration</h2>
+<p>General configuration is grouped in a <code>[changelog_gen]</code> section.</p>
+<h3 id="commit-true-false"><code>commit = (True | False)</code></h3>
+<p><em><strong>[optional]</strong></em><br />
+  <strong>default</strong>: False</p>
+<p>Commit changes to the changelog after writing.</p>
+<p>Also available as <code>--commit</code> (e.g. <code>changelog generate --commit</code>)</p>
+<h3 id="release-true-false"><code>release = (True | False)</code></h3>
+<p><em><strong>[optional]</strong></em><br />
+  <strong>default</strong>: False</p>
+<p>Use bumpversion to tag the release</p>
+<p>Also available as <code>--release</code> (e.g. <code>changelog generate --release</code>)</p>
+<h3 id="allow_dirty-true-false"><code>allow_dirty = (True | False)</code></h3>
+<p><em><strong>[optional]</strong></em><br />
+  <strong>default</strong>: False</p>
+<p>Don't abort if the current branch contains uncommitted changes</p>
+<p>Also available as <code>--allow-dirty</code> (e.g. <code>changelog generate --allow-dirty</code>)</p>
+<h3 id="reject_empty-true-false"><code>reject_empty = (True | False)</code></h3>
+<p><em><strong>[optional]</strong></em><br />
+  <strong>default</strong>: False</p>
+<p>Abort if there are no release notes to add to the change log.</p>
+<p>Also available as <code>--reject-empty</code> (e.g. <code>changelog generate --reject-empty</code>)</p>
+<h3 id="issue_link"><code>issue_link =</code></h3>
+<p><em><strong>[optional]</strong></em><br />
+  <strong>default</strong>: None</p>
+<p>Create links in the CHANGELOG to the originating issue. A url that contains
+  an <code>issue_ref</code> placeholder for replacement.</p>
+<p>Example:</p>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">[tool.changelog_gen]</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">issue_link</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;http://github.com/NRWLDev/changelog-gen/issues/::issue_ref::&quot;</span>
+</span></code></pre></div>
+<h3 id="commit_link"><code>commit_link =</code></h3>
+<p><em><strong>[optional]</strong></em><br />
+  <strong>default</strong>: None</p>
+<p>Create links in the CHANGELOG to the originating commit. A url that contains
+  a <code>::commit_hash::</code> placeholder for replacement.</p>
+<p>Example:</p>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">[tool.changelog_gen]</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">commit_link</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;http://github.com/NRWLDev/changelog-gen/commit/::commit_hash::&quot;</span>
+</span></code></pre></div>
+<h3 id="version_string"><code>version_string =</code></h3>
+<p><em><strong>[optional]</strong></em><br />
+  <strong>default</strong>: <code>v{new_version}</code></p>
+<p>Format for the version tag, this will be passed into changelog, commit
+  messages, and any post processing.</p>
+<p>Example:</p>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">[tool.changelog_gen]</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">version_string</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;{new_version}&quot;</span>
+</span></code></pre></div>
+<h3 id="date_format"><code>date_format =</code></h3>
+<p><em><strong>[optional]</strong></em><br />
+  <strong>default</strong>: None</p>
+<p>Add a date on the version line, use <a href="https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes">strftime and strptime format
+  codes</a>.
+  The format string can include any character, a space is included between the
+  version tag and the date tag.</p>
+<p>Also available as <code>--date-format</code> (e.g. <code>--date-format '%Y-%m-%d'</code>).</p>
+<p>Example:</p>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">[tool.changelog_gen]</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">date_format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;on %Y-%m-%d&quot;</span>
+</span></code></pre></div>
+<h3 id="allowed_branches"><code>allowed_branches =</code></h3>
+<p><em><strong>[optional]</strong></em><br />
+  <strong>default</strong>: None</p>
+<p>Prevent changelog being generated if the current branch is not in the
+  supplied list. By default all branches are allowed.</p>
+<p>Example:</p>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">[tool.changelog_gen]</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">allowed_branches</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="s2">&quot;main&quot;</span><span class="p">,</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="s2">&quot;develop&quot;</span><span class="p">,</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="p">]</span>
+</span></code></pre></div>
+<h3 id="commit_types"><code>commit_types =</code></h3>
+<p><em><strong>[optional]</strong></em><br />
+  <strong>default</strong>:</p>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">feat</span><span class="p">.</span><span class="n">header</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Features and Improvements&quot;</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">feat</span><span class="p">.</span><span class="n">semver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;minor&quot;</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">fix</span><span class="p">.</span><span class="n">header</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Bug fixes&quot;</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="n">fix</span><span class="p">.</span><span class="n">semver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;patch&quot;</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">docs</span><span class="p">.</span><span class="n">header</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Documentation&quot;</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="n">docs</span><span class="p">.</span><span class="n">semver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;patch&quot;</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="n">bug</span><span class="p">.</span><span class="n">header</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Bug fixes&quot;</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="n">bug</span><span class="p">.</span><span class="n">semver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;patch&quot;</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="n">chore</span><span class="p">.</span><span class="n">header</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Miscellaneous&quot;</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="n">chore</span><span class="p">.</span><span class="n">semver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;patch&quot;</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="n">ci</span><span class="p">.</span><span class="n">header</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Miscellaneous&quot;</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="n">ci</span><span class="p">.</span><span class="n">semver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;patch&quot;</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="n">perf</span><span class="p">.</span><span class="n">header</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Miscellaneous&quot;</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="n">perf</span><span class="p">.</span><span class="n">semver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;patch&quot;</span>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="n">refactor</span><span class="p">.</span><span class="n">header</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Miscellaneous&quot;</span>
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="n">refactor</span><span class="p">.</span><span class="n">semver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;patch&quot;</span>
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="n">revert</span><span class="p">.</span><span class="n">header</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Miscellaneous&quot;</span>
+</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="n">revert</span><span class="p">.</span><span class="n">semver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;patch&quot;</span>
+</span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="n">style</span><span class="p">.</span><span class="n">header</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Miscellaneous&quot;</span>
+</span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="n">style</span><span class="p">.</span><span class="n">semver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;patch&quot;</span>
+</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="n">test</span><span class="p">.</span><span class="n">header</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Miscellaneous&quot;</span>
+</span><span id="__span-6-22"><a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="n">test</span><span class="p">.</span><span class="n">semver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;patch&quot;</span>
+</span></code></pre></div>
+<p>Define commit types and which headers and semver in the changelog they should map to, default semver is <code>patch</code>.</p>
+<p>Example:</p>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">[tool.changelog_gen.commit_types]</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">feat</span><span class="p">.</span><span class="n">header</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;New Features&quot;</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">feat</span><span class="p">.</span><span class="n">semver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;minor&quot;</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="n">change</span><span class="p">.</span><span class="n">header</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Changes&quot;</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="n">remove</span><span class="p">.</span><span class="n">header</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Removals&quot;</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="n">remove</span><span class="p">.</span><span class="n">semver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;minor&quot;</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="n">fix</span><span class="p">.</span><span class="n">header</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Bugfixes&quot;</span>
+</span></code></pre></div>
+<h3 id="post_process"><code>post_process =</code></h3>
+<p><em><strong>[optional]</strong></em><br />
+  <strong>default</strong>: None</p>
+<p>Configure a REST API to contact when a release is made</p>
+<p>See example on Jira configuration information.</p>
+<p><code>.url =</code><br />
+  <em><strong>[required]</strong></em><br />
+  <strong>default</strong>: None<br />
+  The url to contact.
+  Can have the placeholders <code>::issue_ref::</code> and `::version::``.</p>
+<p><code>.verb =</code><br />
+  <em><strong>[optional]</strong></em><br />
+  <strong>default</strong>: POST<br />
+  HTTP method to use.</p>
+<p><code>.body =</code><br />
+  <em><strong>[optional]</strong></em><br />
+  <strong>default</strong>: <code>{"body": "Released on ::version::"}</code><br />
+  The text to send to the API.
+  Can have the placeholders <code>::issue_ref::</code> and <code>::version::</code>.</p>
+<p><code>.headers =</code><br />
+  <em><strong>[optional]</strong></em><br />
+  <strong>default</strong>: None<br />
+  Headers dictionary to inject into http requests.</p>
+<p><code>.auth_type =</code><br />
+  <em><strong>[optional]</strong></em><br />
+  <strong>default</strong>: basic<br />
+  Auth type to use for post process requests, supported options are <code>basic</code> and <code>bearer</code>.</p>
+<p><code>.auth_env =</code><br />
+  <em><strong>[optional]</strong></em><br />
+  <strong>default</strong>: None<br />
+  Name of the environment variable to use to extract the basic auth information to contact the API.</p>
+<ul>
+<li>For basic auth the content of the variable should be <code>{user}:{api key}</code>.</li>
+<li>For bearer auth the content of the variable should be <code>{api key}</code>.</li>
+</ul>
+<p>Example to post to JIRA:</p>
+<p><div class="language-toml highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">[tool.changelog_gen.post_process]</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;https://your-domain.atlassian.net/rest/api/2/issue/ISSUE-::issue_ref::/comment&quot;</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="n">verb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;POST&quot;</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="n">body</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;{&quot;body&quot;: &quot;Released on ::version::&quot;}&#39;</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="n">auth_env</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;JIRA_AUTH&quot;</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="n">headers</span><span class="p">.</span><span class="s2">&quot;content-type&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;application/json&quot;</span>
+</span></code></pre></div>
+  This assumes an environment variable <code>JIRA_AUTH</code> with the content <code>user@domain.com:{api_key}</code>.
+  See
+  <a href="https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/">manage-api-tokens-for-your-atlassian-account</a>
+  to generate a key.</p>
+<p>Also partially available as <code>--post-process-url</code> and <code>--post-process-auth-env</code> (e.g. <code>changelog generate --post-process-url 'http://my-api-url.domain/comment/::issue_ref::' --post-process-auth-env MY_API_AUTH</code>)</p>
+<h2 id="pre-release-flows">Pre-release flows</h2>
+<p>If your versioning uses prerelease version parts, after a major/minor/patch update creates e.g. <code>v0.0.1rc0</code>, use
+<code>--version-part=&lt;part&gt;</code> to trigger release flows, based on your configuration.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>$<span class="w"> </span>changelog<span class="w"> </span>generate<span class="w"> </span>--version-part<span class="w"> </span>build
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>...<span class="w"> </span>v0.0.1rc1
+</span></code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+    <a href="mailto:admin@nrwl.co" target="_blank" rel="noopener" title="" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4l217.6 163.2c11.4 8.5 27 8.5 38.4 0l217.6-163.2c12.1-9.1 19.2-23.3 19.2-38.4 0-26.5-21.5-48-48-48H48zM0 176v208c0 35.3 28.7 64 64 64h384c35.3 0 64-28.7 64-64V176L294.4 339.2a63.9 63.9 0 0 1-76.8 0L0 176z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.instant.progress", "navigation.sections", "navigation.tracking", "toc.follow"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.ad660dcc.min.js"></script>
+      
+    
+  </body>
+</html>
