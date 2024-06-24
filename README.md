@@ -14,7 +14,10 @@ changelogs and create release tags.
 
 See the [docs](https://nrwldev.github.io/changelog-gen) for more details.
 
-## Migrating to 0.9 (Conventional Commit support)
+## Usage
+
+,2
+## Migrating from 0.8 to 0.9 (Conventional Commit support)
 Check the discussion
 [here](https://github.com/EdgyEdgemond/changelog-gen/discussions/98) for
 details on how to update usage to maintain legacy functionality or move over to
@@ -23,15 +26,13 @@ new features.
 ## Installation
 
 ```bash
-pip install changelog-gen[bump-my-version]   # recommended
-
-pip install changelog-gen[bump2version]  # bump2version support will be dropped in the future
+pip install changelog-gen
 ```
 
 or clone this repo and install with poetry.
 
 ```bash
-poetry install --extras=bump-my-version
+poetry install
 ```
 
 ## Contributing

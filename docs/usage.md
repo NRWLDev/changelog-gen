@@ -3,8 +3,19 @@
 `changelog` supports generating from commit logs using [Conventional
 Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
-See [Configuration](/changelog-gen/configuration) below for default commit type configuration
-and how to customize them.
+## Getting started
+
+If you have a project with no changelog currently, run `changelog init` to
+generate an empty file.
+
+If you have also not generated any releases yet, check out the documentation
+for [bump-my-version](https://github.com/callowayproject/bump-my-version). Once
+bump-my-version is set up tag the repository with your current version. The
+current version is required to detect the correct semver changes based on your
+commits.
+
+Once all set up and you've made some commits, run `changelog generate` to
+generate a tagged release and add your changes to the changelog.
 
 ```md
 ## <version>
@@ -25,6 +36,9 @@ and how to customize them.
 - xxx
 - xxx
 ```
+
+See [Configuration](/changelog-gen/configuration) below for default commit type configuration
+and how to customize them.
 
 ## Conventional commits
 
