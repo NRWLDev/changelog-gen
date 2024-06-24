@@ -16,7 +16,15 @@ See the [docs](https://nrwldev.github.io/changelog-gen) for more details.
 
 ## Usage
 
-,2
+`changelog init` will enerate an empty changelog with `changelog init` if you
+have not been maintaining changelogs previously. If you already have a
+changelog file, it will be detected.
+
+`changelog generate` will extract all commits matching the conventional format
+since the last release, detect the correct semver release, and generate the
+correct changelog entry. Depending on configuration, it will also tag the
+release.
+
 ## Migrating from 0.8 to 0.9 (Conventional Commit support)
 Check the discussion
 [here](https://github.com/EdgyEdgemond/changelog-gen/discussions/98) for
