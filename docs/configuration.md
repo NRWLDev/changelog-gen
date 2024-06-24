@@ -174,64 +174,6 @@ remove.semver = "minor"
 fix.header = "Bugfixes"
 ```
 
-### `sections =`
-  _**[Deprecated]**_<br />
-  _**[optional]**_<br />
-  **default**:
-
-```toml
-feat = "Features and Improvements"
-fix = "Bug fixes"
-docs = "Documentation"
-misc = "Miscellaneous"
-```
-
-  Define custom headers or new sections/headers, new sections will require a
-  matching section_mapping configuration.
-
-  This configuration has been deprecated, use `commit_types` instead.
-
-  Example:
-
-```toml
-[tool.changelog_gen.sections]
-feat = "New Features"
-change = "Changes"
-remove = "Removals"
-fix = "Bugfixes"
-```
-
-### `section_mapping =`
-  _**[Deprecated]**_<br />
-  _**[optional]**_<br />
-  **default**:
-
-```toml
-bug = "fix"
-chore = "misc"
-ci = "misc"
-docs = "docs"
-perf = "misc"
-refactor = "misc"
-revert = "misc"
-style = "misc"
-test = "misc"
-```
-
-  Configure additional supported commit types to supported changelog sections.
-
-  This configuration has been deprecated, use `commit_types` instead.
-
-  Example:
-
-```toml
-[tool.changelog_gen.section_mapping]
-test = "fix"
-bugfix = "fix"
-docs = "fix"
-new = "feat"
-```
-
 ### `post_process =`
   _**[optional]**_<br />
   **default**: None

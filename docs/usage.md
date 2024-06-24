@@ -1,6 +1,6 @@
 # Usage
 
-`changelog` currently supports generating from commit logs using [Conventional
+`changelog` supports generating from commit logs using [Conventional
 Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
 See [Configuration](/changelog-gen/configuration) below for default commit type configuration
