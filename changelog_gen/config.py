@@ -69,6 +69,7 @@ SUPPORTED_TYPES = {
     ),
 }
 
+
 @dataclasses.dataclass
 class PostProcessConfig:
     """Post Processor configuration options."""
