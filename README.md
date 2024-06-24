@@ -16,7 +16,7 @@ See the [docs](https://nrwldev.github.io/changelog-gen) for more details.
 
 ## Usage
 
-`changelog init` will enerate an empty changelog with `changelog init` if you
+`changelog init` will generate an empty changelog with `changelog init` if you
 have not been maintaining changelogs previously. If you already have a
 changelog file, it will be detected.
 
