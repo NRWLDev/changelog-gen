@@ -14,6 +14,32 @@ bump-my-version is set up tag the repository with your current version. The
 current version is required to detect the correct semver changes based on your
 commits.
 
+A basic pyproject.toml configuration can be as simple as:
+
+```toml
+[tool.poetry]
+name = "my-project"
+version = "0.0.0"
+
+[tool.bumpversion]
+current_version = "0.0.0"
+commit = true
+tag = true
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+search = 'version = "{current_version}"'
+replace = 'version = "{new_version}"'
+
+[tool.changelog_gen]
+release = true
+commit = true
+reject_empty = true
+allowed_branches = [
+    "main",
+]
+```
+
 Once all set up and you've made some commits, run `changelog generate` to
 generate a tagged release and add your changes to the changelog.
 
