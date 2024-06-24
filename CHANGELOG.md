@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.10.1 - 2024-06-24
+
+### Bug fixes
+
+- Remove extras definitions [[76f0e02](https://github.com/NRWLDev/changelog-gen/commit/76f0e0257af857c61173dff524393e694756905d)]
+
 ## v0.10.0 - 2024-06-24
 
 ### Features and Improvements
