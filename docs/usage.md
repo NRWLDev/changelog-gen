@@ -1,8 +1,5 @@
 # Usage
 
-`changelog` supports generating from commit logs using [Conventional
-Commits](https://www.conventionalcommits.org/en/v1.0.0/).
-
 ## Getting started
 
 If you have a project with no changelog currently, run `changelog init` to
