@@ -1202,11 +1202,7 @@ files = [
     {file = "wcwidth-0.2.13.tar.gz", hash = "sha256:72ea0c06399eb286d978fdedb6923a9eb47e1c486ce63e9b4e64fc18303972b5"},
 ]
 
-[extras]
-bump-my-version = ["bump-my-version"]
-bump2version = []
-
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "3fb8392bbb631c31e58a9004b922940cebcc0315e765c0c97c83ea09296a9d13"
+content-hash = "fed1c0c894ed99df07e5adc4a22556a92eb2342ea5d5a0fd56a37e57e26a17de"
