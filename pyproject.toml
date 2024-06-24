@@ -17,10 +17,6 @@ rtoml = ">=0.9"
 bump-my-version = "^0"
 rich = "^13"
 
-[tool.poetry.extras]
-bump-my-version = ["bump-my-version"]
-bump2version = ["bump2version"]
-
 [tool.poetry.dev-dependencies]
 
 # Tests
