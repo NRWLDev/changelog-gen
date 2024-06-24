@@ -5,8 +5,6 @@ import logging
 import re
 import typing
 from collections import defaultdict
-from pathlib import Path
-from warnings import warn
 
 if typing.TYPE_CHECKING:
     from changelog_gen import config
@@ -48,56 +46,12 @@ class ReleaseNoteExtractor:
         dry_run: bool = False,
         include_all: bool = False,
     ) -> None:
-        self.release_notes = Path("./release_notes")
         self.dry_run = dry_run
         self.include_all = include_all
         self.type_headers = cfg.type_headers
         if self.include_all:
             self.type_headers["_misc"] = "Miscellaneous"
         self.git = git
-
-        self.has_release_notes = self.release_notes.exists() and self.release_notes.is_dir()
-
-    def _extract_release_notes(
-        self: typing.Self,
-        sections: dict[str, dict],
-    ) -> None:
-        warn(
-            "`release_notes` support will be dropped in a future version, please migrate to conventional commits.",
-            FutureWarning,
-            stacklevel=2,
-        )
-        logger.warning("Extracting release note changes.")
-        # Extract changelog details from release note files.
-        for issue in sorted(self.release_notes.iterdir()):
-            if issue.is_file and not issue.name.startswith("."):
-                issue_ref, commit_type = issue.name.split(".")
-
-                breaking = False
-                if commit_type.endswith("!"):
-                    commit_type = commit_type[:-1]
-                    breaking = True
-
-                description = issue.read_text().strip()
-
-                if breaking:
-                    logger.info("  Breaking change detected:\n    %s: %s", commit_type, description)
-                header = self.type_headers.get(commit_type, commit_type)
-
-                if commit_type not in self.type_headers:
-                    logger.warning(
-                        "  Skipping unsupported CHANGELOG commit type %s, derived from './release_notes/%s'",
-                        commit_type,
-                        issue.name,
-                    )
-                    continue
-
-                sections[header][issue_ref] = Change(
-                    description=description,
-                    issue_ref=issue_ref,
-                    breaking=breaking,
-                    commit_type=commit_type,
-                )
 
     def _extract_commit_logs(
         self: typing.Self,
@@ -181,9 +135,6 @@ class ReleaseNoteExtractor:
         """Iterate over release note files extracting sections and issues."""
         sections = defaultdict(dict)
 
-        if self.has_release_notes:
-            self._extract_release_notes(sections)
-
         self._extract_commit_logs(sections, current_version)
 
         return sections
@@ -198,21 +149,6 @@ class ReleaseNoteExtractor:
             if issue.commit_type in self.type_headers
         }
         return sorted(issue_refs)
-
-    def clean(self: typing.Self) -> None:
-        """Remove parsed release not files.
-
-        On dry_run, leave files where they are as they haven't been written to
-        a changelog.
-        """
-        if self.release_notes.exists():
-            logger.info("Cleaning release notes.")
-            for x in self.release_notes.iterdir():
-                if x.is_file and not x.name.startswith("."):
-                    if self.dry_run:
-                        logger.info("  Would remove release note '%s'", x.name)
-                        continue
-                    x.unlink()
 
 
 def extract_version_tag(sections: SectionDict, cfg: config.Config, bv: BumpVersion) -> str:

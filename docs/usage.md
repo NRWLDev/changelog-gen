@@ -1,11 +1,7 @@
 # Usage
 
 `changelog` currently supports generating from commit logs using [Conventional
-Commits](https://www.conventionalcommits.org/en/v1.0.0/), as well as reading
-changes from a `release_notes` folder.
-
-NOTE: `release_notes` support will be dropped in a future version, migration to
-conventional commits is recommended.
+Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
 See [Configuration](/changelog-gen/configuration) below for default commit type configuration
 and how to customize them.
@@ -67,27 +63,3 @@ don't fit the conventional commit format. All non conventional commits will be
 included under a `Miscellaneous` heading. Combined with the `--interactive`
 flag commits can be included under the correct headings and/or excluded
 completely.
-
-## Release Notes
-
-Files in the folder should use the format `{issue_number}.{type}`.
-
-The contents of each file is used to populate the changelog file. If the type
-ends with a `!` it denotes a breaking change has been made, this will lead to a
-major release being suggested.
-
-```bash
-$ ls release_notes
-  4.fix  7.fix
-
-$ changelog generate
-
-## v0.2.1
-
-### Bug fixes
-
-- Raise errors from internal classes, don't use click.echo() [#4]
-- Update changelog line format to include issue number at the end. [#7]
-
-Write CHANGELOG for suggested version 0.2.1 [y/N]: y
-```

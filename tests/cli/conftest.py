@@ -18,24 +18,6 @@ class CliRunner(typer.testing.CliRunner):
         return result
 
 
-class GenCliRunner(CliRunner):
-    target = changelog_gen.cli.command.gen_app
-
-
-class InitCliRunner(GenCliRunner):
-    target = changelog_gen.cli.command.init_app
-
-
 @pytest.fixture()
 def cli_runner():
     return CliRunner()
-
-
-@pytest.fixture()
-def gen_cli_runner():
-    return GenCliRunner()
-
-
-@pytest.fixture()
-def init_cli_runner():
-    return InitCliRunner()
