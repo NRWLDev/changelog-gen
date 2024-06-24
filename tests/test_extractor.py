@@ -30,30 +30,6 @@ def multiversion_repo(git_repo):
 
 
 @pytest.fixture()
-def release_notes(multiversion_repo):
-    path = multiversion_repo.workspace
-    r = path / "release_notes"
-    r.mkdir()
-    f = r / ".file"
-    f.write_text("")
-    return r
-
-
-@pytest.fixture()
-def _valid_release_notes(release_notes):
-    for i, note in enumerate(["1.fix", "2.feat", "3.feat", "4.fix"], 1):
-        n = release_notes / note
-        n.write_text(f"Detail about {i}")
-
-
-@pytest.fixture()
-def _breaking_release_notes(release_notes):
-    for i, note in enumerate(["1.fix!", "2.feat", "3.feat!", "4.fix"], 1):
-        n = release_notes / note
-        n.write_text(f"Detail about {i}")
-
-
-@pytest.fixture()
 def conventional_commits(multiversion_repo):
     f = multiversion_repo.workspace / "hello.txt"
     hashes = []
@@ -85,51 +61,6 @@ Refs: #2
         multiversion_repo.api.index.commit(msg)
         hashes.append(str(multiversion_repo.api.head.commit))
     return hashes
-
-
-@pytest.mark.backwards_compat()
-@pytest.mark.usefixtures("multiversion_repo")
-def test_init_with_no_release_notes():
-    cfg = Config()
-    git = mock.Mock()
-    e = ReleaseNoteExtractor(cfg, git)
-    assert e.has_release_notes is False
-
-
-@pytest.mark.backwards_compat()
-def test_init_with_release_notes_non_dir(multiversion_repo):
-    path = multiversion_repo.workspace
-    r = path / "release_notes"
-    r.write_text("not a dir")
-
-    cfg = Config()
-    git = mock.Mock()
-
-    e = ReleaseNoteExtractor(cfg, git)
-
-    assert e.has_release_notes is False
-
-
-@pytest.mark.backwards_compat()
-@pytest.mark.usefixtures("_breaking_release_notes")
-def test_breaking_notes_extraction():
-    cfg = Config()
-    git = Git()
-
-    e = ReleaseNoteExtractor(cfg, git)
-
-    sections = e.extract("0.0.2")
-
-    assert sections == {
-        "Features and Improvements": {
-            "2": Change("2", "Detail about 2", "feat"),
-            "3": Change("3", "Detail about 3", "feat", breaking=True),
-        },
-        "Bug fixes": {
-            "1": Change("1", "Detail about 1", "fix", breaking=True),
-            "4": Change("4", "Detail about 4", "fix"),
-        },
-    }
 
 
 def test_git_commit_extraction(conventional_commits):
@@ -385,24 +316,6 @@ Refs: #1
     }
 
 
-@pytest.mark.backwards_compat()
-@pytest.mark.usefixtures("_valid_release_notes")
-def test_invalid_notes_skipped():
-    cfg = Config(commit_types={"fix": CommitType("Fix")})
-    git = Git()
-
-    e = ReleaseNoteExtractor(cfg, git)
-
-    sections = e.extract("0.0.2")
-
-    assert sections == {
-        "Fix": {
-            "1": Change("1", "Detail about 1", "fix"),
-            "4": Change("4", "Detail about 4", "fix"),
-        },
-    }
-
-
 def test_unique_issues():
     cfg = Config(commit_types={"bug": CommitType("BugFix"), "feat": CommitType("Features")})
     git = mock.Mock()
@@ -424,41 +337,6 @@ def test_unique_issues():
             },
         },
     ) == ["2", "3", "4"]
-
-
-@pytest.mark.backwards_compat()
-@pytest.mark.usefixtures("_valid_release_notes")
-def test_dry_run_clean_keeps_files(release_notes):
-    cfg = Config()
-    git = mock.Mock()
-
-    e = ReleaseNoteExtractor(cfg, git, dry_run=True)
-
-    e.clean()
-
-    assert sorted([f.name for f in release_notes.iterdir()]) == sorted(
-        [
-            "1.fix",
-            "2.feat",
-            "3.feat",
-            "4.fix",
-            ".file",
-        ],
-    )
-
-
-@pytest.mark.backwards_compat()
-@pytest.mark.usefixtures("_valid_release_notes")
-def test_clean_removes_all_non_dotfiles(release_notes):
-    """Clean should not remove .gitkeep files etc."""
-    cfg = Config()
-    git = mock.Mock()
-
-    e = ReleaseNoteExtractor(cfg, git)
-
-    e.clean()
-
-    assert [f.name for f in release_notes.iterdir()] == [".file"]
 
 
 @pytest.mark.parametrize(

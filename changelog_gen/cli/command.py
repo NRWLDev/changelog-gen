@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import contextlib
 import importlib.metadata
-import json
 import logging
 import logging.config
 import platform
@@ -12,7 +11,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Optional
-from warnings import warn
 
 import click
 import rtoml
@@ -86,8 +84,6 @@ def _callback(
 
 
 app = typer.Typer(name="changelog", callback=_callback)
-init_app = typer.Typer(name="init")
-gen_app = typer.Typer(name="generate")
 
 
 def process_info(info: dict, cfg: config.Config, *, dry_run: bool) -> None:
@@ -132,10 +128,8 @@ def display_config() -> None:
     )
 
 
-@init_app.command("changelog-init")
 @app.command("init")
 def init(
-    ctx: typer.Context,
     file_format: writer.Extension = typer.Option("md", help="File format to generate."),
     verbose: int = typer.Option(0, "-v", "--verbose", help="Set output verbosity.", count=True, max=3),
 ) -> None:
@@ -143,12 +137,6 @@ def init(
 
     Detect and raise if a CHANGELOG already exists, if not create a new file.
     """
-    if ctx.command.name == "changelog-init":
-        warn(
-            "`changelog-init` has been deprecated, please use `changelog init`",
-            FutureWarning,
-            stacklevel=2,
-        )
     setup_logging(verbose)
     cfg = config.Config()
     extension = util.detect_extension()
@@ -160,29 +148,8 @@ def init(
     w.write()
 
 
-@app.command("migrate")
-def migrate(
-    verbose: int = typer.Option(0, "-v", "--verbose", help="Set output verbosity.", count=True, max=3),
-) -> None:
-    """Generate toml configuration from setup.cfg."""
-    setup_logging(verbose)
-    setup = Path("setup.cfg")
-
-    if not setup.exists():
-        logger.error("setup.cfg not found.")
-        raise typer.Exit(code=1)
-
-    cfg = config._process_setup_cfg(setup)  # noqa: SLF001
-    config.check_deprecations(cfg)
-    if "post_process" in cfg and "headers" in cfg["post_process"]:
-        cfg["post_process"]["headers"] = json.loads(cfg["post_process"]["headers"])
-    typer.echo(rtoml.dumps({"tool": {"changelog_gen": cfg}}))
-
-
-@gen_app.command("changelog-gen")
 @app.command("generate")
 def gen(  # noqa: PLR0913
-    ctx: typer.Context,
     version_tag: Optional[str] = typer.Option(None, help="Provide the desired version tag, skip auto generation."),
     version_part: Optional[str] = typer.Option(None, help="Provide the desired version part, skip auto generation."),
     post_process_url: Optional[str] = typer.Option(
@@ -218,12 +185,6 @@ def gen(  # noqa: PLR0913
 
     Read release notes and generate a new CHANGELOG entry for the current version.
     """
-    if ctx.command.name == "changelog-gen":
-        warn(
-            "`changelog-gen` has been deprecated, please use `changelog generate`",
-            FutureWarning,
-            stacklevel=2,
-        )
     setup_logging(verbose)
     cfg = config.read(
         release=release,
@@ -334,7 +295,7 @@ def _gen(  # noqa: PLR0913
     logger.error(changes)
     w.content = changes.split("\n")[2:-2]
 
-    processed = _finalise(w, e, version_tag, extension, cfg, dry_run=dry_run)
+    processed = _finalise(w, version_tag, extension, cfg, dry_run=dry_run)
 
     post_process = cfg.post_process
     if post_process and processed:
@@ -342,9 +303,8 @@ def _gen(  # noqa: PLR0913
         per_issue_post_process(post_process, sorted(unique_issues), version_tag, dry_run=dry_run)
 
 
-def _finalise(  # noqa: PLR0913
+def _finalise(
     writer: writer.BaseWriter,
-    extractor: extractor.ReleaseNoteExtractor,
     version_tag: str,
     extension: writer.Extension,
     cfg: config.Config,
@@ -358,11 +318,8 @@ def _finalise(  # noqa: PLR0913
         f"Write CHANGELOG for suggested version {version_tag}",
     ):
         writer.write()
-        extractor.clean()
 
         paths = [f"CHANGELOG.{extension.value}"]
-        if Path("release_notes").exists():
-            paths.append("release_notes")
         git.commit(version_tag, paths)
 
         if cfg.commit and cfg.release:

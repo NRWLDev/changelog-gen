@@ -57,8 +57,8 @@ allowed_branches = [
     "main",
 ]
 date_format = "- %Y-%m-%d"
-issue_link = "https://github.com/EdgyEdgemond/changelog-gen/issues/::issue_ref::"
-commit_link = "https://github.com/EdgyEdgemond/changelog-gen/commit/::commit_hash::"
+issue_link = "https://github.com/NRWLDev/changelog-gen/issues/::issue_ref::"
+commit_link = "https://github.com/NRWLDev/changelog-gen/commit/::commit_hash::"
 
 
 [tool.pytest.ini_options]
@@ -68,8 +68,6 @@ addopts = [
     "-p no:logging",
 ]
 filterwarnings = [
-    "ignore::FutureWarning:changelog_gen.cli.command:140",
-    "ignore::FutureWarning:changelog_gen.cli.command:141",
 ]
 markers = [
     "backwards_compat: marks tests as part of backwards compatibility checks.",

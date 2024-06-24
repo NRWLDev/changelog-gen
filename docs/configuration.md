@@ -1,9 +1,9 @@
 # Configuration
 
-Of the command line arguments, most of them can be configured in `setup.cfg` or `pyproject.toml` to remove
+Of the command line arguments, most of them can be configured in `pyproject.toml` to remove
 the need to pass them in every time.
 
-Example `pyproject.toml`:
+Example:
 
 ```toml
 [tool.changelog_gen]
@@ -16,18 +16,6 @@ allow_dirty = false
   verb = "POST"
   body = '{"body": "Released on v::version::"}'
   auth_env = "JIRA_AUTH"
-```
-
-NOTE: setup.cfg is being deprecated, use `changelog migrate` to generate valid
-toml from existing setup.cfg file.
-
-Example `setup.cfg`:
-
-```ini
-[changelog_gen]
-commit = true
-release = true
-allow_dirty = false
 ```
 
 ## Configuration file -- Global configuration
@@ -116,9 +104,6 @@ version_string = "{new_version}"
   codes](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes).
   The format string can include any character, a space is included between the
   version tag and the date tag.
-
-  When using in `setup.cfg` be sure to protect the `%` signs by using `%%` and
-  be mindful about spacing as the string is taken straight from the `=` sign.
 
   Also available as `--date-format` (e.g. `--date-format '%Y-%m-%d'`).
 
@@ -276,8 +261,6 @@ new = "feat"
   _**[optional]**_<br />
   **default**: None<br />
   Headers dictionary to inject into http requests.
-
-  If using setup.cfg, provide a json string representation of the headers.
 
   `.auth_type =`<br />
   _**[optional]**_<br />
