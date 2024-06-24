@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.10.0 - 2024-06-24
+
+### Features and Improvements
+
+- **Breaking:** Drop support for bump2version and remove deprecated code. [[6a65cb4](https://github.com/NRWLDev/changelog-gen/commit/6a65cb44a792fc0380fd180c0e00569a35b02868)]
+
 ## v0.9.13 - 2024-06-10
 
 ### Features and Improvements
