@@ -26,8 +26,8 @@ bump2version = ["bump2version"]
 # Tests
 freezegun = "^1.2.1"
 pytest = "~8.2.0"
-pytest-cov = "^4.1.0"
-pytest-random-order = "^1.0.4"
+pytest-cov = "^5.0.0"
+pytest-random-order = "^1.1.0"
 pytest-httpx = "^0.30.0"
 pytest-git = "^1.7.0"
 
@@ -80,7 +80,6 @@ skip_covered = true
 exclude_lines = [
     "pragma: no cover",
     "if typing.TYPE_CHECKING:",
-    "bump_library",
     'warn',
 ]
 
