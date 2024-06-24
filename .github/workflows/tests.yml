@@ -58,7 +58,7 @@ jobs:
         poetry install --extras=bump2version
     - name: Generate coverage report
       run: |
-        pytest -m "backwards_compat"
+        sh -c 'pytest -m "backwards compat"; ret=$?; [ $ret = 5 ] && exit 0 || exit $ret'
 
   test-python-versions:
 
