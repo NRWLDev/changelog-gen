@@ -20,11 +20,11 @@ class Change:  # noqa: D101
     description: str
     commit_type: str
 
+    short_hash: str = ""
+    commit_hash: str = ""
     authors: str = ""
     scope: str = ""
     breaking: bool = False
-    short_hash: str | None = None
-    commit_hash: str | None = None
 
     def __lt__(self: typing.Self, other: Change) -> bool:  # noqa: D105
         s = (not self.breaking, self.scope.lower() if self.scope else "zzz", self.issue_ref.lower())

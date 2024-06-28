@@ -154,11 +154,33 @@ release = true
         c = config.read()
         assert c.post_process is None
 
+    def test_read_picks_up_issue_link(self, config_factory):
+        config_factory(
+            """
+[tool.changelog_gen]
+issue_link = "https://fake_rest_api/::issue_ref::"
+""",
+        )
+
+        c = config.read()
+        assert c.issue_link == "https://fake_rest_api/::issue_ref::"
+
+    def test_read_picks_up_commit_link(self, config_factory):
+        config_factory(
+            """
+[tool.changelog_gen]
+commit_link = "https://fake_rest_api/::commit_hash::"
+""",
+        )
+
+        c = config.read()
+        assert c.commit_link == "https://fake_rest_api/::commit_hash::"
+
     def test_read_picks_up_post_process_config_pyproject(self, config_factory):
         config_factory(
             """
 [tool.changelog_gen.post_process]
-url = "https://fake_rest_api/::issue_ref::"
+url = "https://fake_rest_api/::commit_hash::"
 verb = "PUT"
 body = '{"issue": "::issue_ref::", "comment": "Released in ::version::"}'
 auth_env = "MY_API_AUTH"
@@ -168,34 +190,41 @@ headers."content-type" = "application/json"
 
         c = config.read()
         assert c.post_process == config.PostProcessConfig(
-            url="https://fake_rest_api/::issue_ref::",
+            url="https://fake_rest_api/::commit_hash::",
             verb="PUT",
             body='{"issue": "::issue_ref::", "comment": "Released in ::version::"}',
             auth_env="MY_API_AUTH",
             headers={"content-type": "application/json"},
         )
 
-    def test_read_picks_up_unexpected_replaces(self, config_factory):
+    @pytest.mark.parametrize(
+        "config_value",
+        [
+            'issue_link = "::unexpected:: ::also-unexpected::"',
+            'commit_link = "::unexpected:: ::also-unexpected::"',
+            'post_process.body = "::unexpected:: ::also-unexpected::"',
+            'post_process.url = "::unexpected:: ::also-unexpected::"',
+        ],
+    )
+    def test_read_picks_up_unexpected_replaces(self, config_factory, config_value):
         config_factory(
-            """
-[tool.changelog_gen.post_process]
-url = "https://fake_rest_api/::issue_ref::"
-verb = "PUT"
-body = '{"issue": "::issue_ref::", "comment": "Released in ::version_tag::", "other": "::unexpected::"}'
-auth_env = "MY_API_AUTH"
+            f"""
+[tool.changelog_gen]
+{config_value}
         """,
         )
 
         with pytest.raises(errors.UnsupportedReplaceError) as e:
             config.read()
 
-        assert str(e.value) == "Replace string(s) ('::unexpected::', '::version_tag::') not supported."
+        assert str(e.value) == "Replace string(s) ('::also-unexpected::', '::unexpected::') not supported."
 
     def test_read_picks_up_post_process_override(self, config_factory):
         config_factory(
             """
-[tool.changelog_gen]
-commit = false
+[tool.changelog_gen.post_process]
+url = "https://initial/::issue_ref::"
+auth_env = "INITIAL"
 """,
         )
 
@@ -206,6 +235,42 @@ commit = false
         assert c.post_process == config.PostProcessConfig(
             url="https://fake_rest_api/",
             auth_env="MY_API_AUTH",
+        )
+
+    def test_read_picks_up_post_process_override_no_config(self, config_factory):
+        config_factory(
+            """
+[tool.changelog_gen]
+release = true
+""",
+        )
+
+        c = config.read(
+            post_process_url="https://fake_rest_api/",
+            post_process_auth_env="MY_API_AUTH",
+        )
+        assert c.post_process == config.PostProcessConfig(
+            url="https://fake_rest_api/",
+            auth_env="MY_API_AUTH",
+        )
+
+    @pytest.mark.parametrize(("url", "auth_env"), [("", "AUTH"), ("url", "")])
+    def test_read_ignores_empty_post_process_override(self, config_factory, url, auth_env):
+        config_factory(
+            """
+[tool.changelog_gen.post_process]
+url = "https://initial/::issue_ref::"
+auth_env = "INITIAL"
+""",
+        )
+
+        c = config.read(
+            post_process_url=url,
+            post_process_auth_env=auth_env,
+        )
+        assert c.post_process == config.PostProcessConfig(
+            url=url or "https://initial/::issue_ref::",
+            auth_env=auth_env or "INITIAL",
         )
 
     def test_read_rejects_unknown_fields(self, config_factory):
@@ -256,3 +321,87 @@ def test_read_overrides_pyproject(config_factory, key, value):
 
     c = config.read(**{key: value})
     assert getattr(c, key) == value
+
+
+def test_process_overrides_no_post_process_values():
+    _, post_process = config._process_overrides({})
+    assert post_process is None
+
+
+def test_process_overrides_extracts_post_process_values():
+    overrides, post_process = config._process_overrides(
+        {"key": "value", "post_process_url": "url", "post_process_auth_env": "auth"},
+    )
+    assert overrides == {"key": "value"}
+    assert post_process.url == "url"
+    assert post_process.auth_env == "auth"
+
+
+def test_config_defaults():
+    c = config.Config()
+    assert c.verbose == 0
+    assert c.version_string == "v{new_version}"
+    assert c.allowed_branches == []
+    assert c.commit_types == config.SUPPORTED_TYPES
+    for attr in [
+        "issue_link",
+        "commit_link",
+        "date_format",
+        "post_process",
+    ]:
+        assert getattr(c, attr) is None
+
+    for attr in [
+        "release",
+        "commit",
+        "allow_dirty",
+        "allow_missing",
+        "reject_empty",
+    ]:
+        assert getattr(c, attr) is False
+
+    assert c.semver_mappings == {
+        "bug": "patch",
+        "chore": "patch",
+        "ci": "patch",
+        "docs": "patch",
+        "feat": "minor",
+        "fix": "patch",
+        "perf": "patch",
+        "refactor": "patch",
+        "revert": "patch",
+        "style": "patch",
+        "test": "patch",
+    }
+    assert c.type_headers == {
+        "bug": "Bug fixes",
+        "chore": "Miscellaneous",
+        "ci": "Miscellaneous",
+        "docs": "Documentation",
+        "feat": "Features and Improvements",
+        "fix": "Bug fixes",
+        "perf": "Miscellaneous",
+        "refactor": "Miscellaneous",
+        "revert": "Miscellaneous",
+        "style": "Miscellaneous",
+        "test": "Miscellaneous",
+    }
+
+
+def test_post_process_defaults():
+    pp = config.PostProcessConfig()
+    assert pp.verb == "POST"
+    assert pp.body == '{"body": "Released on ::version::"}'
+    assert pp.auth_type == "basic"
+    for attr in [
+        "url",
+        "headers",
+        "auth_env",
+    ]:
+        assert getattr(pp, attr) is None
+
+
+def test_commit_type():
+    ct = config.CommitType("header", "semver")
+    assert ct.header == "header"
+    assert ct.semver == "semver"

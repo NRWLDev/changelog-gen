@@ -56,13 +56,14 @@ class TestMakeClient:
 
         cfg = PostProcessConfig(auth_env="MY_API_AUTH")
 
-        with pytest.raises(typer.Exit):
+        with pytest.raises(typer.Exit) as e:
             post_processor.make_client(cfg)
 
         assert post_processor.logger.error.call_args == mock.call(
             'Missing environment variable "%s"',
             "MY_API_AUTH",
         )
+        assert e.value.exit_code == 1
 
     @pytest.mark.parametrize(
         "env_value",
@@ -81,13 +82,14 @@ class TestMakeClient:
 
         cfg = PostProcessConfig(auth_env="MY_API_AUTH")
 
-        with pytest.raises(typer.Exit):
+        with pytest.raises(typer.Exit) as e:
             post_processor.make_client(cfg)
 
         assert post_processor.logger.error.call_args == mock.call(
             "Unexpected content in %s, need '{username}:{api_key}' for basic auth",
             "MY_API_AUTH",
         )
+        assert e.value.exit_code == 1
 
 
 class TestPerIssuePostPrequest:

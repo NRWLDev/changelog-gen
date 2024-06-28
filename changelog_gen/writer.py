@@ -135,7 +135,7 @@ class MdWriter(BaseWriter):
             line = f"{line} [[{change.short_hash}]({self.commit_link})]"
 
         line = line.replace("::issue_ref::", change.issue_ref)
-        line = line.replace("::commit_hash::", change.commit_hash or "")
+        line = line.replace("::commit_hash::", change.commit_hash)
 
         self.content.append(line)
 

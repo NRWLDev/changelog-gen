@@ -1,3 +1,4 @@
+import pathlib
 from unittest import mock
 
 import pytest
@@ -642,3 +643,37 @@ header
 .. _`#5`: http://url/issues/5
 .. _`#6`: http://url/issues/6"""
         )
+
+
+class TestNewWriter:
+    @pytest.mark.parametrize(
+        ("extension", "expected"),
+        [
+            (writer.Extension.MD, writer.MdWriter),
+            (writer.Extension.RST, writer.RstWriter),
+        ],
+    )
+    @pytest.mark.parametrize("dry_run", [True, False])
+    def test_supported_format(self, extension, expected, dry_run):
+        config = mock.Mock()
+        w = writer.new_writer(extension, config, dry_run=dry_run)
+
+        assert isinstance(w, expected)
+        assert w.extension == extension
+        assert w.changelog == pathlib.Path(f"CHANGELOG.{extension.value}")
+        assert w.dry_run == dry_run
+
+    def test_dry_run_default(self):
+        config = mock.Mock()
+        w = writer.new_writer(writer.Extension.MD, config)
+
+        assert w.dry_run is False
+
+    def test_unsupported_format(self):
+        config = mock.Mock()
+        ext = mock.Mock(value="txt")
+
+        with pytest.raises(ValueError, match='Changelog extension "txt" not supported.') as e:
+            writer.new_writer(ext, config)
+
+        assert str(e.value) == 'Changelog extension "txt" not supported.'

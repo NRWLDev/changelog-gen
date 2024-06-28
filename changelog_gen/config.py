@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import dataclasses
 import json
-import logging
 import re
 import typing
 from pathlib import Path
@@ -10,8 +9,6 @@ from pathlib import Path
 import rtoml
 
 from changelog_gen import errors
-
-logger = logging.getLogger(__name__)
 
 
 @dataclasses.dataclass
@@ -29,43 +26,33 @@ SUPPORTED_TYPES = {
     ),
     "fix": CommitType(
         header="Bug fixes",
-        semver="patch",
     ),
     "bug": CommitType(
         header="Bug fixes",
-        semver="patch",
     ),
     "docs": CommitType(
         header="Documentation",
-        semver="patch",
     ),
     "chore": CommitType(
         header="Miscellaneous",
-        semver="patch",
     ),
     "ci": CommitType(
         header="Miscellaneous",
-        semver="patch",
     ),
     "perf": CommitType(
         header="Miscellaneous",
-        semver="patch",
     ),
     "refactor": CommitType(
         header="Miscellaneous",
-        semver="patch",
     ),
     "revert": CommitType(
         header="Miscellaneous",
-        semver="patch",
     ),
     "style": CommitType(
         header="Miscellaneous",
-        semver="patch",
     ),
     "test": CommitType(
         header="Miscellaneous",
-        semver="patch",
     ),
 }
 
@@ -205,7 +192,7 @@ def read(**kwargs) -> Config:
 
     cfg.update(overrides)
 
-    check_deprecations(cfg)
+    check_deprecations(cfg)  # pragma: no mutate
 
     for replace_key_path in [
         ("issue_link",),
@@ -221,7 +208,7 @@ def read(**kwargs) -> Config:
 
         # check for non supported replace keys
         supported = {"::issue_ref::", "::version::", "::commit_hash::"}
-        unsupported = sorted(set(re.findall(r"(::.*?::)", value or "") or []) - supported)
+        unsupported = sorted(set(re.findall(r"(::.*?::)", str(value)) or []) - supported)
         if unsupported:
             msg = f"""Replace string(s) ('{"', '".join(unsupported)}') not supported."""
             raise errors.UnsupportedReplaceError(msg)
