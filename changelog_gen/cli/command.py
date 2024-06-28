@@ -325,7 +325,7 @@ def _finalise(
         if cfg.commit and cfg.release:
             try:
                 bv.release(version_tag)
-            except Exception as e:  # noqa: BLE001
+            except Exception as e:
                 git.revert()
                 logger.error("Error creating release: %s", str(e))  # noqa: TRY400
                 raise typer.Exit(code=1) from e

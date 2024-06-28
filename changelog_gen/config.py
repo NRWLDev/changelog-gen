@@ -217,7 +217,7 @@ def read(**kwargs) -> Config:
         pp = cfg["post_process"]
         try:
             cfg["post_process"] = PostProcessConfig.from_dict(pp)
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             msg = f"Failed to create post_process: {e!s}"
             raise RuntimeError(msg) from e
 

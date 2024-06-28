@@ -18,7 +18,7 @@ repos:
           - tomli
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.0
+    rev: v0.4.10
     hooks:
       - id: ruff-format
         args: [--preview, -s]
