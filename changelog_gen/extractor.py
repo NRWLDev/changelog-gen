@@ -75,7 +75,9 @@ class ReleaseNoteExtractor:
                 commit_type = m[1]
                 scope = (m[2] or "").replace("(", "(`").replace(")", "`)")
                 breaking = m[3] is not None
-                description = re.sub(r" \(#\d+\)$", "", m[4].strip())
+                description = m[4].strip()
+                # Strip githubs additional link information from description.
+                description = re.sub(r" \(#\d+\)$", "", description)
                 details = m[5] or ""
 
                 # Handle missing refs in commit message, skip link generation in writer
