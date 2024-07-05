@@ -4,6 +4,8 @@ import logging
 import subprocess
 from typing import TypeVar
 
+import git
+
 from changelog_gen import errors
 
 logger = logging.getLogger(__name__)
@@ -66,47 +68,21 @@ class Git:
 
     def get_current_info(self: T) -> dict[str, str]:
         """Get current state info from git."""
-        changed_files = (
-            subprocess.check_output(
-                ["git", "status", "-s"],  # noqa: S603, S607
-                stderr=subprocess.STDOUT,
-            )
-            .decode()
-            .strip()
-            .split("\n")
-        )
+        repo = git.Repo()
+        """
+        print(dir(repo))
+        print(list(repo.iter_commits("HEAD..origin/main")))
+        print(list(repo.iter_commits("origin/main..HEAD")))
+        """
 
-        try:
-            branch = (
-                subprocess.check_output(
-                    [  # noqa: S603, S607
-                        "git",
-                        "rev-parse",
-                        "--abbrev-ref",
-                        "HEAD",
-                    ],
-                    stderr=subprocess.STDOUT,
-                )
-                .decode()
-                .strip()
-                .split("\n")
-            )
-        except subprocess.CalledProcessError as e:
-            msg = (
-                f"Unable to get current git branch: {e.output.decode().strip()}"
-                if e.output
-                else "Unable to get current git branch."
-            )
-            raise errors.VcsError(msg) from e
-
-        missing_local = self._get_missing_local(branch)
-        missing_remote = self._get_missing_remote(branch)
+        missing_local = self._get_missing_local(["main"])
+        missing_remote = self._get_missing_remote(["main"])
 
         return {
             "missing_local": missing_local != [""],
             "missing_remote": missing_remote != [""],
-            "dirty": changed_files != [""],  # Any changed files == dirty
-            "branch": branch[0],
+            "dirty": repo.is_dirty(),
+            "branch": repo.active_branch.name,
         }
 
     def find_tag(self: T, version_string: str) -> str | None:
