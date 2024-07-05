@@ -19,70 +19,23 @@ class Git:
     def __init__(self: T, *, commit: bool = True, dry_run: bool = False) -> None:
         self._commit = commit
         self.dry_run = dry_run
-
-    def _get_missing_local(self: T, branch: list[str]) -> list[str]:
-        try:
-            return (
-                subprocess.check_output(
-                    [  # noqa: S603, S607
-                        "git",
-                        "rev-list",
-                        f"HEAD..origin/{branch[0]}",
-                    ],
-                    stderr=subprocess.STDOUT,
-                )
-                .decode()
-                .strip()
-                .split("\n")
-            )
-        except subprocess.CalledProcessError as e:
-            msg = (
-                f"Unable to get remote status: {e.output.decode().strip()}"
-                if e.output
-                else "Unable to get current remote status."
-            )
-            raise errors.VcsError(msg) from e
-
-    def _get_missing_remote(self: T, branch: list[str]) -> list[str]:
-        try:
-            return (
-                subprocess.check_output(
-                    [  # noqa: S603, S607
-                        "git",
-                        "rev-list",
-                        f"origin/{branch[0]}..HEAD",
-                    ],
-                    stderr=subprocess.STDOUT,
-                )
-                .decode()
-                .strip()
-                .split("\n")
-            )
-        except subprocess.CalledProcessError as e:
-            msg = (
-                f"Unable to get remote status: {e.output.decode().strip()}"
-                if e.output
-                else "Unable to get current remote status."
-            )
-            raise errors.VcsError(msg) from e
+        self.repo = git.Repo()
 
     def get_current_info(self: T) -> dict[str, str]:
         """Get current state info from git."""
-        repo = git.Repo()
-        """
-        print(dir(repo))
-        print(list(repo.iter_commits("HEAD..origin/main")))
-        print(list(repo.iter_commits("origin/main..HEAD")))
-        """
-
-        missing_local = self._get_missing_local(["main"])
-        missing_remote = self._get_missing_remote(["main"])
+        branch = self.repo.active_branch.name
+        try:
+            missing_local = list(self.repo.iter_commits(f"HEAD..origin/{branch}"))
+            missing_remote = list(self.repo.iter_commits(f"origin/{branch}..HEAD"))
+        except git.GitCommandError as e:
+            msg = f"Unable to determine missing commit status: {e}"
+            raise errors.VcsError(msg) from e
 
         return {
-            "missing_local": missing_local != [""],
-            "missing_remote": missing_remote != [""],
-            "dirty": repo.is_dirty(),
-            "branch": repo.active_branch.name,
+            "missing_local": missing_local != [],
+            "missing_remote": missing_remote != [],
+            "dirty": self.repo.is_dirty(),
+            "branch": branch,
         }
 
     def find_tag(self: T, version_string: str) -> str | None:
@@ -90,43 +43,21 @@ class Git:
 
         Given a version string `0.1.2` find the version tag `v0.1.2`, `0.1.2` etc.
         """
-        tag = (
-            subprocess.check_output(
-                [  # noqa: S603, S607
-                    "git",
-                    "tag",
-                    "-n",
-                    "--format='%(refname:short)'",
-                    rf"*{version_string}",
-                ],
-                stderr=subprocess.STDOUT,
-            )
-            .decode()
-            .strip()
-        )
+        for tag in self.repo.tags:
+            if tag.name.endswith(version_string):
+                return tag.name
 
-        return tag.strip("'") or None
+        return None
 
     def get_logs(self: T, tag: str | None) -> list:
         """Fetch logs since last tag."""
-        args = [
-            "git",
-            "log",
-            "--format=%h:%H:%B",  # message only
-            "-z",  # separate with \x00 rather than \n to differentiate multiline commits
-        ]
-        if tag:
-            args.append(f"{tag}..HEAD")
-        return [
-            m.split(":", 2)
-            for m in (
-                subprocess.check_output(args)  # noqa: S603
-                .decode()
-                .strip()
-                .split("\x00")
-            )
-            if m
-        ]
+        args = [f"{tag}..HEAD"] if tag else []
+        logs = self.repo.git.log(
+            *args,
+            z=True,  # separate with \x00 rather than \n to differentiate multiline commits
+            format="%h:%H:%B",  # message only
+        )
+        return [m.split(":", 2) for m in logs.split("\x00") if m]
 
     def add_path(self: T, path: str) -> None:
         """Add path to git repository."""
