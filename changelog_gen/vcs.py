@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import logging
-import subprocess
 from typing import TypeVar
 
 import git
 
 from changelog_gen import errors
+from changelog_gen.util import timer
 
 logger = logging.getLogger(__name__)
 
@@ -16,11 +16,13 @@ T = TypeVar("T", bound="Git")
 class Git:
     """VCS implementation for git repositories."""
 
+    @timer
     def __init__(self: T, *, commit: bool = True, dry_run: bool = False) -> None:
         self._commit = commit
         self.dry_run = dry_run
         self.repo = git.Repo()
 
+    @timer
     def get_current_info(self: T) -> dict[str, str]:
         """Get current state info from git."""
         branch = self.repo.active_branch.name
@@ -38,6 +40,7 @@ class Git:
             "branch": branch,
         }
 
+    @timer
     def find_tag(self: T, version_string: str) -> str | None:
         """Find a version tag given the version string.
 
@@ -49,6 +52,7 @@ class Git:
 
         return None
 
+    @timer
     def get_logs(self: T, tag: str | None) -> list:
         """Fetch logs since last tag."""
         args = [f"{tag}..HEAD"] if tag else []
@@ -59,13 +63,15 @@ class Git:
         )
         return [m.split(":", 2) for m in logs.split("\x00") if m]
 
+    @timer
     def add_path(self: T, path: str) -> None:
         """Add path to git repository."""
         if self.dry_run:
             logger.warning("  Would add path '%s' to Git", path)
             return
-        subprocess.check_output(["git", "add", "--update", path])  # noqa: S603, S607
+        self.repo.git.add(path, update=True)
 
+    @timer
     def commit(self: T, version: str, paths: list[str] | None = None) -> None:
         """Commit changes to git repository."""
         logger.warning("Would prepare Git commit")
@@ -79,16 +85,15 @@ class Git:
             return
 
         try:
-            subprocess.check_output(
-                ["git", "commit", "-m", f"Update CHANGELOG for {version}"],  # noqa: S603, S607
-            )
-        except subprocess.CalledProcessError as e:
-            msg = f"Unable to commit: {e.output.decode().strip()}" if e.output else "Unable to commit."
+            self.repo.git.commit(message=f"Update CHANGELOG for {version}")
+        except git.GitCommandError as e:
+            msg = f"Unable to commit: {e}"
             raise errors.VcsError(msg) from e
 
+    @timer
     def revert(self: T) -> None:
         """Revert a commit."""
         if self.dry_run:
             logger.warning("Would revert commit in Git")
             return
-        subprocess.check_output(["git", "reset", "HEAD~1", "--hard"])  # noqa: S603, S607
+        self.repo.git.reset("HEAD~1", hard=True)

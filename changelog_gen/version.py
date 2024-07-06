@@ -6,12 +6,14 @@ from typing import TypeVar
 from bumpversion import bump  # noqa: F401
 
 from changelog_gen import errors
+from changelog_gen.util import timer
 
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound="BumpVersion")
 
 
+@timer
 def parse_info(semver: str, lines: list[str]) -> tuple[str, str]:
     """Parse output from bump-my-version info command."""
     # Handle warning if setup.cfg exists
@@ -28,6 +30,7 @@ def parse_info(semver: str, lines: list[str]) -> tuple[str, str]:
     return current, new
 
 
+@timer
 def generate_verbosity(verbose: int = 0) -> list[str]:
     """Generate verbose flags correctly for each supported bumpversion library."""
     return [f"-{'v' * verbose}"]
@@ -41,15 +44,18 @@ commands = {
 
 
 class BumpVersion:  # noqa: D101
+    @timer
     def __init__(self: T, verbose: int = 0, *, allow_dirty: bool = False, dry_run: bool = False) -> None:
         self.verbose = verbose
         self.allow_dirty = allow_dirty
         self.dry_run = dry_run
 
+    @timer
     def _version_info_cmd(self: T, semver: str) -> list[str]:
         command = commands["get_version_info"]
         return [c.replace("SEMVER", semver) for c in command]
 
+    @timer
     def _release_cmd(self: T, version: str) -> list[str]:
         command = commands["release"]
         args = [c.replace("VERSION", version) for c in command]
@@ -61,6 +67,7 @@ class BumpVersion:  # noqa: D101
             args.append("--allow-dirty")
         return args
 
+    @timer
     def get_version_info(self: T, semver: str) -> dict[str, str]:
         """Get version info for a semver release."""
         try:
@@ -85,6 +92,7 @@ class BumpVersion:  # noqa: D101
             "new": new,
         }
 
+    @timer
     def release(self: T, version: str) -> None:
         """Generate new release."""
         try:

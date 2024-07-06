@@ -9,6 +9,7 @@ from pathlib import Path
 import rtoml
 
 from changelog_gen import errors
+from changelog_gen.util import timer
 
 
 @dataclasses.dataclass
@@ -125,6 +126,7 @@ class Config:
         return dataclasses.asdict(self)
 
 
+@timer
 def _process_overrides(overrides: dict) -> tuple[dict, PostProcessConfig | None]:
     """Process provided overrides.
 
@@ -145,6 +147,7 @@ def _process_overrides(overrides: dict) -> tuple[dict, PostProcessConfig | None]
     return overrides, post_process
 
 
+@timer
 def _process_pyproject(pyproject: Path) -> dict:
     cfg = {}
     with pyproject.open() as f:
@@ -159,12 +162,14 @@ def _process_pyproject(pyproject: Path) -> dict:
         return data["tool"]["changelog_gen"]
 
 
+@timer
 def check_deprecations(cfg: dict) -> None:  # noqa: ARG001
     """Check parsed configuration dict for deprecated features."""
     # No current deprecations
     return
 
 
+@timer
 def read(**kwargs) -> Config:
     """Read configuration from local environment.
 

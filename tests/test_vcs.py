@@ -240,7 +240,13 @@ def test_commit_no_changes():
     with pytest.raises(errors.VcsError) as ex:
         Git().commit("0.0.3")
 
-    assert str(ex.value) == "Unable to commit: On branch main\nnothing to commit, working tree clean"
+    assert (
+        str(ex.value)
+        == """Unable to commit: Cmd('git') failed due to: exit code(1)
+  cmdline: git commit --message=Update CHANGELOG for 0.0.3
+  stdout: 'On branch main
+nothing to commit, working tree clean'"""
+    )
 
 
 def test_revert(multiversion_repo):
