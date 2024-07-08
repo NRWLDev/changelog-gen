@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.10.3 - 2024-07-08
+
+### Bug fixes
+
+- Clean up how bump-version error outputs are handled [[accdf8f](https://github.com/NRWLDev/changelog-gen/commit/accdf8ff376d7ea1620962b756c69c7bb223deb9)]
+
 ## v0.10.2 - 2024-07-08
 
 ### Features and Improvements
