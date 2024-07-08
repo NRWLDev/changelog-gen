@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.10.2 - 2024-07-08
+
+### Features and Improvements
+
+- Replace manual subprocess calls with GitPython usage. [[d5541bd](https://github.com/NRWLDev/changelog-gen/commit/d5541bd4487eafe5c4029d0275b4406bb0251faf)]
+
+### Bug fixes
+
+- Simplify conventional commit regex to capture all chars in description. [[441b1d5](https://github.com/NRWLDev/changelog-gen/commit/441b1d5bcffd3430a230b4aa273fd6d973a49cc8)]
+
 ## v0.10.1 - 2024-06-24
 
 ### Bug fixes
