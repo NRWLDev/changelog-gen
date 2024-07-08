@@ -36,6 +36,9 @@ def generate_verbosity(verbose: int = 0) -> list[str]:
     return [f"-{'v' * verbose}"]
 
 
+ansi_escape = re.compile(r"(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]")
+
+
 class BumpVersion:  # noqa: D101
     @timer
     def __init__(self: T, verbose: int = 0, *, allow_dirty: bool = False, dry_run: bool = False) -> None:
@@ -58,6 +61,12 @@ class BumpVersion:  # noqa: D101
             args.append("--allow-dirty")
         return args
 
+    def escape_ansi(self: T, line: str) -> str:
+        """Strip color codes from a string."""
+        line = line.encode("ascii", errors="ignore").decode()
+        line = re.sub(r"\s+\n", "\n", line)
+        return ansi_escape.sub("", line).strip()
+
     def _process_error_output(self: T, output: str) -> str:
         """Parse rich formatted error outputs to a simple string.
 
@@ -78,8 +87,7 @@ class BumpVersion:  # noqa: D101
         # Parse rich text format cli output
         for line in output.decode().split("\n"):
             # Strip out rich text formatting
-            raw = line.encode("ascii", errors="ignore").decode()
-            raw = re.sub(r"\s+\n", "\n", raw).strip()
+            raw = self.escape_ansi(line)
             print(raw)  # noqa: T201
             print(line.strip())  # noqa: T201
             # If we've seen `- Error ---` line already, extract error details.
