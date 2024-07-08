@@ -75,7 +75,7 @@ class BumpVersion:  # noqa: D101
             for line in e.output.decode().split("\n"):
                 logger.warning(line.strip())
             msg = "Unable to get version data from bumpversion."
-            raise errors.VersionDetectionError(msg) from e
+            raise errors.VersionError(msg) from e
 
         current, new = parse_info(semver, describe_out)
         return {
@@ -99,7 +99,8 @@ class BumpVersion:  # noqa: D101
         except subprocess.CalledProcessError as e:
             for line in e.output.decode().split("\n"):
                 logger.warning(line.strip())
-            raise
+            msg = "Unable to generate release with bumpversion."
+            raise errors.VersionError(msg) from e
 
         for line in describe_out:
             logger.warning(line)

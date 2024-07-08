@@ -14,7 +14,7 @@ class VcsError(ChangelogException):
     """Version control error."""
 
 
-class VersionDetectionError(ChangelogException):
+class VersionError(ChangelogException):
     """Bumpversion error."""
 
 
