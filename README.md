@@ -37,13 +37,13 @@ new features.
 pip install changelog-gen
 ```
 
-or clone this repo and install with poetry.
+or clone this repo and install with invoke/poetry.
 
 ```bash
-poetry install
+invoke install-dev
 ```
 
 ## Contributing
 
-This project uses pre-commit hooks, please run `pre-commit install` after
-cloning and installing dev dependencies.
+This project uses pre-commit hooks, please run `invoke install-dev` after
+cloning to install dev dependencies and commit hooks.

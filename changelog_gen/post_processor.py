@@ -8,6 +8,8 @@ from http import HTTPStatus
 import httpx
 import typer
 
+from changelog_gen.util import timer
+
 if typing.TYPE_CHECKING:
     from changelog_gen.config import PostProcessConfig
 
@@ -56,6 +58,7 @@ def make_client(cfg: PostProcessConfig) -> httpx.Client:
     )
 
 
+@timer
 def per_issue_post_process(
     cfg: PostProcessConfig,
     issue_refs: list[str],

@@ -6,6 +6,8 @@ import re
 import typing
 from collections import defaultdict
 
+from changelog_gen.util import timer
+
 if typing.TYPE_CHECKING:
     from changelog_gen import config
     from changelog_gen.vcs import Git
@@ -35,9 +37,10 @@ class Change:  # noqa: D101
 SectionDict = dict[str, dict[str, Change]]
 
 
-class ReleaseNoteExtractor:
-    """Parse release notes and generate section dictionaries."""
+class ChangeExtractor:
+    """Parse commit logs and generate section dictionaries."""
 
+    @timer
     def __init__(
         self: typing.Self,
         cfg: config.Config,
@@ -53,6 +56,7 @@ class ReleaseNoteExtractor:
             self.type_headers["_misc"] = "Miscellaneous"
         self.git = git
 
+    @timer
     def _extract_commit_logs(
         self: typing.Self,
         sections: dict[str, dict],
@@ -133,6 +137,7 @@ class ReleaseNoteExtractor:
             else:
                 logger.debug("  Skipping commit log (not conventional): %s", log.strip())
 
+    @timer
     def extract(self: typing.Self, current_version: str) -> SectionDict:
         """Iterate over release note files extracting sections and issues."""
         sections = defaultdict(dict)
@@ -141,6 +146,7 @@ class ReleaseNoteExtractor:
 
         return sections
 
+    @timer
     def unique_issues(self: typing.Self, sections: SectionDict) -> list[str]:
         """Generate unique list of issue references."""
         issue_refs = set()
@@ -153,7 +159,8 @@ class ReleaseNoteExtractor:
         return sorted(issue_refs)
 
 
-def extract_version_tag(sections: SectionDict, cfg: config.Config, bv: BumpVersion) -> str:
+@timer
+def extract_version_tag(sections: SectionDict, cfg: config.Config, current: str, bv: BumpVersion) -> str:
     """Generate new version tag based on changelog sections.
 
     Breaking changes: major
@@ -163,8 +170,6 @@ def extract_version_tag(sections: SectionDict, cfg: config.Config, bv: BumpVersi
     """
     logger.warning("Detecting semver from changes.")
     semver_mapping = cfg.semver_mappings
-    version_info_ = bv.get_version_info("patch")
-    current = version_info_["current"]
 
     semvers = ["patch", "minor", "major"]
     semver = "patch"

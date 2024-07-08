@@ -7,6 +7,7 @@ import logging.config
 import platform
 import shlex
 import subprocess
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -27,6 +28,7 @@ from changelog_gen import (
 from changelog_gen.cli import util
 from changelog_gen.extractor import extract_version_tag
 from changelog_gen.post_processor import per_issue_post_process
+from changelog_gen.util import timer
 from changelog_gen.vcs import Git
 from changelog_gen.version import BumpVersion
 
@@ -42,6 +44,7 @@ VERBOSITY = {
 tempfile_prefix = "_tmp_changelog"
 
 
+@timer
 def setup_logging(verbose: int = 0) -> None:
     """Configure the logging."""
     logging.basicConfig(
@@ -86,6 +89,7 @@ def _callback(
 app = typer.Typer(name="changelog", callback=_callback)
 
 
+@timer
 def process_info(info: dict, cfg: config.Config, *, dry_run: bool) -> None:
     """Process git info and raise on invalid state."""
     if dry_run:
@@ -185,6 +189,7 @@ def gen(  # noqa: PLR0913
 
     Read release notes and generate a new CHANGELOG entry for the current version.
     """
+    start = time.time()
     setup_logging(verbose)
     cfg = config.read(
         release=release,
@@ -206,9 +211,12 @@ def gen(  # noqa: PLR0913
         _gen(cfg, version_part, version_tag, dry_run=dry_run, interactive=interactive, include_all=include_all)
     except errors.ChangelogException as ex:
         logger.error("%s", ex)  # noqa: TRY400
+        logger.debug("Run time (error) %f", (time.time() - start) * 1000)
         raise typer.Exit(code=1) from ex
+    logger.debug("Run time %f", (time.time() - start) * 1000)
 
 
+@timer
 def create_with_editor(content: str, extension: writer.Extension) -> str:
     """Open temporary file in editor to allow modifications."""
     editor = util.get_editor()
@@ -243,6 +251,7 @@ def create_with_editor(content: str, extension: writer.Extension) -> str:
     return content
 
 
+@timer
 def _gen(  # noqa: PLR0913
     cfg: config.Config,
     version_part: str | None = None,
@@ -252,8 +261,8 @@ def _gen(  # noqa: PLR0913
     interactive: bool = True,
     include_all: bool = False,
 ) -> None:
-    bv = BumpVersion(verbose=cfg.verbose, dry_run=dry_run)
-    git = Git(dry_run=dry_run)
+    bv = BumpVersion(verbose=cfg.verbose, dry_run=dry_run, allow_dirty=cfg.allow_dirty)
+    git = Git(dry_run=dry_run, commit=cfg.commit)
 
     extension = util.detect_extension()
 
@@ -263,21 +272,21 @@ def _gen(  # noqa: PLR0913
 
     process_info(git.get_current_info(), cfg, dry_run=dry_run)
 
-    version_info_ = bv.get_version_info("patch")
-    e = extractor.ReleaseNoteExtractor(cfg=cfg, git=git, dry_run=dry_run, include_all=include_all)
-    sections = e.extract(version_info_["current"])
+    version_info_ = bv.get_version_info(version_part or "patch")
+    current = version_info_["current"]
+    if version_part:
+        version_tag = version_info_["new"]
+
+    e = extractor.ChangeExtractor(cfg=cfg, git=git, dry_run=dry_run, include_all=include_all)
+    sections = e.extract(current)
 
     unique_issues = e.unique_issues(sections)
     if not unique_issues and cfg.reject_empty:
         logger.error("No changes present and reject_empty configured.")
         raise typer.Exit(code=0)
 
-    if version_part is not None:
-        version_info_ = bv.get_version_info(version_part)
-        version_tag = version_info_["new"]
-
     if version_tag is None:
-        version_tag = extract_version_tag(sections, cfg, bv)
+        version_tag = extract_version_tag(sections, cfg, current, bv)
 
     version_string = cfg.version_string.format(new_version=version_tag)
 
@@ -295,29 +304,11 @@ def _gen(  # noqa: PLR0913
     logger.error(changes)
     w.content = changes.split("\n")[2:-2]
 
-    processed = _finalise(w, version_tag, extension, cfg, dry_run=dry_run)
-
-    post_process = cfg.post_process
-    if post_process and processed:
-        unique_issues = [r for r in unique_issues if not r.startswith("__")]
-        per_issue_post_process(post_process, sorted(unique_issues), version_tag, dry_run=dry_run)
-
-
-def _finalise(
-    writer: writer.BaseWriter,
-    version_tag: str,
-    extension: writer.Extension,
-    cfg: config.Config,
-    *,
-    dry_run: bool,
-) -> bool:
-    bv = BumpVersion(verbose=cfg.verbose, dry_run=dry_run, allow_dirty=cfg.allow_dirty)
-    git = Git(dry_run=dry_run, commit=cfg.commit)
-
+    processed = False
     if dry_run or typer.confirm(
         f"Write CHANGELOG for suggested version {version_tag}",
     ):
-        writer.write()
+        w.write()
 
         paths = [f"CHANGELOG.{extension.value}"]
         git.commit(version_tag, paths)
@@ -329,6 +320,9 @@ def _finalise(
                 git.revert()
                 logger.error("Error creating release: %s", str(e))  # noqa: TRY400
                 raise typer.Exit(code=1) from e
-        return True
+        processed = True
 
-    return False
+    post_process = cfg.post_process
+    if post_process and processed:
+        unique_issues = [r for r in unique_issues if not r.startswith("__")]
+        per_issue_post_process(post_process, sorted(unique_issues), version_tag, dry_run=dry_run)

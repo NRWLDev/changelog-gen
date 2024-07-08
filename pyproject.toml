@@ -16,6 +16,7 @@ httpx = "^0"
 rtoml = ">=0.9"
 bump-my-version = "^0"
 rich = "^13"
+gitpython = "^3.1.43"
 
 [tool.poetry.dev-dependencies]
 

@@ -1,4 +1,3 @@
-import subprocess
 from unittest import mock
 
 import pytest
@@ -47,63 +46,8 @@ def multiversion_v_repo(git_repo):
     return git_repo
 
 
-@pytest.mark.usefixtures("multiversion_repo")
-def test_get_missing_local_failure():
-    with pytest.raises(errors.VcsError) as ex:
-        Git()._get_missing_local(["branch"])
-
-    assert (
-        "Unable to get remote status: fatal: ambiguous argument 'HEAD..origin/branch': unknown revision or path not in the working tree."  # noqa: E501
-        in str(ex.value)
-    )
-
-
-@pytest.mark.usefixtures("multiversion_repo")
-def test_get_missing_local_up_to_date(monkeypatch):
-    monkeypatch.setattr(vcs.subprocess, "check_output", mock.Mock(return_value=b""))
-    missing_local = Git()._get_missing_local(["branch"])
-
-    assert missing_local == [""]
-
-
-@pytest.mark.usefixtures("multiversion_repo")
-def test_get_missing_local(monkeypatch):
-    monkeypatch.setattr(vcs.subprocess, "check_output", mock.Mock(return_value=b"commit"))
-    missing_local = Git()._get_missing_local(["branch"])
-
-    assert missing_local == ["commit"]
-
-
-@pytest.mark.usefixtures("multiversion_repo")
-def test_get_missing_remote_failure():
-    with pytest.raises(errors.VcsError) as ex:
-        Git()._get_missing_remote(["branch"])
-
-    assert (
-        "Unable to get remote status: fatal: ambiguous argument 'origin/branch..HEAD': unknown revision or path not in the working tree."  # noqa: E501
-        in str(ex.value)
-    )
-
-
-@pytest.mark.usefixtures("multiversion_repo")
-def test_get_missing_remote_up_to_date(monkeypatch):
-    monkeypatch.setattr(vcs.subprocess, "check_output", mock.Mock(return_value=b""))
-    missing_remote = Git()._get_missing_remote(["branch"])
-
-    assert missing_remote == [""]
-
-
-@pytest.mark.usefixtures("multiversion_repo")
-def test_get_missing_remote(monkeypatch):
-    monkeypatch.setattr(vcs.subprocess, "check_output", mock.Mock(return_value=b"commit"))
-    missing_remote = Git()._get_missing_remote(["branch"])
-
-    assert missing_remote == ["commit"]
-
-
 def test_get_current_info_branch(multiversion_repo, monkeypatch):
-    monkeypatch.setattr(Git, "_get_missing_local", mock.Mock(return_value=[""]))
-    monkeypatch.setattr(Git, "_get_missing_remote", mock.Mock(return_value=[""]))
+    monkeypatch.setattr(vcs.git.Repo, "iter_commits", mock.Mock(return_value=[]))
     path = multiversion_repo.workspace
     f = path / "hello.txt"
 
@@ -116,16 +60,14 @@ def test_get_current_info_branch(multiversion_repo, monkeypatch):
 
 @pytest.mark.usefixtures("multiversion_repo")
 def test_get_current_info_clean(monkeypatch):
-    monkeypatch.setattr(Git, "_get_missing_local", mock.Mock(return_value=[""]))
-    monkeypatch.setattr(Git, "_get_missing_remote", mock.Mock(return_value=[""]))
+    monkeypatch.setattr(vcs.git.Repo, "iter_commits", mock.Mock(return_value=[]))
     info = Git().get_current_info()
 
     assert info["dirty"] is False
 
 
 def test_get_current_info_dirty(multiversion_repo, monkeypatch):
-    monkeypatch.setattr(Git, "_get_missing_local", mock.Mock(return_value=[""]))
-    monkeypatch.setattr(Git, "_get_missing_remote", mock.Mock(return_value=[""]))
+    monkeypatch.setattr(vcs.git.Repo, "iter_commits", mock.Mock(return_value=[]))
     path = multiversion_repo.workspace
     f = path / "hello.txt"
 
@@ -137,9 +79,20 @@ def test_get_current_info_dirty(multiversion_repo, monkeypatch):
 
 
 @pytest.mark.usefixtures("multiversion_repo")
+def test_get_current_info_missing_remote_branch(monkeypatch):
+    monkeypatch.setattr(
+        vcs.git.Repo,
+        "iter_commits",
+        mock.Mock(side_effect=vcs.git.GitCommandError("git iter_commits")),
+    )
+
+    with pytest.raises(errors.VcsError):
+        Git().get_current_info()
+
+
+@pytest.mark.usefixtures("multiversion_repo")
 def test_get_current_info_missing_local(monkeypatch):
-    monkeypatch.setattr(Git, "_get_missing_local", mock.Mock(return_value=["commit"]))
-    monkeypatch.setattr(Git, "_get_missing_remote", mock.Mock(return_value=[""]))
+    monkeypatch.setattr(vcs.git.Repo, "iter_commits", mock.Mock(side_effect=[["commit"], []]))
 
     info = Git().get_current_info()
 
@@ -148,25 +101,11 @@ def test_get_current_info_missing_local(monkeypatch):
 
 @pytest.mark.usefixtures("multiversion_repo")
 def test_get_current_info_missing_remote(monkeypatch):
-    monkeypatch.setattr(Git, "_get_missing_local", mock.Mock(return_value=[""]))
-    monkeypatch.setattr(Git, "_get_missing_remote", mock.Mock(return_value=["commit"]))
+    monkeypatch.setattr(vcs.git.Repo, "iter_commits", mock.Mock(side_effect=[[], ["commit"]]))
 
     info = Git().get_current_info()
 
     assert info["missing_remote"] is True
-
-
-@pytest.mark.usefixtures("git_repo")
-def test_get_current_info_raises_if_rev_parse_fails(monkeypatch):
-    monkeypatch.setattr(
-        subprocess,
-        "check_output",
-        mock.Mock(side_effect=[b"", subprocess.CalledProcessError(returncode=1, cmd="")]),
-    )
-    with pytest.raises(errors.VcsError) as ex:
-        Git().get_current_info()
-
-    assert str(ex.value) == "Unable to get current git branch."
 
 
 @pytest.mark.usefixtures("multiversion_repo")
@@ -313,7 +252,13 @@ def test_commit_no_changes():
     with pytest.raises(errors.VcsError) as ex:
         Git().commit("0.0.3")
 
-    assert str(ex.value) == "Unable to commit: On branch main\nnothing to commit, working tree clean"
+    assert (
+        str(ex.value)
+        == """Unable to commit: Cmd('git') failed due to: exit code(1)
+  cmdline: git commit --message=Update CHANGELOG for 0.0.3
+  stdout: 'On branch main
+nothing to commit, working tree clean'"""
+    )
 
 
 def test_revert(multiversion_repo):
