@@ -33,26 +33,17 @@ def generate_verbosity(verbose: int = 0) -> list[str]:
     return [f"-{'v' * verbose}"]
 
 
-commands = {
-    "get_version_info": ["bump-my-version", "show-bump", "--ascii"],
-    "release": ["bump-my-version", "bump", "patch", "--new-version", "VERSION"],
-    "parser": parse_info,
-}
-
-
 class BumpVersion:  # noqa: D101
     def __init__(self: T, verbose: int = 0, *, allow_dirty: bool = False, dry_run: bool = False) -> None:
         self.verbose = verbose
         self.allow_dirty = allow_dirty
         self.dry_run = dry_run
 
-    def _version_info_cmd(self: T, semver: str) -> list[str]:
-        command = commands["get_version_info"]
-        return [c.replace("SEMVER", semver) for c in command]
+    def _version_info_cmd(self: T) -> list[str]:
+        return ["bump-my-version", "show-bump", "--ascii"]
 
     def _release_cmd(self: T, version: str) -> list[str]:
-        command = commands["release"]
-        args = [c.replace("VERSION", version) for c in command]
+        args = ["bump-my-version", "bump", "patch", "--new-version", version]
         if self.verbose:
             args.extend(generate_verbosity(self.verbose))
         if self.dry_run:
@@ -79,7 +70,7 @@ class BumpVersion:  # noqa: D101
             msg = "Unable to get version data from bumpversion."
             raise errors.VersionDetectionError(msg) from e
 
-        current, new = commands["parser"](semver, describe_out)
+        current, new = parse_info(semver, describe_out)
         return {
             "current": current,
             "new": new,
