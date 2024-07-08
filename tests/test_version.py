@@ -49,9 +49,16 @@ def test_generate_verbosity(verbose, expected_verbosity):
 
 class TestBumpMyVersion:
     @pytest.mark.usefixtures("cwd")
-    def test_errors_wrapped(self):
-        with pytest.raises(errors.VersionError):
+    def test_version_info_handles_errors(self):
+        with pytest.raises(errors.VersionError) as e:
             version.BumpVersion().get_version_info("patch")
+
+        assert (
+            str(e.value)
+            == """Unable to get version data from bumpversion.
+cmd: bump-my-version show-bump --ascii
+error: Unable to determine the current version."""
+        )
 
     @pytest.mark.parametrize(
         ("current_version", "new_version", "semver"),
@@ -137,17 +144,12 @@ parts.release.optional_value = "final"
     @pytest.mark.usefixtures("cwd")
     def test_release_handles_error(self, monkeypatch):
         monkeypatch.setattr(version.logger, "warning", mock.Mock())
-        with pytest.raises(errors.VersionError):
+        with pytest.raises(errors.VersionError) as e:
             version.BumpVersion().release("1.2.3")
 
-        assert version.logger.warning.call_args_list == [
-            mock.call(""),
-            mock.call("Usage: bump-my-version bump [OPTIONS] [ARGS]..."),
-            mock.call(""),
-            mock.call("Try 'bump-my-version bump -h' for help"),
-            mock.call("╭─ Error ──────────────────────────────────────────────────────────────────────╮"),
-            mock.call("│ Unable to determine the current version.                                     │"),
-            mock.call("╰──────────────────────────────────────────────────────────────────────────────╯"),
-            mock.call(""),
-            mock.call(""),
-        ]
+        assert (
+            str(e.value)
+            == """Unable to generate release with bumpversion.
+cmd: bump-my-version bump patch --new-version 1.2.3
+error: Unable to determine the current version."""
+        )

@@ -58,13 +58,44 @@ class BumpVersion:  # noqa: D101
             args.append("--allow-dirty")
         return args
 
+    def _process_error_output(self: T, output: str) -> str:
+        """Parse rich formatted error outputs to a simple string.
+
+        Extract `Error` from rich format outputs
+        ```
+        Usage: bump-my-version bump [OPTIONS] [ARGS]..."),
+
+        Try 'bump-my-version bump -h' for help"),
+        ╭─ Error ──────────────────────────────────────────────────────────────────────╮"),
+        │ Unable to determine the current version.                                     │"),
+        ╰──────────────────────────────────────────────────────────────────────────────╯"),
+        ```
+
+        Extracted error above would be `error: Unable to determine the current version.`
+        """
+        error = False
+        error_details = []
+        # Parse rich text format cli output
+        for line in output.decode().split("\n"):
+            # Strip out rich text formatting
+            raw = line.encode("ascii", errors="ignore").decode()
+            raw = re.sub(r"\s+\n", "\n", raw).strip()
+            # If we've seen `- Error ---` line already, extract error details.
+            if error and raw:
+                error_details.append(raw)
+            error = error or raw == "Error"
+            logger.warning(line.strip())
+        nl = "\n"
+        return f"error: {nl.join(error_details)}"
+
     @timer
     def get_version_info(self: T, semver: str) -> dict[str, str]:
         """Get version info for a semver release."""
+        command = self._version_info_cmd()
         try:
             describe_out = (
                 subprocess.check_output(
-                    self._version_info_cmd(),  # noqa: S603
+                    command,  # noqa: S603
                     stderr=subprocess.STDOUT,
                 )
                 .decode()
@@ -72,9 +103,12 @@ class BumpVersion:  # noqa: D101
                 .split("\n")
             )
         except subprocess.CalledProcessError as e:
-            for line in e.output.decode().split("\n"):
-                logger.warning(line.strip())
-            msg = "Unable to get version data from bumpversion."
+            error_message = [
+                "Unable to get version data from bumpversion.",
+                f"cmd: {' '.join(command)}",
+                self._process_error_output(e.output),
+            ]
+            msg = "\n".join(error_message)
             raise errors.VersionError(msg) from e
 
         current, new = parse_info(semver, describe_out)
@@ -86,10 +120,11 @@ class BumpVersion:  # noqa: D101
     @timer
     def release(self: T, version: str) -> None:
         """Generate new release."""
+        command = self._release_cmd(version)
         try:
             describe_out = (
                 subprocess.check_output(
-                    self._release_cmd(version),  # noqa: S603
+                    command,  # noqa: S603
                     stderr=subprocess.STDOUT,
                 )
                 .decode()
@@ -97,9 +132,12 @@ class BumpVersion:  # noqa: D101
                 .split("\n")
             )
         except subprocess.CalledProcessError as e:
-            for line in e.output.decode().split("\n"):
-                logger.warning(line.strip())
-            msg = "Unable to generate release with bumpversion."
+            error_message = [
+                "Unable to generate release with bumpversion.",
+                f"cmd: {' '.join(command)}",
+                self._process_error_output(e.output),
+            ]
+            msg = "\n".join(error_message)
             raise errors.VersionError(msg) from e
 
         for line in describe_out:
