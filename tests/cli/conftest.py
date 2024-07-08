@@ -8,7 +8,7 @@ class CliRunner(typer.testing.CliRunner):
     target = changelog_gen.cli.command.app
 
     def invoke(self, *args, **kwargs):
-        result = super().invoke(self.target, *args, **kwargs)
+        result = super().invoke(self.target, *args, color=False, **kwargs)
         if result.exception:
             if isinstance(result.exception, SystemExit):
                 # The error is already properly handled. Print it and return.
