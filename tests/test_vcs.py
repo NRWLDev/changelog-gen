@@ -79,6 +79,18 @@ def test_get_current_info_dirty(multiversion_repo, monkeypatch):
 
 
 @pytest.mark.usefixtures("multiversion_repo")
+def test_get_current_info_missing_remote_branch(monkeypatch):
+    monkeypatch.setattr(
+        vcs.git.Repo,
+        "iter_commits",
+        mock.Mock(side_effect=vcs.git.GitCommandError("git iter_commits")),
+    )
+
+    with pytest.raises(errors.VcsError):
+        Git().get_current_info()
+
+
+@pytest.mark.usefixtures("multiversion_repo")
 def test_get_current_info_missing_local(monkeypatch):
     monkeypatch.setattr(vcs.git.Repo, "iter_commits", mock.Mock(side_effect=[["commit"], []]))
 
