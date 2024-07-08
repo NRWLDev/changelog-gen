@@ -52,7 +52,6 @@ commit = true
 reject_empty = true
 allowed_branches = [
     "main",
-    "gitpython",
 ]
 date_format = "- %Y-%m-%d"
 issue_link = "https://github.com/NRWLDev/changelog-gen/issues/::issue_ref::"
