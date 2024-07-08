@@ -15,9 +15,7 @@ allow_dirty = false
 allow_missing = false
 reject_empty = true
 post_process = 'null'
-allowed_branches = [
-    'main',
-]
+allowed_branches = ['main']
 [commit_types.feat]
 header = 'Features and Improvements'
 semver = 'minor'
