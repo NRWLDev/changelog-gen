@@ -17,7 +17,6 @@ reject_empty = true
 post_process = 'null'
 allowed_branches = [
     'main',
-    'gitpython',
 ]
 [commit_types.feat]
 header = 'Features and Improvements'
