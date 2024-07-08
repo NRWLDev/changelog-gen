@@ -5,7 +5,7 @@ import pytest
 
 from changelog_gen import extractor
 from changelog_gen.config import CommitType, Config
-from changelog_gen.extractor import Change, ReleaseNoteExtractor
+from changelog_gen.extractor import Change, ChangeExtractor
 from changelog_gen.vcs import Git
 
 
@@ -68,7 +68,7 @@ def test_git_commit_extraction(conventional_commits):
     cfg = Config()
     git = Git()
 
-    e = ReleaseNoteExtractor(cfg, git)
+    e = ChangeExtractor(cfg, git)
 
     sections = e.extract("0.0.2")
 
@@ -111,7 +111,7 @@ def test_git_commit_extraction_include_all(conventional_commits):
     cfg = Config()
     git = Git()
 
-    e = ReleaseNoteExtractor(cfg, git, include_all=True)
+    e = ChangeExtractor(cfg, git, include_all=True)
 
     sections = e.extract("0.0.2")
 
@@ -179,7 +179,7 @@ def test_git_commit_extraction_handles_random_tags(conventional_commits, multive
     cfg = Config()
     git = Git()
 
-    e = ReleaseNoteExtractor(cfg, git)
+    e = ChangeExtractor(cfg, git)
 
     sections = e.extract("0.0.2")
 
@@ -256,7 +256,7 @@ Refs: #2
     )
     git = Git()
 
-    e = ReleaseNoteExtractor(cfg, git)
+    e = ChangeExtractor(cfg, git)
 
     sections = e.extract("0.0.2")
 
@@ -298,7 +298,7 @@ Refs: #1
     cfg = Config()
     git = Git()
 
-    e = ReleaseNoteExtractor(cfg, git)
+    e = ChangeExtractor(cfg, git)
 
     sections = e.extract("0.0.2")
 
@@ -320,7 +320,7 @@ def test_unique_issues():
     cfg = Config(commit_types={"bug": CommitType("BugFix"), "feat": CommitType("Features")})
     git = mock.Mock()
 
-    e = ReleaseNoteExtractor(cfg, git)
+    e = ChangeExtractor(cfg, git)
 
     assert e.unique_issues(
         {
@@ -360,7 +360,7 @@ def test_extract_version_tag_version_zero(sections, commit_types, expected_semve
     bv.get_version_info = mock.Mock(return_value={"new": "0.0.0", "current": "0.0.0"})
     cfg = Config(commit_types=commit_types)
 
-    extractor.extract_version_tag(sections, cfg, bv)
+    extractor.extract_version_tag(sections, cfg, "0.0.0", bv)
 
     assert bv.get_version_info.call_args == mock.call(expected_semver)
 
@@ -386,7 +386,7 @@ def test_extract_version_tag(sections, commit_types, expected_semver):
     bv.get_version_info = mock.Mock(return_value={"new": "1.0.0", "current": "1.0.0"})
     cfg = Config(commit_types=commit_types)
 
-    extractor.extract_version_tag(sections, cfg, bv)
+    extractor.extract_version_tag(sections, cfg, "1.0.0", bv)
 
     assert bv.get_version_info.call_args == mock.call(expected_semver)
 
