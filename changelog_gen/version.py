@@ -80,6 +80,8 @@ class BumpVersion:  # noqa: D101
             # Strip out rich text formatting
             raw = line.encode("ascii", errors="ignore").decode()
             raw = re.sub(r"\s+\n", "\n", raw).strip()
+            print(raw)  # noqa: T201
+            print(line.strip())  # noqa: T201
             # If we've seen `- Error ---` line already, extract error details.
             if error and raw:
                 error_details.append(raw)
