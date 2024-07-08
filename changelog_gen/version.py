@@ -57,7 +57,7 @@ class BumpVersion:  # noqa: D101
         try:
             describe_out = (
                 subprocess.check_output(
-                    self._version_info_cmd(semver),  # noqa: S603
+                    self._version_info_cmd(),  # noqa: S603
                     stderr=subprocess.STDOUT,
                 )
                 .decode()
