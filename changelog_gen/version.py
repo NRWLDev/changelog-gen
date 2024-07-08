@@ -89,6 +89,8 @@ class BumpVersion:  # noqa: D101
             # Strip out rich text formatting
             raw = self.escape_ansi(line)
             # If we've seen `- Error ---` line already, extract error details.
+            print(raw)  # noqa: T201
+            print(line.strip())  # noqa: T201
             if error and raw:
                 error_details.append(raw)
             error = error or raw == "Error"
