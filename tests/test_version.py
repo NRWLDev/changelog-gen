@@ -153,3 +153,39 @@ parts.release.optional_value = "final"
 cmd: bump-my-version bump patch --new-version 1.2.3
 error: Unable to determine the current version."""
         )
+
+    @pytest.mark.parametrize(
+        "output",
+        [
+            b"""
+Usage: bump-my-version bump [OPTIONS] [ARGS]...
+
+Try 'bump-my-version bump -h' for help
++- Error ---------------------------------------------------------------------+
+| Unable to determine the current version.                                    |
++-----------------------------------------------------------------------------+
+""",
+            """
+
+\x1b[33mUsage:\x1b[0m \x1b[1mbump-my-version bump\x1b[0m [\x1b[1;36mOPTIONS\x1b[0m] [\x1b[1;36mARGS\x1b[0m]...
+
+\x1b[2m \x1b[0m\x1b[2mTry\x1b[0m\x1b[2m \x1b[0m\x1b[2;34m'bump-my-version bump -h'\x1b[0m\x1b[2m \x1b[0m\x1b[2mfor help\x1b[0m\x1b[2m
+\x1b[31m╭─\x1b[0m\x1b[31m Error \x1b[0m\x1b[31m─────────────────────────────────────────────────────────────────────\x1b[0m\x1b[31m─╮\x1b[0m
+\x1b[31m│\x1b[0m Unable to determine the current version.                                     \x1b[31m│\x1b[0m
+\x1b[31m╰──────────────────────────────────────────────────────────────────────────────╯\x1b[0m
+
+""".encode(),  # noqa: E501
+            """,
+Usage: bump-my-version bump [OPTIONS] [ARGS]...
+
+Try 'bump-my-version bump -h' for help"
+╭─ Error ──────────────────────────────────────────────────────────────────────╮
+│ Unable to determine the current version.                                     │
+╰──────────────────────────────────────────────────────────────────────────────╯
+""".encode(),
+        ],
+    )
+    def test_parse_error_output(self, output):
+        error = version.BumpVersion()._process_error_output(output)
+
+        assert error == "error: Unable to determine the current version."

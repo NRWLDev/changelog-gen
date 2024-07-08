@@ -64,6 +64,7 @@ class BumpVersion:  # noqa: D101
     def escape_ansi(self: T, line: str) -> str:
         """Strip color codes from a string."""
         line = line.encode("ascii", errors="ignore").decode()
+        line = re.sub(r"[\+\-|]", "", line)
         line = re.sub(r"\s+\n", "\n", line)
         return ansi_escape.sub("", line).strip()
 
@@ -89,8 +90,6 @@ class BumpVersion:  # noqa: D101
             # Strip out rich text formatting
             raw = self.escape_ansi(line)
             # If we've seen `- Error ---` line already, extract error details.
-            print(raw)  # noqa: T201
-            print(line.strip())  # noqa: T201
             if error and raw:
                 error_details.append(raw)
             error = error or raw == "Error"
