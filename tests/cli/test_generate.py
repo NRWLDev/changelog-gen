@@ -154,6 +154,32 @@ def test_generate_aborts_if_changelog_missing(cli_runner):
     assert result.output.strip() == "No CHANGELOG file detected, run `changelog init`"
 
 
+@pytest.mark.usefixtures("changelog")
+@pytest.mark.parametrize(
+    ("platform", "expected"),
+    [
+        ("darwin", True),
+        ("linux", True),
+        ("Windows", False),
+    ],
+)
+def test_generate_interactive(cli_runner, monkeypatch, platform, expected):
+    monkeypatch.setattr(command, "_gen", mock.Mock())
+    monkeypatch.setattr(command.config, "read", mock.Mock())
+    monkeypatch.setattr(command.platform, "system", mock.Mock(return_value=platform))
+    result = cli_runner.invoke(["generate"])
+
+    assert result.exit_code == 0
+    assert command._gen.call_args == mock.call(
+        command.config.read.return_value,
+        None,
+        None,
+        dry_run=False,
+        interactive=expected,
+        include_all=False,
+    )
+
+
 @pytest.mark.usefixtures("changelog", "_conventional_commits")
 def test_generate_aborts_if_dirty(cli_runner, cwd, mock_git):
     mock_git.get_current_info.return_value = {
