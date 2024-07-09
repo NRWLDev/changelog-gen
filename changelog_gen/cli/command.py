@@ -311,12 +311,13 @@ def _gen(  # noqa: PLR0913
     if dry_run or typer.confirm(
         f"Write CHANGELOG for suggested version {new_version}",
     ):
+        paths = []
+        if cfg.release:
+            paths = bv.modify(new_version)
+
         w.write()
 
-        paths = [f"CHANGELOG.{extension.value}"]
-        if cfg.release:
-            files = bv.modify(new_version)
-            paths.extend(files)
+        paths.append(f"CHANGELOG.{extension.value}")
 
         git.commit(current, new_version, version_tag, paths)
         processed = True
