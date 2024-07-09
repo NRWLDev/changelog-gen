@@ -798,3 +798,43 @@ date_format = "on %Y-%m-%d"
 
         assert r.exit_code == 0, r.output
         assert writer_mock.add_version.call_args == mock.call("v0.0.1")
+
+
+class TestCreateWithEditor:
+    def test_subprocess_error_handled(self, monkeypatch):
+        monkeypatch.setattr(command.subprocess, "call", mock.Mock(side_effect=OSError))
+        with pytest.raises(typer.Exit):
+            command.create_with_editor("content", command.writer.Extension.MD)
+
+    def test_unlink_handled(self, monkeypatch):
+        monkeypatch.setattr(command.Path, "unlink", mock.Mock(side_effect=OSError))
+        content = command.create_with_editor("content", command.writer.Extension.MD)
+        assert content == "content"
+
+    def test_subprocess_call(self, monkeypatch, tmp_path):
+        f = tmp_path / "tmpfile"
+        f.touch()
+        mock_file = mock.MagicMock()
+        mock_file.name = str(f)
+
+        monkeypatch.setenv("EDITOR", "vim")
+        monkeypatch.setattr(command.subprocess, "call", mock.Mock())
+        monkeypatch.setattr(command, "NamedTemporaryFile", mock.Mock(return_value=mock_file))
+
+        command.create_with_editor("content", command.writer.Extension.MD)
+
+        assert command.subprocess.call.call_args == mock.call(["vim", str(f)])
+
+    def test_subprocess_call_dynamic_editor(self, monkeypatch, tmp_path):
+        f = tmp_path / "tmpfile"
+        f.touch()
+        mock_file = mock.MagicMock()
+        mock_file.name = str(f)
+
+        monkeypatch.setenv("EDITOR", "vim {}")
+        monkeypatch.setattr(command.subprocess, "call", mock.Mock())
+        monkeypatch.setattr(command, "NamedTemporaryFile", mock.Mock(return_value=mock_file))
+
+        command.create_with_editor("content", command.writer.Extension.MD)
+
+        assert command.subprocess.call.call_args == mock.call(["vim", str(f)])
