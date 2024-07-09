@@ -14,7 +14,7 @@ def timer(func: t.Callable) -> t.Callable:
             res = func(*arg, **kw)
         finally:
             t2 = time.time_ns()
-            logger.debug("%s %fms", func.__name__, (t2 - t1) / 1000000)
+            logger.error("%s %fms", func.__name__, (t2 - t1) / 1000000)
         return res
 
     return wrapper

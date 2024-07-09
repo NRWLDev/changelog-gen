@@ -178,6 +178,7 @@ def gen(  # noqa: PLR0913
         help="Include all commits, even ones that are incorrectly formatted.",
     ),
     interactive: Optional[bool] = typer.Option(default=True, help="Open changes in an editor before confirmation."),
+    yes: Optional[bool] = typer.Option(None, "--yes", "-y", help="Automatically accept changes."),
     verbose: int = typer.Option(0, "-v", "--verbose", help="Set output verbosity.", count=True, max=3),
     _version: Optional[bool] = typer.Option(
         None,
@@ -210,7 +211,7 @@ def gen(  # noqa: PLR0913
         interactive = False
 
     try:
-        _gen(cfg, version_part, version_tag, dry_run=dry_run, interactive=interactive, include_all=include_all)
+        _gen(cfg, version_part, version_tag, dry_run=dry_run, interactive=interactive, include_all=include_all, yes=yes)
     except errors.ChangelogException as ex:
         logger.error("%s", ex)  # noqa: TRY400
         logger.debug("Run time (error) %f", (time.time() - start) * 1000)
@@ -262,6 +263,7 @@ def _gen(  # noqa: PLR0913
     dry_run: bool = False,
     interactive: bool = True,
     include_all: bool = False,
+    yes: bool = False,
 ) -> None:
     bv = BumpVersion(dry_run=dry_run, allow_dirty=cfg.allow_dirty)
     git = Git(dry_run=dry_run, commit=cfg.commit, release=cfg.release, tag=cfg.tag)
@@ -310,8 +312,12 @@ def _gen(  # noqa: PLR0913
     w.content = changes.split("\n")[2:-2]
 
     processed = False
-    if dry_run or typer.confirm(
-        f"Write CHANGELOG for suggested version {new_version_str}",
+    if (
+        dry_run
+        or yes
+        or typer.confirm(
+            f"Write CHANGELOG for suggested version {new_version_str}",
+        )
     ):
         paths = []
         if cfg.release:
