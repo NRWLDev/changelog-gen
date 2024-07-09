@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.11.1 - 2024-07-09
+
+### Bug fixes
+
+- Search for tag directly over looping over all tags. [[dc10ba6](https://github.com/NRWLDev/changelog-gen/commit/dc10ba62c726f89aa917c98be0951ffe6f62e2a6)]
+
 ## v0.11.0 - 2024-07-09
 
 ### Features and Improvements
