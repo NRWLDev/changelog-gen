@@ -20,8 +20,6 @@ version = "0.0.0"
 
 [tool.bumpversion]
 current_version = "0.0.0"
-commit = true
-tag = true
 
 [[tool.bumpversion.files]]
 filename = "pyproject.toml"
@@ -31,6 +29,7 @@ replace = 'version = "{new_version}"'
 [tool.changelog_gen]
 release = true
 commit = true
+tag = true
 reject_empty = true
 allowed_branches = [
     "main",

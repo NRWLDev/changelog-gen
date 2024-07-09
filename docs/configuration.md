@@ -30,11 +30,19 @@ General configuration is grouped in a `[changelog_gen]` section.
 
   Also available as `--commit` (e.g. `changelog generate --commit`)
 
+### `tag = (True | False)`
+  _**[optional]**_<br />
+  **default**: False
+
+  Tag the committed changes with the new version.
+
+  Also available as `--tag` (e.g. `changelog generate --tag`)
+
 ### `release = (True | False)`
   _**[optional]**_<br />
   **default**: False
 
-  Use bumpversion to tag the release
+  Modify version strings in files with bumpversion.
 
   Also available as `--release` (e.g. `changelog generate --release`)
 
