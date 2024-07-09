@@ -133,24 +133,38 @@ parts.release.optional_value = "final"
             ({"verbose": 3}, ["-vvv"]),
         ],
     )
-    def test_release(self, monkeypatch, kwargs, expected_command_args):
+    def test_modify(self, monkeypatch, kwargs, expected_command_args):
         monkeypatch.setattr(version.subprocess, "check_output", mock.Mock(return_value=b""))
-        version.BumpVersion(**kwargs).release("1.2.3")
+        version.BumpVersion(**kwargs).modify("1.2.3")
         assert version.subprocess.check_output.call_args == mock.call(
-            ["bump-my-version", "bump", "patch", "--new-version", "1.2.3"] + expected_command_args,  # noqa: RUF005
+            ["bump-my-version", "replace", "--new-version", "1.2.3"] + expected_command_args,  # noqa: RUF005
             stderr=version.subprocess.STDOUT,
         )
 
     @pytest.mark.usefixtures("cwd")
-    def test_release_handles_error(self, monkeypatch):
+    def test_modify_handles_configuration_error(self, monkeypatch):
         monkeypatch.setattr(version.logger, "warning", mock.Mock())
         with pytest.raises(errors.VersionError) as e:
-            version.BumpVersion().release("1.2.3")
+            version.BumpVersion().modify("1.2.3")
 
         assert (
             str(e.value)
-            == """Unable to generate release with bumpversion.
-cmd: bump-my-version bump patch --new-version 1.2.3
+            == """Unable to modify files with bumpversion.
+cmd: bump-my-version replace --new-version 1.2.3
+error: Unable to determine the current version."""
+        )
+
+    @pytest.mark.usefixtures("cwd")
+    def test_modify_handles_bumpversion_error(self, monkeypatch):
+        monkeypatch.setattr(version.logger, "warning", mock.Mock())
+        monkeypatch.setattr(version, "get_configuration", mock.Mock())
+        with pytest.raises(errors.VersionError) as e:
+            version.BumpVersion().modify("1.2.3")
+
+        assert (
+            str(e.value)
+            == """Unable to modify files with bumpversion.
+cmd: bump-my-version replace --new-version 1.2.3
 error: Unable to determine the current version."""
         )
 
