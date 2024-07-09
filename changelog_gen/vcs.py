@@ -72,7 +72,7 @@ class Git:
         self.repo.git.add(path, update=True)
 
     @timer
-    def commit(self: T, version: str, paths: list[str] | None = None) -> None:
+    def commit(self: T, current: str, new: str, paths: list[str] | None = None) -> None:
         """Commit changes to git repository."""
         logger.warning("Would prepare Git commit")
         paths = paths or []
@@ -81,11 +81,16 @@ class Git:
             self.add_path(path)
 
         if self.dry_run or not self._commit:
-            logger.warning("  Would commit to Git with message 'Update CHANGELOG for %s'", version)
+            logger.warning(
+                "  Would commit to Git with message 'Update CHANGELOG for %s\nBump version: %s → %s'",
+                new,
+                current,
+                new,
+            )
             return
 
         try:
-            self.repo.git.commit(message=f"Update CHANGELOG for {version}")
+            self.repo.git.commit(message=f"Update CHANGELOG for {new}\nBump version: {current} → {new}")
         except git.GitCommandError as e:
             msg = f"Unable to commit: {e}"
             raise errors.VcsError(msg) from e

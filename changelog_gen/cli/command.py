@@ -311,15 +311,19 @@ def _gen(  # noqa: PLR0913
         w.write()
 
         paths = [f"CHANGELOG.{extension.value}"]
-        git.commit(version_tag, paths)
+        if cfg.release:
+            files = bv.modify(version_tag)
+            paths.extend(files)
 
-        if cfg.commit and cfg.release:
-            try:
-                bv.release(version_tag)
-            except Exception as e:
-                git.revert()
-                logger.error("Error creating release: %s", str(e))  # noqa: TRY400
-                raise typer.Exit(code=1) from e
+        git.commit(current, version_tag, paths)
+        #
+        # if cfg.commit and cfg.release:
+        #     try:  # noqa: ERA001
+        #         bv.release(version_tag)  # noqa: ERA001
+        #     except Exception as e:  # noqa: ERA001
+        #         git.revert()  # noqa: ERA001
+        #         logger.error("Error creating release: %s", str(e))  # noqa: ERA001
+        #         raise typer.Exit(code=1) from e  # noqa: ERA001
         processed = True
 
     post_process = cfg.post_process

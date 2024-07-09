@@ -3,7 +3,10 @@ import re
 import subprocess
 from typing import TypeVar
 
-from bumpversion import bump  # noqa: F401
+from bumpversion.config import get_configuration
+from bumpversion.config.files import find_config_file
+from bumpversion.context import get_context
+from bumpversion.files import ConfiguredFile, modify_files
 
 from changelog_gen import errors
 from changelog_gen.util import timer
@@ -36,11 +39,7 @@ def generate_verbosity(verbose: int = 0) -> list[str]:
     return [f"-{'v' * verbose}"]
 
 
-commands = {
-    "get_version_info": ["bump-my-version", "show-bump", "--ascii"],
-    "release": ["bump-my-version", "bump", "patch", "--new-version", "VERSION"],
-    "parser": parse_info,
-}
+ansi_escape = re.compile(r"(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]")
 
 
 class BumpVersion:  # noqa: D101
@@ -51,14 +50,12 @@ class BumpVersion:  # noqa: D101
         self.dry_run = dry_run
 
     @timer
-    def _version_info_cmd(self: T, semver: str) -> list[str]:
-        command = commands["get_version_info"]
-        return [c.replace("SEMVER", semver) for c in command]
+    def _version_info_cmd(self: T) -> list[str]:
+        return ["bump-my-version", "show-bump", "--ascii"]
 
     @timer
     def _release_cmd(self: T, version: str) -> list[str]:
-        command = commands["release"]
-        args = [c.replace("VERSION", version) for c in command]
+        args = ["bump-my-version", "bump", "patch", "--new-version", version]
         if self.verbose:
             args.extend(generate_verbosity(self.verbose))
         if self.dry_run:
@@ -67,13 +64,50 @@ class BumpVersion:  # noqa: D101
             args.append("--allow-dirty")
         return args
 
+    def escape_ansi(self: T, line: str) -> str:
+        """Strip color codes from a string."""
+        line = line.encode("ascii", errors="ignore").decode()
+        line = re.sub(r"[\+\-|]", "", line)
+        line = re.sub(r"\s+\n", "\n", line)
+        return ansi_escape.sub("", line).strip()
+
+    def _process_error_output(self: T, output: str) -> str:
+        """Parse rich formatted error outputs to a simple string.
+
+        Extract `Error` from rich format outputs
+        ```
+        Usage: bump-my-version bump [OPTIONS] [ARGS]..."),
+
+        Try 'bump-my-version bump -h' for help"),
+        ╭─ Error ──────────────────────────────────────────────────────────────────────╮"),
+        │ Unable to determine the current version.                                     │"),
+        ╰──────────────────────────────────────────────────────────────────────────────╯"),
+        ```
+
+        Extracted error above would be `error: Unable to determine the current version.`
+        """
+        error = False
+        error_details = []
+        # Parse rich text format cli output
+        for line in output.decode().split("\n"):
+            # Strip out rich text formatting
+            raw = self.escape_ansi(line)
+            # If we've seen `- Error ---` line already, extract error details.
+            if error and raw:
+                error_details.append(raw)
+            error = error or raw == "Error"
+            logger.warning(line.strip())
+        nl = "\n"
+        return f"error: {nl.join(error_details)}"
+
     @timer
     def get_version_info(self: T, semver: str) -> dict[str, str]:
         """Get version info for a semver release."""
+        command = self._version_info_cmd()
         try:
             describe_out = (
                 subprocess.check_output(
-                    self._version_info_cmd(semver),  # noqa: S603
+                    command,  # noqa: S603
                     stderr=subprocess.STDOUT,
                 )
                 .decode()
@@ -81,12 +115,15 @@ class BumpVersion:  # noqa: D101
                 .split("\n")
             )
         except subprocess.CalledProcessError as e:
-            for line in e.output.decode().split("\n"):
-                logger.warning(line.strip())
-            msg = "Unable to get version data from bumpversion."
-            raise errors.VersionDetectionError(msg) from e
+            error_message = [
+                "Unable to get version data from bumpversion.",
+                f"cmd: {' '.join(command)}",
+                self._process_error_output(e.output),
+            ]
+            msg = "\n".join(error_message)
+            raise errors.VersionError(msg) from e
 
-        current, new = commands["parser"](semver, describe_out)
+        current, new = parse_info(semver, describe_out)
         return {
             "current": current,
             "new": new,
@@ -95,10 +132,11 @@ class BumpVersion:  # noqa: D101
     @timer
     def release(self: T, version: str) -> None:
         """Generate new release."""
+        command = self._release_cmd(version)
         try:
             describe_out = (
                 subprocess.check_output(
-                    self._release_cmd(version),  # noqa: S603
+                    command,  # noqa: S603
                     stderr=subprocess.STDOUT,
                 )
                 .decode()
@@ -106,9 +144,33 @@ class BumpVersion:  # noqa: D101
                 .split("\n")
             )
         except subprocess.CalledProcessError as e:
-            for line in e.output.decode().split("\n"):
-                logger.warning(line.strip())
-            raise
+            error_message = [
+                "Unable to generate release with bumpversion.",
+                f"cmd: {' '.join(command)}",
+                self._process_error_output(e.output),
+            ]
+            msg = "\n".join(error_message)
+            raise errors.VersionError(msg) from e
 
         for line in describe_out:
             logger.warning(line)
+
+    def modify(self: T, version: str) -> list[str]:  # noqa: D102
+        found_config_file = find_config_file()
+        config = get_configuration(
+            found_config_file,
+            verbose=self.verbose,
+            dry_run=self.dry_run,
+            allow_dirty=self.allow_dirty,
+            new_version=version,
+        )
+
+        configured_files = [ConfiguredFile(file_cfg, config.version_config) for file_cfg in config.files_to_modify]
+
+        version = config.version_config.parse(config.current_version)
+        next_version = config.version_config.parse(version)
+
+        ctx = get_context(config, version, next_version)
+
+        modify_files(configured_files, version, next_version, ctx, self.dry_run)
+        print(config.files_to_modify)  # noqa: T201
