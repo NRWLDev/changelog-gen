@@ -90,7 +90,8 @@ class Git:
             self.add_path(path)
 
         msg = [
-            f"Update CHANGELOG for {new}Bump version: {current} → {new}" if self._release else "",
+            f"Update CHANGELOG for {new}",
+            f"Bump version: {current} → {new}" if self._release else "",
         ]
 
         message = "\n".join(msg).strip()
