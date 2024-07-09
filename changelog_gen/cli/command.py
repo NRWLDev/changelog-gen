@@ -171,6 +171,7 @@ def gen(  # noqa: PLR0913
     allow_missing: Optional[bool] = typer.Option(None, help="Don't abort if branch missing commits on origin."),
     release: Optional[bool] = typer.Option(None, help="Use bumpversion to tag the release."),
     commit: Optional[bool] = typer.Option(None, help="Commit changes made to changelog after writing."),
+    tag: Optional[bool] = typer.Option(None, help="Tag changes made after writing."),
     reject_empty: Optional[bool] = typer.Option(None, help="Don't accept changes if there are no release notes."),
     include_all: Optional[bool] = typer.Option(
         default=False,
@@ -196,6 +197,7 @@ def gen(  # noqa: PLR0913
         allow_dirty=allow_dirty,
         allow_missing=allow_missing,
         commit=commit,
+        tag=tag,
         reject_empty=reject_empty,
         date_format=date_format,
         post_process_url=post_process_url,
@@ -262,7 +264,7 @@ def _gen(  # noqa: PLR0913
     include_all: bool = False,
 ) -> None:
     bv = BumpVersion(verbose=cfg.verbose, dry_run=dry_run, allow_dirty=cfg.allow_dirty)
-    git = Git(dry_run=dry_run, commit=cfg.commit, release=cfg.release)
+    git = Git(dry_run=dry_run, commit=cfg.commit, release=cfg.release, tag=cfg.tag)
 
     extension = util.detect_extension()
 

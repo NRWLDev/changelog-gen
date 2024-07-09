@@ -95,6 +95,7 @@ class Config:
 
     release: bool = False
     commit: bool = False
+    tag: bool = False
     allow_dirty: bool = False
     allow_missing: bool = False
     reject_empty: bool = False
