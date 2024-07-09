@@ -35,8 +35,6 @@ pre-commit = "^3.0.2"
 
 [tool.bumpversion]
 current_version = "0.10.3"
-commit = true
-tag = true
 
 [[tool.bumpversion.files]]
 filename = "README.md"
@@ -49,6 +47,7 @@ replace = 'version = "{new_version}"'
 [tool.changelog_gen]
 release = true
 commit = true
+tag = true
 reject_empty = true
 allowed_branches = [
     "main",

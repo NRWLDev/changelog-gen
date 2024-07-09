@@ -11,6 +11,7 @@ date_format = '- %Y-%m-%d'
 version_string = 'v{new_version}'
 release = true
 commit = true
+tag = true
 allow_dirty = false
 allow_missing = false
 reject_empty = true

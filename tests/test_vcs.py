@@ -1,5 +1,6 @@
 from unittest import mock
 
+import git
 import pytest
 
 from changelog_gen import errors, vcs
@@ -156,9 +157,12 @@ def test_commit_adds_message_with_version_string(multiversion_repo):
     f.write_text("hello world! v3")
     multiversion_repo.run("git add hello.txt")
 
-    Git().commit("new_version")
+    Git().commit("current_version", "new_version", "version_tag")
 
-    assert multiversion_repo.api.head.commit.message == "Update CHANGELOG for new_version\n"
+    assert (
+        multiversion_repo.api.head.commit.message
+        == "Update CHANGELOG for new_version\nBump version: current_version → new_version\n"
+    )
 
 
 def test_commit_with_paths(multiversion_repo):
@@ -166,9 +170,12 @@ def test_commit_with_paths(multiversion_repo):
     f = path / "hello.txt"
     f.write_text("hello world! v3")
 
-    Git().commit("new_version", ["hello.txt"])
+    Git().commit("current_version", "new_version", "version_tag", ["hello.txt"])
 
-    assert multiversion_repo.api.head.commit.message == "Update CHANGELOG for new_version\n"
+    assert (
+        multiversion_repo.api.head.commit.message
+        == "Update CHANGELOG for new_version\nBump version: current_version → new_version\n"
+    )
 
 
 def test_commit_dry_run(multiversion_repo):
@@ -176,7 +183,7 @@ def test_commit_dry_run(multiversion_repo):
     f = path / "hello.txt"
     f.write_text("hello world! v3")
 
-    Git(dry_run=True).commit("new_version", ["hello.txt"])
+    Git(dry_run=True).commit("current_version", "new_version", "version_tag", ["hello.txt"])
 
     assert "Changes not staged for commit" in multiversion_repo.run("git status", capture=True)
 
@@ -187,7 +194,7 @@ def test_commit_no_changes_staged(multiversion_repo):
     f.write_text("hello world! v3")
 
     with pytest.raises(errors.VcsError) as e:
-        Git().commit("new_version")
+        Git().commit("current_version", "new_version", "version_tag")
 
     assert "Changes not staged for commit" in str(e.value)
 
@@ -242,20 +249,53 @@ def test_commit(multiversion_repo):
     f.write_text("hello world! v4")
     multiversion_repo.run("git add hello.txt")
 
-    Git().commit("0.0.3")
+    Git().commit("0.0.2", "0.0.3", "v0.0.3")
 
-    assert multiversion_repo.api.head.commit.message == "Update CHANGELOG for 0.0.3\n"
+    assert multiversion_repo.api.head.commit.message == "Update CHANGELOG for 0.0.3\nBump version: 0.0.2 → 0.0.3\n"
+    assert git.TagReference(multiversion_repo, path="refs/tags/v0.0.3") in multiversion_repo.api.refs
+
+
+def test_commit_no_tag(multiversion_repo):
+    path = multiversion_repo.workspace
+    f = path / "hello.txt"
+    f.write_text("hello world! v3")
+    multiversion_repo.run("git add hello.txt")
+    multiversion_repo.api.index.commit("commit log")
+
+    f.write_text("hello world! v4")
+    multiversion_repo.run("git add hello.txt")
+
+    Git(tag=False).commit("0.0.2", "0.0.3", "v0.0.3")
+
+    assert multiversion_repo.api.head.commit.message == "Update CHANGELOG for 0.0.3\nBump version: 0.0.2 → 0.0.3\n"
+    assert git.TagReference(multiversion_repo, path="refs/tags/v0.0.3") not in multiversion_repo.api.refs
+
+
+def test_commit_reverts_on_tag_failure(multiversion_repo):
+    path = multiversion_repo.workspace
+    f = path / "hello.txt"
+    f.write_text("hello world! v3")
+    multiversion_repo.run("git add hello.txt")
+    multiversion_repo.api.index.commit("commit log")
+
+    f.write_text("hello world! v4")
+    multiversion_repo.run("git add hello.txt")
+
+    with pytest.raises(errors.VcsError):
+        Git().commit("0.0.1", "0.0.2", "0.0.2")
+
+    assert multiversion_repo.api.head.commit.message == "commit log"
 
 
 @pytest.mark.usefixtures("multiversion_repo")
 def test_commit_no_changes():
     with pytest.raises(errors.VcsError) as ex:
-        Git().commit("0.0.3")
+        Git().commit("0.0.2", "0.0.3", "v0.0.3")
 
     assert (
         str(ex.value)
         == """Unable to commit: Cmd('git') failed due to: exit code(1)
-  cmdline: git commit --message=Update CHANGELOG for 0.0.3
+  cmdline: git commit --message=Update CHANGELOG for 0.0.3\nBump version: 0.0.2 → 0.0.3
   stdout: 'On branch main
 nothing to commit, working tree clean'"""
     )

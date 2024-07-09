@@ -38,6 +38,7 @@ def mock_bump(monkeypatch):
         "current": "0.0.0",
         "new": "0.0.1",
     }
+    mock_bump.modify.return_value = ["pyproject.toml"]
 
     monkeypatch.setattr(command, "BumpVersion", mock.Mock(return_value=mock_bump))
 
@@ -482,8 +483,8 @@ def test_generate_creates_release(
     result = cli_runner.invoke(["generate", "--commit", "--release"])
 
     assert result.exit_code == 0
-    assert mock_git.commit.call_args == mock.call("0.0.1", ["CHANGELOG.md"])
-    assert mock_bump.release.call_args == mock.call("0.0.1")
+    assert mock_git.commit.call_args == mock.call("0.0.0", "0.0.1", "v0.0.1", ["pyproject.toml", "CHANGELOG.md"])
+    assert mock_bump.modify.call_args == mock.call("0.0.1")
 
 
 @pytest.mark.usefixtures("changelog", "_conventional_commits")
@@ -507,36 +508,8 @@ release = true
     result = cli_runner.invoke(["generate"])
 
     assert result.exit_code == 0
-    assert mock_git.commit.call_args == mock.call("0.0.1", ["CHANGELOG.md"])
-    assert mock_bump.release.call_args == mock.call("0.0.1")
-
-
-@pytest.mark.usefixtures("changelog", "_conventional_commits")
-def test_generate_handles_bumpversion_failure_and_reverts_changelog_commit(
-    cli_runner,
-    cwd,
-    monkeypatch,
-    mock_git,
-    mock_bump,
-):
-    p = cwd / "pyproject.toml"
-    p.write_text(
-        """
-[tool.changelog_gen]
-commit = true
-release = true
-""",
-    )
-
-    mock_bump.release.side_effect = Exception
-    monkeypatch.setattr(typer, "confirm", mock.MagicMock(return_value=True))
-
-    result = cli_runner.invoke(["generate"])
-
-    assert result.exit_code == 1
-    assert mock_git.commit.call_args == mock.call("0.0.1", ["CHANGELOG.md"])
-    assert mock_bump.release.call_args == mock.call("0.0.1")
-    assert mock_git.revert.call_args == mock.call()
+    assert mock_git.commit.call_args == mock.call("0.0.0", "0.0.1", "v0.0.1", ["pyproject.toml", "CHANGELOG.md"])
+    assert mock_bump.modify.call_args == mock.call("0.0.1")
 
 
 @pytest.mark.usefixtures("_conventional_commits")
@@ -568,7 +541,7 @@ def test_generate_uses_supplied_version_tag(
 - Detail about 4 [#4]
 """.lstrip()
     )
-    assert mock_git.commit.call_args == mock.call("0.3.2", ["CHANGELOG.md"])
+    assert mock_git.commit.call_args == mock.call("0.0.0", "0.3.2", "v0.3.2", ["CHANGELOG.md"])
 
 
 @pytest.mark.usefixtures("_conventional_commits", "changelog")

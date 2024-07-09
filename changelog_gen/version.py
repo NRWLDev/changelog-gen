@@ -3,7 +3,9 @@ import re
 import subprocess
 from typing import TypeVar
 
-from bumpversion import bump  # noqa: F401
+from bumpversion.config import get_configuration
+from bumpversion.config.files import find_config_file
+from bumpversion.exceptions import ConfigurationError
 
 from changelog_gen import errors
 from changelog_gen.util import timer
@@ -51,8 +53,8 @@ class BumpVersion:  # noqa: D101
         return ["bump-my-version", "show-bump", "--ascii"]
 
     @timer
-    def _release_cmd(self: T, version: str) -> list[str]:
-        args = ["bump-my-version", "bump", "patch", "--new-version", version]
+    def _modify_cmd(self: T, version: str) -> list[str]:
+        args = ["bump-my-version", "replace", "--new-version", version]
         if self.verbose:
             args.extend(generate_verbosity(self.verbose))
         if self.dry_run:
@@ -126,10 +128,20 @@ class BumpVersion:  # noqa: D101
             "new": new,
         }
 
-    @timer
-    def release(self: T, version: str) -> None:
-        """Generate new release."""
-        command = self._release_cmd(version)
+    def modify(self: T, version: str) -> list[str]:  # noqa: D102
+        command = self._modify_cmd(version)
+        try:
+            found_config_file = find_config_file()
+            config = get_configuration(found_config_file)
+        except ConfigurationError as e:
+            error_message = [
+                "Unable to modify files with bumpversion.",
+                f"cmd: {' '.join(command)}",
+                f"error: {e}",
+            ]
+            msg = "\n".join(error_message)
+            raise errors.VersionError(msg) from e
+
         try:
             describe_out = (
                 subprocess.check_output(
@@ -142,7 +154,7 @@ class BumpVersion:  # noqa: D101
             )
         except subprocess.CalledProcessError as e:
             error_message = [
-                "Unable to generate release with bumpversion.",
+                "Unable to modify files with bumpversion.",
                 f"cmd: {' '.join(command)}",
                 self._process_error_output(e.output),
             ]
@@ -151,3 +163,5 @@ class BumpVersion:  # noqa: D101
 
         for line in describe_out:
             logger.warning(line)
+
+        return [fc.filename for fc in config.files_to_modify]

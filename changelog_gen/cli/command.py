@@ -171,6 +171,7 @@ def gen(  # noqa: PLR0913
     allow_missing: Optional[bool] = typer.Option(None, help="Don't abort if branch missing commits on origin."),
     release: Optional[bool] = typer.Option(None, help="Use bumpversion to tag the release."),
     commit: Optional[bool] = typer.Option(None, help="Commit changes made to changelog after writing."),
+    tag: Optional[bool] = typer.Option(None, help="Tag changes made after writing."),
     reject_empty: Optional[bool] = typer.Option(None, help="Don't accept changes if there are no release notes."),
     include_all: Optional[bool] = typer.Option(
         default=False,
@@ -196,6 +197,7 @@ def gen(  # noqa: PLR0913
         allow_dirty=allow_dirty,
         allow_missing=allow_missing,
         commit=commit,
+        tag=tag,
         reject_empty=reject_empty,
         date_format=date_format,
         post_process_url=post_process_url,
@@ -255,14 +257,14 @@ def create_with_editor(content: str, extension: writer.Extension) -> str:
 def _gen(  # noqa: PLR0913
     cfg: config.Config,
     version_part: str | None = None,
-    version_tag: str | None = None,
+    new_version: str | None = None,
     *,
     dry_run: bool = False,
     interactive: bool = True,
     include_all: bool = False,
 ) -> None:
     bv = BumpVersion(verbose=cfg.verbose, dry_run=dry_run, allow_dirty=cfg.allow_dirty)
-    git = Git(dry_run=dry_run, commit=cfg.commit)
+    git = Git(dry_run=dry_run, commit=cfg.commit, release=cfg.release, tag=cfg.tag)
 
     extension = util.detect_extension()
 
@@ -275,7 +277,7 @@ def _gen(  # noqa: PLR0913
     version_info_ = bv.get_version_info(version_part or "patch")
     current = version_info_["current"]
     if version_part:
-        version_tag = version_info_["new"]
+        new_version = version_info_["new"]
 
     e = extractor.ChangeExtractor(cfg=cfg, git=git, dry_run=dry_run, include_all=include_all)
     sections = e.extract(current)
@@ -285,10 +287,11 @@ def _gen(  # noqa: PLR0913
         logger.error("No changes present and reject_empty configured.")
         raise typer.Exit(code=0)
 
-    if version_tag is None:
-        version_tag = extract_version_tag(sections, cfg, current, bv)
+    if new_version is None:
+        new_version = extract_version_tag(sections, cfg, current, bv)
 
-    version_string = cfg.version_string.format(new_version=version_tag)
+    version_tag = cfg.version_string.format(new_version=new_version)
+    version_string = version_tag
 
     date_fmt = cfg.date_format
     if date_fmt:
@@ -306,23 +309,20 @@ def _gen(  # noqa: PLR0913
 
     processed = False
     if dry_run or typer.confirm(
-        f"Write CHANGELOG for suggested version {version_tag}",
+        f"Write CHANGELOG for suggested version {new_version}",
     ):
+        paths = []
+        if cfg.release:
+            paths = bv.modify(new_version)
+
         w.write()
 
-        paths = [f"CHANGELOG.{extension.value}"]
-        git.commit(version_tag, paths)
+        paths.append(f"CHANGELOG.{extension.value}")
 
-        if cfg.commit and cfg.release:
-            try:
-                bv.release(version_tag)
-            except Exception as e:
-                git.revert()
-                logger.error("Error creating release: %s", str(e))  # noqa: TRY400
-                raise typer.Exit(code=1) from e
+        git.commit(current, new_version, version_tag, paths)
         processed = True
 
     post_process = cfg.post_process
     if post_process and processed:
         unique_issues = [r for r in unique_issues if not r.startswith("__")]
-        per_issue_post_process(post_process, sorted(unique_issues), version_tag, dry_run=dry_run)
+        per_issue_post_process(post_process, sorted(unique_issues), new_version, dry_run=dry_run)

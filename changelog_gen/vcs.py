@@ -17,8 +17,17 @@ class Git:
     """VCS implementation for git repositories."""
 
     @timer
-    def __init__(self: T, *, commit: bool = True, dry_run: bool = False) -> None:
+    def __init__(
+        self: T,
+        *,
+        commit: bool = True,
+        release: bool = True,
+        tag: bool = True,
+        dry_run: bool = False,
+    ) -> None:
         self._commit = commit
+        self._release = release
+        self._tag = tag
         self.dry_run = dry_run
         self.repo = git.Repo()
 
@@ -72,7 +81,7 @@ class Git:
         self.repo.git.add(path, update=True)
 
     @timer
-    def commit(self: T, version: str, paths: list[str] | None = None) -> None:
+    def commit(self: T, current: str, new: str, tag: str, paths: list[str] | None = None) -> None:
         """Commit changes to git repository."""
         logger.warning("Would prepare Git commit")
         paths = paths or []
@@ -80,14 +89,31 @@ class Git:
         for path in paths:
             self.add_path(path)
 
+        msg = [
+            f"Update CHANGELOG for {new}",
+            f"Bump version: {current} → {new}" if self._release else "",
+        ]
+
+        message = "\n".join(msg).strip()
         if self.dry_run or not self._commit:
-            logger.warning("  Would commit to Git with message 'Update CHANGELOG for %s'", version)
+            logger.warning("  Would commit to Git with message '%s", message)
             return
 
         try:
-            self.repo.git.commit(message=f"Update CHANGELOG for {version}")
+            self.repo.git.commit(message=message)
         except git.GitCommandError as e:
             msg = f"Unable to commit: {e}"
+            raise errors.VcsError(msg) from e
+
+        if not self._tag:
+            logger.warning("  Would tag with version '%s", tag)
+            return
+
+        try:
+            self.repo.git.tag(tag)
+        except git.GitCommandError as e:
+            self.revert()
+            msg = f"Unable to tag: {e}"
             raise errors.VcsError(msg) from e
 
     @timer
