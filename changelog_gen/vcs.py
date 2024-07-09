@@ -109,7 +109,7 @@ class Git:
             return
 
         try:
-            self.repo.git.create_tag(tag)
+            self.repo.api.create_tag(tag)
         except git.GitCommandError as e:
             self.revert()
             msg = f"Unable to tag: {e}"
