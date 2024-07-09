@@ -262,7 +262,7 @@ def _gen(  # noqa: PLR0913
     include_all: bool = False,
 ) -> None:
     bv = BumpVersion(verbose=cfg.verbose, dry_run=dry_run, allow_dirty=cfg.allow_dirty)
-    git = Git(dry_run=dry_run, commit=cfg.commit)
+    git = Git(dry_run=dry_run, commit=cfg.commit, release=cfg.release)
 
     extension = util.detect_extension()
 

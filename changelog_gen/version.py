@@ -5,8 +5,6 @@ from typing import TypeVar
 
 from bumpversion.config import get_configuration
 from bumpversion.config.files import find_config_file
-from bumpversion.context import get_context
-from bumpversion.files import ConfiguredFile, modify_files
 
 from changelog_gen import errors
 from changelog_gen.util import timer
@@ -56,6 +54,17 @@ class BumpVersion:  # noqa: D101
     @timer
     def _release_cmd(self: T, version: str) -> list[str]:
         args = ["bump-my-version", "bump", "patch", "--new-version", version]
+        if self.verbose:
+            args.extend(generate_verbosity(self.verbose))
+        if self.dry_run:
+            args.append("--dry-run")
+        if self.allow_dirty:
+            args.append("--allow-dirty")
+        return args
+
+    @timer
+    def _modify_cmd(self: T, version: str) -> list[str]:
+        args = ["bump-my-version", "replace", "--new-version", version]
         if self.verbose:
             args.extend(generate_verbosity(self.verbose))
         if self.dry_run:
@@ -157,20 +166,28 @@ class BumpVersion:  # noqa: D101
 
     def modify(self: T, version: str) -> list[str]:  # noqa: D102
         found_config_file = find_config_file()
-        config = get_configuration(
-            found_config_file,
-            verbose=self.verbose,
-            dry_run=self.dry_run,
-            allow_dirty=self.allow_dirty,
-            new_version=version,
-        )
+        config = get_configuration(found_config_file)
+        command = self._modify_cmd(version)
+        try:
+            describe_out = (
+                subprocess.check_output(
+                    command,  # noqa: S603
+                    stderr=subprocess.STDOUT,
+                )
+                .decode()
+                .strip()
+                .split("\n")
+            )
+        except subprocess.CalledProcessError as e:
+            error_message = [
+                "Unable to modify files with bumpversion.",
+                f"cmd: {' '.join(command)}",
+                self._process_error_output(e.output),
+            ]
+            msg = "\n".join(error_message)
+            raise errors.VersionError(msg) from e
 
-        configured_files = [ConfiguredFile(file_cfg, config.version_config) for file_cfg in config.files_to_modify]
+        for line in describe_out:
+            logger.warning(line)
 
-        version = config.version_config.parse(config.current_version)
-        next_version = config.version_config.parse(version)
-
-        ctx = get_context(config, version, next_version)
-
-        modify_files(configured_files, version, next_version, ctx, self.dry_run)
-        print(config.files_to_modify)  # noqa: T201
+        return [fc.filename for fc in config.files_to_modify]

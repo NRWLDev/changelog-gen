@@ -17,8 +17,9 @@ class Git:
     """VCS implementation for git repositories."""
 
     @timer
-    def __init__(self: T, *, commit: bool = True, dry_run: bool = False) -> None:
+    def __init__(self: T, *, commit: bool = True, release: bool = True, dry_run: bool = False) -> None:
         self._commit = commit
+        self._release = release
         self.dry_run = dry_run
         self.repo = git.Repo()
 
@@ -80,17 +81,17 @@ class Git:
         for path in paths:
             self.add_path(path)
 
+        msg = [
+            f"Update CHANGELOG for {new}Bump version: {current} → {new}" if self._release else "",
+        ]
+
+        message = "\n".join(msg).strip()
         if self.dry_run or not self._commit:
-            logger.warning(
-                "  Would commit to Git with message 'Update CHANGELOG for %s\nBump version: %s → %s'",
-                new,
-                current,
-                new,
-            )
+            logger.warning("  Would commit to Git with message '%s", message)
             return
 
         try:
-            self.repo.git.commit(message=f"Update CHANGELOG for {new}\nBump version: {current} → {new}")
+            self.repo.git.commit(message=message)
         except git.GitCommandError as e:
             msg = f"Unable to commit: {e}"
             raise errors.VcsError(msg) from e
