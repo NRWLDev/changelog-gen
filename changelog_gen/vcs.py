@@ -111,6 +111,7 @@ class Git:
         try:
             self.repo.git.create_tag(tag)
         except git.GitCommandError as e:
+            self.revert()
             msg = f"Unable to tag: {e}"
             raise errors.VcsError(msg) from e
 
