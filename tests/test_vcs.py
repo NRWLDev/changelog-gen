@@ -130,23 +130,23 @@ def test_get_find_tag_vtag():
     assert tag == "v0.0.2"
 
 
-def test_add_path_stages_changes_for_commit(multiversion_repo):
+def test_add_paths_stages_changes_for_commit(multiversion_repo):
     path = multiversion_repo.workspace
     f = path / "hello.txt"
     f.write_text("hello world! v3")
     assert "Changes not staged for commit" in multiversion_repo.run("git status", capture=True)
 
-    Git().add_path("hello.txt")
+    Git().add_paths(["hello.txt"])
 
     assert "Changes not staged for commit" not in multiversion_repo.run("git status", capture=True)
 
 
-def test_add_path_dry_run(multiversion_repo):
+def test_add_paths_dry_run(multiversion_repo):
     path = multiversion_repo.workspace
     f = path / "hello.txt"
     f.write_text("hello world! v3")
 
-    Git(dry_run=True).add_path("hello.txt")
+    Git(dry_run=True).add_paths(["hello.txt"])
 
     assert "Changes not staged for commit" in multiversion_repo.run("git status", capture=True)
 

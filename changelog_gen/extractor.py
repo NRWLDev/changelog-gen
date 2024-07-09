@@ -9,6 +9,8 @@ from collections import defaultdict
 from changelog_gen.util import timer
 
 if typing.TYPE_CHECKING:
+    from bumpversion.versioning.models import Version
+
     from changelog_gen import config
     from changelog_gen.vcs import Git
     from changelog_gen.version import BumpVersion
@@ -160,7 +162,12 @@ class ChangeExtractor:
 
 
 @timer
-def extract_version_tag(sections: SectionDict, cfg: config.Config, current: str, bv: BumpVersion) -> dict:
+def extract_version_tag(
+    sections: SectionDict,
+    cfg: config.Config,
+    current: str,
+    bv: BumpVersion,
+) -> dict[str, str | Version]:
     """Generate new version tag based on changelog sections.
 
     Breaking changes: major

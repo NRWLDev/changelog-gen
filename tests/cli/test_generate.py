@@ -31,13 +31,20 @@ def mock_git(monkeypatch):
     return mock_git
 
 
-@pytest.fixture(autouse=True)
-def mock_bump(monkeypatch):
-    mock_bump = mock.Mock()
-    mock_bump.get_version_info.return_value = {
-        "current": "0.0.0",
-        "new": "0.0.1",
+@pytest.fixture()
+def versions():
+    return {
+        "current": mock.Mock(),
+        "current_str": "0.0.0",
+        "new": mock.Mock(),
+        "new_str": "0.0.1",
     }
+
+
+@pytest.fixture(autouse=True)
+def mock_bump(monkeypatch, versions):
+    mock_bump = mock.Mock()
+    mock_bump.get_version_info.return_value = versions
     mock_bump.modify.return_value = ["pyproject.toml"]
 
     monkeypatch.setattr(command, "BumpVersion", mock.Mock(return_value=mock_bump))
@@ -478,13 +485,14 @@ def test_generate_creates_release(
     monkeypatch,
     mock_git,
     mock_bump,
+    versions,
 ):
     monkeypatch.setattr(typer, "confirm", mock.MagicMock(return_value=True))
     result = cli_runner.invoke(["generate", "--commit", "--release"])
 
     assert result.exit_code == 0
     assert mock_git.commit.call_args == mock.call("0.0.0", "0.0.1", "v0.0.1", ["pyproject.toml", "CHANGELOG.md"])
-    assert mock_bump.modify.call_args == mock.call("0.0.1")
+    assert mock_bump.modify.call_args == mock.call(versions["current"], versions["new"])
 
 
 @pytest.mark.usefixtures("changelog", "_conventional_commits")
@@ -494,6 +502,7 @@ def test_generate_creates_release_using_config(
     monkeypatch,
     mock_git,
     mock_bump,
+    versions,
 ):
     p = cwd / "pyproject.toml"
     p.write_text(
@@ -509,7 +518,7 @@ release = true
 
     assert result.exit_code == 0
     assert mock_git.commit.call_args == mock.call("0.0.0", "0.0.1", "v0.0.1", ["pyproject.toml", "CHANGELOG.md"])
-    assert mock_bump.modify.call_args == mock.call("0.0.1")
+    assert mock_bump.modify.call_args == mock.call(versions["current"], versions["new"])
 
 
 @pytest.mark.usefixtures("_conventional_commits")

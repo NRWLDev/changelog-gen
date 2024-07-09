@@ -263,7 +263,7 @@ def _gen(  # noqa: PLR0913
     interactive: bool = True,
     include_all: bool = False,
 ) -> None:
-    bv = BumpVersion(verbose=cfg.verbose, dry_run=dry_run, allow_dirty=cfg.allow_dirty)
+    bv = BumpVersion(dry_run=dry_run, allow_dirty=cfg.allow_dirty)
     git = Git(dry_run=dry_run, commit=cfg.commit, release=cfg.release, tag=cfg.tag)
 
     extension = util.detect_extension()
@@ -311,7 +311,7 @@ def _gen(  # noqa: PLR0913
 
     processed = False
     if dry_run or typer.confirm(
-        f"Write CHANGELOG for suggested version {new_version}",
+        f"Write CHANGELOG for suggested version {new_version_str}",
     ):
         paths = []
         if cfg.release:
@@ -327,4 +327,4 @@ def _gen(  # noqa: PLR0913
     post_process = cfg.post_process
     if post_process and processed:
         unique_issues = [r for r in unique_issues if not r.startswith("__")]
-        per_issue_post_process(post_process, sorted(unique_issues), new_version, dry_run=dry_run)
+        per_issue_post_process(post_process, sorted(unique_issues), new_version_str, dry_run=dry_run)
