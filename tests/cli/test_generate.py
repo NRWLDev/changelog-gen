@@ -31,14 +31,21 @@ def mock_git(monkeypatch):
     return mock_git
 
 
-@pytest.fixture(autouse=True)
-def mock_bump(monkeypatch):
-    mock_bump = mock.Mock()
-    mock_bump.get_version_info.return_value = {
-        "current": "0.0.0",
-        "new": "0.0.1",
+@pytest.fixture()
+def versions():
+    return {
+        "current": mock.Mock(),
+        "current_str": "0.0.0",
+        "new": mock.Mock(),
+        "new_str": "0.0.1",
     }
-    mock_bump.modify.return_value = ["pyproject.toml"]
+
+
+@pytest.fixture(autouse=True)
+def mock_bump(monkeypatch, versions):
+    mock_bump = mock.Mock()
+    mock_bump.get_version_info.return_value = versions
+    mock_bump.replace.return_value = ["pyproject.toml"]
 
     monkeypatch.setattr(command, "BumpVersion", mock.Mock(return_value=mock_bump))
 
@@ -178,6 +185,7 @@ def test_generate_interactive(cli_runner, monkeypatch, platform, expected):
         dry_run=False,
         interactive=expected,
         include_all=False,
+        yes=False,
     )
 
 
@@ -478,13 +486,14 @@ def test_generate_creates_release(
     monkeypatch,
     mock_git,
     mock_bump,
+    versions,
 ):
     monkeypatch.setattr(typer, "confirm", mock.MagicMock(return_value=True))
     result = cli_runner.invoke(["generate", "--commit", "--release"])
 
     assert result.exit_code == 0
     assert mock_git.commit.call_args == mock.call("0.0.0", "0.0.1", "v0.0.1", ["pyproject.toml", "CHANGELOG.md"])
-    assert mock_bump.modify.call_args == mock.call("0.0.1")
+    assert mock_bump.replace.call_args == mock.call(versions["current"], versions["new"])
 
 
 @pytest.mark.usefixtures("changelog", "_conventional_commits")
@@ -494,6 +503,7 @@ def test_generate_creates_release_using_config(
     monkeypatch,
     mock_git,
     mock_bump,
+    versions,
 ):
     p = cwd / "pyproject.toml"
     p.write_text(
@@ -509,7 +519,7 @@ release = true
 
     assert result.exit_code == 0
     assert mock_git.commit.call_args == mock.call("0.0.0", "0.0.1", "v0.0.1", ["pyproject.toml", "CHANGELOG.md"])
-    assert mock_bump.modify.call_args == mock.call("0.0.1")
+    assert mock_bump.replace.call_args == mock.call(versions["current"], versions["new"])
 
 
 @pytest.mark.usefixtures("_conventional_commits")
@@ -789,3 +799,43 @@ date_format = "on %Y-%m-%d"
 
         assert r.exit_code == 0, r.output
         assert writer_mock.add_version.call_args == mock.call("v0.0.1")
+
+
+class TestCreateWithEditor:
+    def test_subprocess_error_handled(self, monkeypatch):
+        monkeypatch.setattr(command.subprocess, "call", mock.Mock(side_effect=OSError))
+        with pytest.raises(typer.Exit):
+            command.create_with_editor("content", command.writer.Extension.MD)
+
+    def test_unlink_handled(self, monkeypatch):
+        monkeypatch.setattr(command.Path, "unlink", mock.Mock(side_effect=OSError))
+        content = command.create_with_editor("content", command.writer.Extension.MD)
+        assert content == "content"
+
+    def test_subprocess_call(self, monkeypatch, tmp_path):
+        f = tmp_path / "tmpfile"
+        f.touch()
+        mock_file = mock.MagicMock()
+        mock_file.name = str(f)
+
+        monkeypatch.setenv("EDITOR", "vim")
+        monkeypatch.setattr(command.subprocess, "call", mock.Mock())
+        monkeypatch.setattr(command, "NamedTemporaryFile", mock.Mock(return_value=mock_file))
+
+        command.create_with_editor("content", command.writer.Extension.MD)
+
+        assert command.subprocess.call.call_args == mock.call(["vim", str(f)])
+
+    def test_subprocess_call_dynamic_editor(self, monkeypatch, tmp_path):
+        f = tmp_path / "tmpfile"
+        f.touch()
+        mock_file = mock.MagicMock()
+        mock_file.name = str(f)
+
+        monkeypatch.setenv("EDITOR", "vim {}")
+        monkeypatch.setattr(command.subprocess, "call", mock.Mock())
+        monkeypatch.setattr(command, "NamedTemporaryFile", mock.Mock(return_value=mock_file))
+
+        command.create_with_editor("content", command.writer.Extension.MD)
+
+        assert command.subprocess.call.call_args == mock.call(["vim", str(f)])

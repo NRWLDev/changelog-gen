@@ -178,6 +178,7 @@ def gen(  # noqa: PLR0913
         help="Include all commits, even ones that are incorrectly formatted.",
     ),
     interactive: Optional[bool] = typer.Option(default=True, help="Open changes in an editor before confirmation."),
+    yes: bool = typer.Option(False, "--yes", "-y", help="Automatically accept changes."),  # noqa: FBT003
     verbose: int = typer.Option(0, "-v", "--verbose", help="Set output verbosity.", count=True, max=3),
     _version: Optional[bool] = typer.Option(
         None,
@@ -210,7 +211,7 @@ def gen(  # noqa: PLR0913
         interactive = False
 
     try:
-        _gen(cfg, version_part, version_tag, dry_run=dry_run, interactive=interactive, include_all=include_all)
+        _gen(cfg, version_part, version_tag, dry_run=dry_run, interactive=interactive, include_all=include_all, yes=yes)
     except errors.ChangelogException as ex:
         logger.error("%s", ex)  # noqa: TRY400
         logger.debug("Run time (error) %f", (time.time() - start) * 1000)
@@ -262,8 +263,9 @@ def _gen(  # noqa: PLR0913
     dry_run: bool = False,
     interactive: bool = True,
     include_all: bool = False,
+    yes: bool = False,
 ) -> None:
-    bv = BumpVersion(verbose=cfg.verbose, dry_run=dry_run, allow_dirty=cfg.allow_dirty)
+    bv = BumpVersion(dry_run=dry_run, allow_dirty=cfg.allow_dirty)
     git = Git(dry_run=dry_run, commit=cfg.commit, release=cfg.release, tag=cfg.tag)
 
     extension = util.detect_extension()
@@ -275,9 +277,10 @@ def _gen(  # noqa: PLR0913
     process_info(git.get_current_info(), cfg, dry_run=dry_run)
 
     version_info_ = bv.get_version_info(version_part or "patch")
-    current = version_info_["current"]
+    current = version_info_["current_str"]
+    new_version_str = new_version
     if version_part:
-        new_version = version_info_["new"]
+        new_version_str = version_info_["new_str"]
 
     e = extractor.ChangeExtractor(cfg=cfg, git=git, dry_run=dry_run, include_all=include_all)
     sections = e.extract(current)
@@ -287,10 +290,11 @@ def _gen(  # noqa: PLR0913
         logger.error("No changes present and reject_empty configured.")
         raise typer.Exit(code=0)
 
-    if new_version is None:
-        new_version = extract_version_tag(sections, cfg, current, bv)
+    if new_version_str is None:
+        version_info_ = extract_version_tag(sections, cfg, current, bv)
+        new_version_str = version_info_["new_str"]
 
-    version_tag = cfg.version_string.format(new_version=new_version)
+    version_tag = cfg.version_string.format(new_version=new_version_str)
     version_string = version_tag
 
     date_fmt = cfg.date_format
@@ -308,21 +312,25 @@ def _gen(  # noqa: PLR0913
     w.content = changes.split("\n")[2:-2]
 
     processed = False
-    if dry_run or typer.confirm(
-        f"Write CHANGELOG for suggested version {new_version}",
+    if (
+        dry_run
+        or yes
+        or typer.confirm(
+            f"Write CHANGELOG for suggested version {new_version_str}",
+        )
     ):
         paths = []
         if cfg.release:
-            paths = bv.modify(new_version)
+            paths = bv.replace(version_info_["current"], version_info_["new"])
 
         w.write()
 
         paths.append(f"CHANGELOG.{extension.value}")
 
-        git.commit(current, new_version, version_tag, paths)
+        git.commit(current, new_version_str, version_tag, paths)
         processed = True
 
     post_process = cfg.post_process
     if post_process and processed:
         unique_issues = [r for r in unique_issues if not r.startswith("__")]
-        per_issue_post_process(post_process, sorted(unique_issues), new_version, dry_run=dry_run)
+        per_issue_post_process(post_process, sorted(unique_issues), new_version_str, dry_run=dry_run)

@@ -3,12 +3,14 @@ from __future__ import annotations
 import dataclasses
 import logging
 import re
-import typing
+import typing as t
 from collections import defaultdict
 
 from changelog_gen.util import timer
 
-if typing.TYPE_CHECKING:
+if t.TYPE_CHECKING:
+    from bumpversion.versioning.models import Version
+
     from changelog_gen import config
     from changelog_gen.vcs import Git
     from changelog_gen.version import BumpVersion
@@ -28,7 +30,7 @@ class Change:  # noqa: D101
     scope: str = ""
     breaking: bool = False
 
-    def __lt__(self: typing.Self, other: Change) -> bool:  # noqa: D105
+    def __lt__(self: t.Self, other: Change) -> bool:  # noqa: D105
         s = (not self.breaking, self.scope.lower() if self.scope else "zzz", self.issue_ref.lower())
         o = (not other.breaking, other.scope.lower() if other.scope else "zzz", other.issue_ref.lower())
         return s < o
@@ -42,7 +44,7 @@ class ChangeExtractor:
 
     @timer
     def __init__(
-        self: typing.Self,
+        self: t.Self,
         cfg: config.Config,
         git: Git,
         *,
@@ -58,7 +60,7 @@ class ChangeExtractor:
 
     @timer
     def _extract_commit_logs(
-        self: typing.Self,
+        self: t.Self,
         sections: dict[str, dict],
         current_version: str,
     ) -> None:
@@ -138,7 +140,7 @@ class ChangeExtractor:
                 logger.debug("  Skipping commit log (not conventional): %s", log.strip())
 
     @timer
-    def extract(self: typing.Self, current_version: str) -> SectionDict:
+    def extract(self: t.Self, current_version: str) -> SectionDict:
         """Iterate over release note files extracting sections and issues."""
         sections = defaultdict(dict)
 
@@ -147,7 +149,7 @@ class ChangeExtractor:
         return sections
 
     @timer
-    def unique_issues(self: typing.Self, sections: SectionDict) -> list[str]:
+    def unique_issues(self: t.Self, sections: SectionDict) -> list[str]:
         """Generate unique list of issue references."""
         issue_refs = set()
         issue_refs = {
@@ -160,7 +162,12 @@ class ChangeExtractor:
 
 
 @timer
-def extract_version_tag(sections: SectionDict, cfg: config.Config, current: str, bv: BumpVersion) -> str:
+def extract_version_tag(
+    sections: SectionDict,
+    cfg: config.Config,
+    current: str,
+    bv: BumpVersion,
+) -> dict[str, str | Version]:
     """Generate new version tag based on changelog sections.
 
     Breaking changes: major
@@ -189,6 +196,4 @@ def extract_version_tag(sections: SectionDict, cfg: config.Config, current: str,
         logger.info("  '%s' change downgraded to '%s' for 0.x release.", semver, new_)
         semver = new_
 
-    version_info = bv.get_version_info(semver)
-
-    return version_info["new"]
+    return bv.get_version_info(semver)

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
-import typing
+import typing as t
 from http import HTTPStatus
 
 import httpx
@@ -10,7 +10,7 @@ import typer
 
 from changelog_gen.util import timer
 
-if typing.TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from changelog_gen.config import PostProcessConfig
 
 logger = logging.getLogger(__name__)
@@ -19,10 +19,10 @@ logger = logging.getLogger(__name__)
 class BearerAuth(httpx.Auth):
     """Implement Bearer token auth class for httpx."""
 
-    def __init__(self: typing.Self, token: str) -> None:
+    def __init__(self: t.Self, token: str) -> None:
         self.token = f"Bearer {token}"
 
-    def auth_flow(self: typing.Self, request: httpx.Request) -> typing.Generator[httpx.Request, httpx.Response, None]:
+    def auth_flow(self: t.Self, request: httpx.Request) -> t.Generator[httpx.Request, httpx.Response, None]:
         """Send the request, with bearer token."""
         request.headers["Authorization"] = self.token
         yield request
