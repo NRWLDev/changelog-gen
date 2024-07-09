@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.11.0 - 2024-07-09
+
+### Features and Improvements
+
+- **Breaking:** Use bump-my-version code directly, skip subprocess wrapped cli calls. [[851e225](https://github.com/NRWLDev/changelog-gen/commit/851e225c6e593a86521630c1efb7aca5ad4845f0)]
+
 ## v0.10.4 - 2024-07-09
 
 ### Features and Improvements
