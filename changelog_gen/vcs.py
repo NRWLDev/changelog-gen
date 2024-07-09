@@ -55,11 +55,8 @@ class Git:
 
         Given a version string `0.1.2` find the version tag `v0.1.2`, `0.1.2` etc.
         """
-        for tag in self.repo.tags:
-            if tag.name.endswith(version_string):
-                return tag.name
-
-        return None
+        tag = self.repo.git.tag("-l", f"*{version_string}")
+        return tag or None
 
     @timer
     def get_logs(self: T, tag: str | None) -> list:
