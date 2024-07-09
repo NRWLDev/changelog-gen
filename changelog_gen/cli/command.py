@@ -275,9 +275,10 @@ def _gen(  # noqa: PLR0913
     process_info(git.get_current_info(), cfg, dry_run=dry_run)
 
     version_info_ = bv.get_version_info(version_part or "patch")
-    current = version_info_["current"]
+    current = version_info_["current_str"]
+    new_version_str = new_version
     if version_part:
-        new_version = version_info_["new"]
+        new_version_str = version_info_["new_str"]
 
     e = extractor.ChangeExtractor(cfg=cfg, git=git, dry_run=dry_run, include_all=include_all)
     sections = e.extract(current)
@@ -287,10 +288,11 @@ def _gen(  # noqa: PLR0913
         logger.error("No changes present and reject_empty configured.")
         raise typer.Exit(code=0)
 
-    if new_version is None:
-        new_version = extract_version_tag(sections, cfg, current, bv)
+    if new_version_str is None:
+        version_info_ = extract_version_tag(sections, cfg, current, bv)
+        new_version_str = version_info_["new_str"]
 
-    version_tag = cfg.version_string.format(new_version=new_version)
+    version_tag = cfg.version_string.format(new_version=new_version_str)
     version_string = version_tag
 
     date_fmt = cfg.date_format
@@ -313,13 +315,13 @@ def _gen(  # noqa: PLR0913
     ):
         paths = []
         if cfg.release:
-            paths = bv.modify(new_version)
+            paths = bv.modify(version_info_["current"], version_info_["new"])
 
         w.write()
 
         paths.append(f"CHANGELOG.{extension.value}")
 
-        git.commit(current, new_version, version_tag, paths)
+        git.commit(current, new_version_str, version_tag, paths)
         processed = True
 
     post_process = cfg.post_process

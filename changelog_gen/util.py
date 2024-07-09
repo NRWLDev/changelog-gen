@@ -9,10 +9,10 @@ def timer(func: t.Callable) -> t.Callable:
     """Timing decorator."""
 
     def wrapper(*arg, **kw) -> t.Any:  # noqa: ANN401
-        t1 = time.time()
+        t1 = time.time_ns()
         res = func(*arg, **kw)
-        t2 = time.time()
-        logger.debug("%s %f", func.__name__, (t2 - t1) * 1000)
+        t2 = time.time_ns()
+        logger.error("%s %fms", func.__name__, (t2 - t1) / 1000000)
         return res
 
     return wrapper

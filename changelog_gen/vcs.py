@@ -73,12 +73,12 @@ class Git:
         return [m.split(":", 2) for m in logs.split("\x00") if m]
 
     @timer
-    def add_path(self: T, path: str) -> None:
+    def add_paths(self: T, paths: list[str]) -> None:
         """Add path to git repository."""
         if self.dry_run:
-            logger.warning("  Would add path '%s' to Git", path)
+            logger.warning("  Would add paths '%s' to Git", "', '".join(paths))
             return
-        self.repo.git.add(path, update=True)
+        self.repo.git.add(*paths, update=True)
 
     @timer
     def commit(self: T, current: str, new: str, tag: str, paths: list[str] | None = None) -> None:
@@ -86,8 +86,8 @@ class Git:
         logger.warning("Would prepare Git commit")
         paths = paths or []
 
-        for path in paths:
-            self.add_path(path)
+        if paths:
+            self.add_paths(paths)
 
         msg = [
             f"Update CHANGELOG for {new}",

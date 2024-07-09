@@ -160,7 +160,7 @@ class ChangeExtractor:
 
 
 @timer
-def extract_version_tag(sections: SectionDict, cfg: config.Config, current: str, bv: BumpVersion) -> str:
+def extract_version_tag(sections: SectionDict, cfg: config.Config, current: str, bv: BumpVersion) -> dict:
     """Generate new version tag based on changelog sections.
 
     Breaking changes: major
@@ -189,6 +189,4 @@ def extract_version_tag(sections: SectionDict, cfg: config.Config, current: str,
         logger.info("  '%s' change downgraded to '%s' for 0.x release.", semver, new_)
         semver = new_
 
-    version_info = bv.get_version_info(semver)
-
-    return version_info["new"]
+    return bv.get_version_info(semver)
