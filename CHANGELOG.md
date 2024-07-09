@@ -4,6 +4,12 @@
 
 ### Features and Improvements
 
+- Use `bump-my-version replace ...` to update version files and changelog in a single commit. [[dc27cb2](https://github.com/NRWLDev/changelog-gen/commit/dc27cb23bc387d97f34f447dd9d117f4dd0afac4)]
+
+## v0.10.4 - 2024-07-09
+
+### Features and Improvements
+
 - Replace manual subprocess calls with GitPython usage. [[3cdab64](https://github.com/NRWLDev/changelog-gen/commit/3cdab64092857f357806a2c9078eba4a3b6db601)]
 
 ## v0.10.3 - 2024-07-08
