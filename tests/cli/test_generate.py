@@ -185,6 +185,7 @@ def test_generate_interactive(cli_runner, monkeypatch, platform, expected):
         dry_run=False,
         interactive=expected,
         include_all=False,
+        yes=False,
     )
 
 

@@ -178,7 +178,7 @@ def gen(  # noqa: PLR0913
         help="Include all commits, even ones that are incorrectly formatted.",
     ),
     interactive: Optional[bool] = typer.Option(default=True, help="Open changes in an editor before confirmation."),
-    yes: Optional[bool] = typer.Option(None, "--yes", "-y", help="Automatically accept changes."),
+    yes: bool = typer.Option(False, "--yes", "-y", help="Automatically accept changes."),  # noqa: FBT003
     verbose: int = typer.Option(0, "-v", "--verbose", help="Set output verbosity.", count=True, max=3),
     _version: Optional[bool] = typer.Option(
         None,
