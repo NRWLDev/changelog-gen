@@ -6,6 +6,12 @@
 
 - Replace manual subprocess calls with GitPython usage. [[3cdab64](https://github.com/NRWLDev/changelog-gen/commit/3cdab64092857f357806a2c9078eba4a3b6db601)]
 
+## v0.10.4 - 2024-07-09
+
+### Features and Improvements
+
+- Replace manual subprocess calls with GitPython usage. [[3cdab64](https://github.com/NRWLDev/changelog-gen/commit/3cdab64092857f357806a2c9078eba4a3b6db601)]
+
 ## v0.10.3 - 2024-07-08
 
 ### Bug fixes
