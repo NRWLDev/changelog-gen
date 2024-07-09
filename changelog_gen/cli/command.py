@@ -315,7 +315,7 @@ def _gen(  # noqa: PLR0913
     ):
         paths = []
         if cfg.release:
-            paths = bv.modify(version_info_["current"], version_info_["new"])
+            paths = bv.replace(version_info_["current"], version_info_["new"])
 
         w.write()
 

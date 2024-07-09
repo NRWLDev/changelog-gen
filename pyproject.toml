@@ -76,7 +76,7 @@ show_missing = true
 skip_covered = true
 exclude_lines = [
     "pragma: no cover",
-    "if typing.TYPE_CHECKING:",
+    "if t.TYPE_CHECKING:",
     'warn',
 ]
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, TypeVar
+import typing as t
 
 from bumpversion.bump import get_next_version
 from bumpversion.config import get_configuration
@@ -13,12 +13,12 @@ from bumpversion.files import ConfiguredFile
 from changelog_gen import errors
 from changelog_gen.util import timer
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from bumpversion.versioning.models import Version
 
 logger = logging.getLogger(__name__)
 
-T = TypeVar("T", bound="BumpVersion")
+T = t.TypeVar("T", bound="BumpVersion")
 
 
 class BumpVersion:  # noqa: D101
@@ -35,7 +35,7 @@ class BumpVersion:  # noqa: D101
             config = get_configuration(found_config_file)
         except ConfigurationError as e:
             error_message = [
-                "Unable to modify files with bumpversion.",
+                "Unable to get version data from bumpversion.",
                 f"error: {e}",
             ]
             msg = "\n".join(error_message)
@@ -44,18 +44,17 @@ class BumpVersion:  # noqa: D101
         ctx = get_context(config)
         version = config.version_config.parse(config.current_version)
         next_version = get_next_version(version, config, semver, None)
-        version_str = config.version_config.serialize(version, ctx)
         next_version_str = config.version_config.serialize(next_version, ctx)
 
         return {
             "current": version,
-            "current_str": version_str,
+            "current_str": config.current_version,
             "new": next_version,
             "new_str": next_version_str,
         }
 
     @timer
-    def modify(self: T, current: Version, version: Version) -> list[str]:  # noqa: D102
+    def replace(self: T, current: Version, version: Version) -> list[str]:  # noqa: D102
         try:
             found_config_file = find_config_file()
             config = get_configuration(found_config_file, dry_run=self.dry_run, allow_dirty=self.allow_dirty)

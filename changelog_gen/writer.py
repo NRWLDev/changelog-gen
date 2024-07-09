@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 import logging
-import typing
+import typing as t
 from enum import Enum
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 from changelog_gen.util import timer
 
-if typing.TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from changelog_gen import config
     from changelog_gen.extractor import Change, SectionDict
 
@@ -34,7 +34,7 @@ class BaseWriter:
 
     @timer
     def __init__(
-        self: typing.Self,
+        self: t.Self,
         changelog: Path,
         cfg: config.Config,
         *,
@@ -51,16 +51,16 @@ class BaseWriter:
         self.commit_link = cfg.commit_link
 
     @timer
-    def add_version(self: typing.Self, version: str) -> None:
+    def add_version(self: t.Self, version: str) -> None:
         """Add a version string to changelog file."""
         self._add_version(version)
 
     @timer
-    def _add_version(self: typing.Self, version: str) -> None:
+    def _add_version(self: t.Self, version: str) -> None:
         raise NotImplementedError
 
     @timer
-    def consume(self: typing.Self, type_headers: dict[str, str], sections: SectionDict) -> None:
+    def consume(self: t.Self, type_headers: dict[str, str], sections: SectionDict) -> None:
         """Process sections and generate changelog file entries."""
         for header in type_headers.values():
             if header not in sections:
@@ -70,7 +70,7 @@ class BaseWriter:
             self.add_section(header, changes)
 
     @timer
-    def add_section(self: typing.Self, header: str, changes: dict[str, Change]) -> None:
+    def add_section(self: t.Self, header: str, changes: dict[str, Change]) -> None:
         """Add a section to changelog file."""
         self._add_section_header(header)
         for change in sorted(changes.values()):
@@ -85,35 +85,35 @@ class BaseWriter:
         self._post_section()
 
     @timer
-    def bold_string(self: typing.Self, string: str) -> str:
+    def bold_string(self: t.Self, string: str) -> str:
         """Render a string as bold."""
         return f"**{string.strip()}**"
 
     @timer
-    def _add_section_header(self: typing.Self, header: str) -> None:
+    def _add_section_header(self: t.Self, header: str) -> None:
         raise NotImplementedError
 
     @timer
-    def _add_section_line(self: typing.Self, description: str, change: Change) -> None:
+    def _add_section_line(self: t.Self, description: str, change: Change) -> None:
         raise NotImplementedError
 
     @timer
-    def _post_section(self: typing.Self) -> None:
+    def _post_section(self: t.Self) -> None:
         pass
 
     @timer
-    def __str__(self: typing.Self) -> str:  # noqa: D105
+    def __str__(self: t.Self) -> str:  # noqa: D105
         content = "\n".join(self.content)
         return f"\n\n{content}\n\n"
 
     @timer
-    def write(self: typing.Self) -> None:
+    def write(self: t.Self) -> None:
         """Write file contents to destination."""
         self.content = [self.file_header, *self.content, *self.existing]
         self._write(self.content)
 
     @timer
-    def _write(self: typing.Self, content: list[str]) -> None:
+    def _write(self: t.Self, content: list[str]) -> None:
         if self.dry_run:
             logger.warning("Would write to '%s'", self.changelog.name)
             with NamedTemporaryFile("wb") as output_file:
@@ -131,15 +131,15 @@ class MdWriter(BaseWriter):
     extension = Extension.MD
 
     @timer
-    def _add_version(self: typing.Self, version: str) -> None:
+    def _add_version(self: t.Self, version: str) -> None:
         self.content.extend([f"## {version}", ""])
 
     @timer
-    def _add_section_header(self: typing.Self, header: str) -> None:
+    def _add_section_header(self: t.Self, header: str) -> None:
         self.content.extend([f"### {header}", ""])
 
     @timer
-    def _add_section_line(self: typing.Self, description: str, change: Change) -> None:
+    def _add_section_line(self: t.Self, description: str, change: Change) -> None:
         # Skip __{i}__ placeholder refs
         if change.issue_ref.startswith("__"):
             line = f"- {description}"
@@ -157,7 +157,7 @@ class MdWriter(BaseWriter):
         self.content.append(line)
 
     @timer
-    def _post_section(self: typing.Self) -> None:
+    def _post_section(self: t.Self) -> None:
         self.content.append("")
 
 
@@ -169,30 +169,30 @@ class RstWriter(BaseWriter):
     extension = Extension.RST
 
     @timer
-    def __init__(self: typing.Self, *args, **kwargs) -> None:
+    def __init__(self: t.Self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self._links = {}
 
     @timer
-    def __str__(self: typing.Self) -> str:  # noqa: D105
+    def __str__(self: t.Self) -> str:  # noqa: D105
         content = "\n".join(self.content + self.links)
         return f"\n\n{content}\n\n"
 
     @property
-    def links(self: typing.Self) -> list[str]:
+    def links(self: t.Self) -> list[str]:
         """Generate RST supported links for inclusion in changelog."""
         return [f".. _`{ref}`: {link}" for ref, link in sorted(self._links.items())]
 
     @timer
-    def _add_version(self: typing.Self, version: str) -> None:
+    def _add_version(self: t.Self, version: str) -> None:
         self.content.extend([version, "=" * len(version), ""])
 
     @timer
-    def _add_section_header(self: typing.Self, header: str) -> None:
+    def _add_section_header(self: t.Self, header: str) -> None:
         self.content.extend([header, "-" * len(header), ""])
 
     @timer
-    def _add_section_line(self: typing.Self, description: str, change: Change) -> None:
+    def _add_section_line(self: t.Self, description: str, change: Change) -> None:
         # Skip __{i}__ placeholder refs
         if change.issue_ref.startswith("__"):
             line = f"* {description}"
@@ -209,7 +209,7 @@ class RstWriter(BaseWriter):
         self.content.extend([line, ""])
 
     @timer
-    def write(self: typing.Self) -> None:
+    def write(self: t.Self) -> None:
         """Write contents to destination."""
         self.content = [self.file_header, *self.content, *self.existing, *self.links]
         self._write(self.content)

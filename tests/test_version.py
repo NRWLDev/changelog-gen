@@ -14,7 +14,6 @@ class TestBumpMyVersion:
         assert (
             str(e.value)
             == """Unable to get version data from bumpversion.
-cmd: bump-my-version show-bump --ascii
 error: Unable to determine the current version."""
         )
 
@@ -34,15 +33,17 @@ error: Unable to determine the current version."""
             f"""
 [tool.bumpversion]
 current_version = "{current_version}"
-commit = false
-tag = false
         """.strip(),
         )
 
+        config = version.get_configuration(str(p))
+        cv = config.version_config.parse(current_version)
+        nv = config.version_config.parse(new_version)
+
         assert version.BumpVersion().get_version_info(semver) == {
-            "current": current_version,
+            "current": cv,
             "current_str": current_version,
-            "new": new_version,
+            "new": nv,
             "new_str": new_version,
         }
 
@@ -84,40 +85,92 @@ parts.release.values = ["rc", "final"]
 parts.release.optional_value = "final"
         """.strip(),
         )
+        config = version.get_configuration(str(p))
+        cv = config.version_config.parse(current_version)
+        nv = config.version_config.parse(new_version)
 
         assert version.BumpVersion().get_version_info(semver) == {
-            "current": current_version,
+            "current": cv,
             "current_str": current_version,
-            "new": new_version,
+            "new": nv,
             "new_str": new_version,
         }
 
+    def test_replace(self, cwd):
+        p = cwd / "pyproject.toml"
+        p.write_text(
+            """
+[tool.poetry]
+version = "0.0.0"
+
+[tool.bumpversion]
+current_version = "0.0.0"
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+search = 'version = "{current_version}"'
+replace = 'version = "{new_version}"'
+        """.strip(),
+        )
+        config = version.get_configuration(str(p))
+
+        current = config.version_config.parse("0.0.0")
+        new = config.version_config.parse("1.2.3")
+        version.BumpVersion().replace(current, new)
+        with p.open() as f:
+            assert (
+                f.read()
+                == """[tool.poetry]
+version = "1.2.3"
+
+[tool.bumpversion]
+current_version = "1.2.3"
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+search = 'version = "{current_version}"'
+replace = 'version = "{new_version}"'"""
+            )
+
     @pytest.mark.parametrize(
-        ("kwargs", "expected_command_args"),
+        ("kwargs", "expected_kwargs"),
         [
-            ({}, []),
-            ({"dry_run": True}, ["--dry-run"]),
-            ({"allow_dirty": True}, ["--allow-dirty"]),
-            ({"verbose": 3}, ["-vvv"]),
+            ({}, {"dry_run": False, "allow_dirty": False}),
+            ({"dry_run": True}, {"dry_run": True, "allow_dirty": False}),
+            ({"allow_dirty": True}, {"dry_run": False, "allow_dirty": True}),
         ],
     )
-    def test_modify(self, monkeypatch, kwargs, expected_command_args):
-        monkeypatch.setattr(version.subprocess, "check_output", mock.Mock(return_value=b""))
-        version.BumpVersion(**kwargs).modify("1.2.3")
-        assert version.subprocess.check_output.call_args == mock.call(
-            ["bump-my-version", "replace", "--new-version", "1.2.3"] + expected_command_args,  # noqa: RUF005
-            stderr=version.subprocess.STDOUT,
+    def test_replace_config_kwargs(self, cwd, kwargs, expected_kwargs, monkeypatch):
+        p = cwd / "pyproject.toml"
+        p.write_text(
+            """
+[tool.bumpversion]
+current_version = "0.0.0"
+        """.strip(),
+        )
+        monkeypatch.setattr(version, "find_config_file", mock.Mock())
+        config = version.get_configuration(str(p))
+        monkeypatch.setattr(version, "get_configuration", mock.Mock(return_value=config))
+
+        current = config.version_config.parse("0.0.0")
+        new = config.version_config.parse("1.2.3")
+        version.BumpVersion(**kwargs).replace(current, new)
+
+        assert version.get_configuration.call_args == mock.call(
+            version.find_config_file.return_value,
+            **expected_kwargs,
         )
 
     @pytest.mark.usefixtures("cwd")
-    def test_modify_handles_configuration_error(self, monkeypatch):
+    def test_replace_handles_configuration_error(self, monkeypatch):
         monkeypatch.setattr(version.logger, "warning", mock.Mock())
+        current = {"major": mock.Mock(value=0), "minor": mock.Mock(value=0), "patch": mock.Mock(value=0)}
+        new = {"major": mock.Mock(value=1), "minor": mock.Mock(value=2), "patch": mock.Mock(value=3)}
         with pytest.raises(errors.VersionError) as e:
-            version.BumpVersion().modify("1.2.3")
+            version.BumpVersion().replace(current, new)
 
         assert (
             str(e.value)
             == """Unable to modify files with bumpversion.
-cmd: bump-my-version replace --new-version 1.2.3
 error: Unable to determine the current version."""
         )
