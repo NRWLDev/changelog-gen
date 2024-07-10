@@ -98,6 +98,8 @@ ignore = [
     "ANN002",  # ParamSpec not available in 3.9
     "ANN003",  # ParamSpec not available in 3.9
     "FIX",  # allow TODO
+    "ERA",
+    "T201",
 ]
 
 [tool.ruff.lint.per-file-ignores]

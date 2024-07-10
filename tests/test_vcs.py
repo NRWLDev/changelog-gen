@@ -335,3 +335,39 @@ def test_revert_dry_run(multiversion_repo):
     Git(dry_run=True).revert()
 
     assert multiversion_repo.api.head.commit.message == "commit log 2"
+
+
+def test_revert_dulwich(multiversion_repo):
+    path = multiversion_repo.workspace
+    f = path / "hello.txt"
+    f.write_text("hello world! v3")
+    multiversion_repo.run("git add hello.txt")
+    multiversion_repo.api.index.commit("commit log")
+
+    f.write_text("hello world! v4")
+    multiversion_repo.run("git add hello.txt")
+    multiversion_repo.api.index.commit("commit log 2")
+
+    assert multiversion_repo.api.head.commit.message == "commit log 2"
+
+    Git(provider="dulwich").revert()
+
+    assert multiversion_repo.api.head.commit.message == "commit log"
+
+
+def test_revert_dry_run_dulwich(multiversion_repo):
+    path = multiversion_repo.workspace
+    f = path / "hello.txt"
+    f.write_text("hello world! v3")
+    multiversion_repo.run("git add hello.txt")
+    multiversion_repo.api.index.commit("commit log")
+
+    f.write_text("hello world! v4")
+    multiversion_repo.run("git add hello.txt")
+    multiversion_repo.api.index.commit("commit log 2")
+
+    assert multiversion_repo.api.head.commit.message == "commit log 2"
+
+    Git(dry_run=True, provider="dulwich").revert()
+
+    assert multiversion_repo.api.head.commit.message == "commit log 2"
