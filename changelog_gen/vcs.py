@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from typing import TypeVar
 
+import dulwich
 import git
 
 from changelog_gen import errors
@@ -30,6 +31,7 @@ class Git:
         self._tag = tag
         self.dry_run = dry_run
         self.repo = git.Repo()
+        self._repo = dulwich.depo.Repo()
 
     @timer
     def get_current_info(self: T) -> dict[str, str]:
