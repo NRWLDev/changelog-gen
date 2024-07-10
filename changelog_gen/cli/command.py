@@ -26,7 +26,6 @@ from changelog_gen import (
     writer,
 )
 from changelog_gen.cli import util
-from changelog_gen.extractor import extract_version_tag
 from changelog_gen.post_processor import per_issue_post_process
 from changelog_gen.util import timer
 from changelog_gen.vcs import Git
@@ -265,7 +264,7 @@ def _gen(  # noqa: PLR0913
     include_all: bool = False,
     yes: bool = False,
 ) -> None:
-    bv = BumpVersion(dry_run=dry_run, allow_dirty=cfg.allow_dirty)
+    bv = BumpVersion(cfg, new_version, dry_run=dry_run, allow_dirty=cfg.allow_dirty)
     git = Git(dry_run=dry_run, commit=cfg.commit, release=cfg.release, tag=cfg.tag)
 
     extension = util.detect_extension()
@@ -276,11 +275,11 @@ def _gen(  # noqa: PLR0913
 
     process_info(git.get_current_info(), cfg, dry_run=dry_run)
 
-    version_info_ = bv.get_version_info(version_part or "patch")
-    current = version_info_["current_str"]
-    new_version_str = new_version
-    if version_part:
-        new_version_str = version_info_["new_str"]
+    current = cfg.current_version
+    if current == "":
+        # Fetch from bumpversion until deprecated
+        version_info_ = bv.get_version_info("patch")
+        current = str(version_info_["current"])
 
     e = extractor.ChangeExtractor(cfg=cfg, git=git, dry_run=dry_run, include_all=include_all)
     sections = e.extract(current)
@@ -290,11 +289,14 @@ def _gen(  # noqa: PLR0913
         logger.error("No changes present and reject_empty configured.")
         raise typer.Exit(code=0)
 
-    if new_version_str is None:
-        version_info_ = extract_version_tag(sections, cfg, current, bv)
-        new_version_str = version_info_["new_str"]
+    semver = extractor.extract_semver(sections, cfg, current)
+    semver = version_part or semver
 
-    version_tag = cfg.version_string.format(new_version=new_version_str)
+    version_info_ = bv.get_version_info(semver)
+    new = version_info_["new"]
+    current = version_info_["current"]
+
+    version_tag = cfg.version_string.format(new_version=str(new))
     version_string = version_tag
 
     date_fmt = cfg.date_format
@@ -316,21 +318,21 @@ def _gen(  # noqa: PLR0913
         dry_run
         or yes
         or typer.confirm(
-            f"Write CHANGELOG for suggested version {new_version_str}",
+            f"Write CHANGELOG for suggested version {new}",
         )
     ):
         paths = []
         if cfg.release:
-            paths = bv.replace(version_info_["current"], version_info_["new"])
+            paths = bv.replace(current.tag, new.tag)
 
         w.write()
 
         paths.append(f"CHANGELOG.{extension.value}")
 
-        git.commit(current, new_version_str, version_tag, paths)
+        git.commit(str(current), str(new), version_tag, paths)
         processed = True
 
     post_process = cfg.post_process
     if post_process and processed:
         unique_issues = [r for r in unique_issues if not r.startswith("__")]
-        per_issue_post_process(post_process, sorted(unique_issues), new_version_str, dry_run=dry_run)
+        per_issue_post_process(post_process, sorted(unique_issues), str(new), dry_run=dry_run)

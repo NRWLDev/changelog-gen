@@ -9,11 +9,8 @@ from collections import defaultdict
 from changelog_gen.util import timer
 
 if t.TYPE_CHECKING:
-    from bumpversion.versioning.models import Version
-
     from changelog_gen import config
     from changelog_gen.vcs import Git
-    from changelog_gen.version import BumpVersion
 
 logger = logging.getLogger(__name__)
 
@@ -162,13 +159,12 @@ class ChangeExtractor:
 
 
 @timer
-def extract_version_tag(
+def extract_semver(
     sections: SectionDict,
     cfg: config.Config,
     current: str,
-    bv: BumpVersion,
-) -> dict[str, str | Version]:
-    """Generate new version tag based on changelog sections.
+) -> str:
+    """Extract detected semver from commit logs.
 
     Breaking changes: major
     Feature releases: minor
@@ -196,4 +192,4 @@ def extract_version_tag(
         logger.info("  '%s' change downgraded to '%s' for 0.x release.", semver, new_)
         semver = new_
 
-    return bv.get_version_info(semver)
+    return semver

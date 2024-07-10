@@ -1,17 +1,34 @@
 from unittest import mock
 
 import pytest
+import rtoml
 import typer
 from freezegun import freeze_time
 
 from changelog_gen import errors
 from changelog_gen.cli import command
 from changelog_gen.config import PostProcessConfig
+from changelog_gen.version import _Version
 
 
 @pytest.fixture(autouse=True)
 def _patch_subprocess(monkeypatch):
     monkeypatch.setattr(command.subprocess, "call", mock.Mock())
+
+
+@pytest.fixture()
+def config_factory(cwd):
+    def factory(**config):
+        p = cwd / "pyproject.toml"
+        with p.open("w") as f:
+            rtoml.dump({"tool": {"changelog_gen": config, "bumpversion": {"current_version": "0.0.0"}}}, f)
+
+    return factory
+
+
+@pytest.fixture(autouse=True)
+def config(config_factory):
+    return config_factory()
 
 
 @pytest.fixture(autouse=True)
@@ -34,14 +51,12 @@ def mock_git(monkeypatch):
 @pytest.fixture()
 def versions():
     return {
-        "current": mock.Mock(),
-        "current_str": "0.0.0",
-        "new": mock.Mock(),
-        "new_str": "0.0.1",
+        "current": _Version("0.0.0", mock.Mock()),
+        "new": _Version("0.0.1", mock.Mock()),
     }
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture()
 def mock_bump(monkeypatch, versions):
     mock_bump = mock.Mock()
     mock_bump.get_version_info.return_value = versions
@@ -135,6 +150,9 @@ def post_process_pyproject(cwd):
     p = cwd / "pyproject.toml"
     p.write_text(
         """
+[tool.bumpversion]
+current_version = "0.0.0"
+
 [tool.changelog_gen]
 commit = true
 post_process.url = "https://my-api/::issue_ref::/release"
@@ -190,18 +208,12 @@ def test_generate_interactive(cli_runner, monkeypatch, platform, expected):
 
 
 @pytest.mark.usefixtures("changelog", "_conventional_commits")
-def test_generate_aborts_if_dirty(cli_runner, cwd, mock_git):
+def test_generate_aborts_if_dirty(cli_runner, mock_git, config_factory):
+    config_factory(allow_dirty=False)
     mock_git.get_current_info.return_value = {
         "dirty": True,
         "branch": "main",
     }
-    p = cwd / "pyproject.toml"
-    p.write_text(
-        """
-[tool.changelog_gen]
-allow_dirty = false
-""",
-    )
     result = cli_runner.invoke(["generate"])
 
     assert result.exit_code == 1
@@ -209,47 +221,29 @@ allow_dirty = false
 
 
 @pytest.mark.usefixtures("changelog", "_conventional_commits")
-def test_generate_allows_dirty(cli_runner, cwd):
-    p = cwd / "pyproject.toml"
-    p.write_text(
-        """
-[tool.changelog_gen]
-allow_dirty = false
-""",
-    )
+def test_generate_allows_dirty(cli_runner, config_factory):
+    config_factory(allow_dirty=False)
     result = cli_runner.invoke(["generate", "--allow-dirty"])
 
     assert result.exit_code == 0
 
 
 @pytest.mark.usefixtures("changelog", "_conventional_commits")
-def test_generate_continues_if_allow_dirty_configured(cli_runner, cwd):
-    p = cwd / "pyproject.toml"
-    p.write_text(
-        """
-[tool.changelog_gen]
-allow_dirty = true
-""",
-    )
+def test_generate_continues_if_allow_dirty_configured(cli_runner, config_factory):
+    config_factory(allow_dirty=True)
     result = cli_runner.invoke(["generate"])
 
     assert result.exit_code == 0
 
 
 @pytest.mark.usefixtures("changelog", "_conventional_commits")
-def test_generate_aborts_if_missing_local(cli_runner, cwd, mock_git):
+def test_generate_aborts_if_missing_local(cli_runner, config_factory, mock_git):
+    config_factory(allow_missing=False)
     mock_git.get_current_info.return_value = {
         "missing_local": True,
         "dirty": False,
         "branch": "main",
     }
-    p = cwd / "pyproject.toml"
-    p.write_text(
-        """
-[tool.changelog_gen]
-allow_missing = false
-""",
-    )
     result = cli_runner.invoke(["generate"])
 
     assert result.exit_code == 1
@@ -257,40 +251,28 @@ allow_missing = false
 
 
 @pytest.mark.usefixtures("changelog", "_conventional_commits")
-def test_generate_continues_if_allow_missing_configured_missing_local(cli_runner, cwd, mock_git):
+def test_generate_continues_if_allow_missing_configured_missing_local(cli_runner, mock_git, config_factory):
+    config_factory(allow_missing=True)
     mock_git.get_current_info.return_value = {
         "missing_remote": False,
         "missing_local": True,
         "dirty": False,
         "branch": "main",
     }
-    p = cwd / "pyproject.toml"
-    p.write_text(
-        """
-[tool.changelog_gen]
-allow_missing = true
-""",
-    )
     result = cli_runner.invoke(["generate"])
 
     assert result.exit_code == 0
 
 
 @pytest.mark.usefixtures("changelog", "_conventional_commits")
-def test_generate_aborts_if_missing_remote(cli_runner, cwd, mock_git):
+def test_generate_aborts_if_missing_remote(cli_runner, config_factory, mock_git):
+    config_factory(allow_missing=False)
     mock_git.get_current_info.return_value = {
         "missing_remote": True,
         "missing_local": False,
         "dirty": False,
         "branch": "main",
     }
-    p = cwd / "pyproject.toml"
-    p.write_text(
-        """
-[tool.changelog_gen]
-allow_missing = false
-""",
-    )
     result = cli_runner.invoke(["generate"])
 
     assert result.exit_code == 1
@@ -298,35 +280,22 @@ allow_missing = false
 
 
 @pytest.mark.usefixtures("changelog", "_conventional_commits")
-def test_generate_continues_if_allow_missing_configured_missing_remote(cli_runner, cwd, mock_git):
+def test_generate_continues_if_allow_missing_configured_missing_remote(cli_runner, config_factory, mock_git):
+    config_factory(allow_missing=True)
     mock_git.get_current_info.return_value = {
         "missing_remote": True,
         "missing_local": False,
         "dirty": False,
         "branch": "main",
     }
-    p = cwd / "pyproject.toml"
-    p.write_text(
-        """
-[tool.changelog_gen]
-allow_missing = true
-""",
-    )
     result = cli_runner.invoke(["generate"])
 
     assert result.exit_code == 0
 
 
 @pytest.mark.usefixtures("changelog", "_conventional_commits")
-def test_generate_aborts_if_unsupported_current_branch(cli_runner, cwd):
-    p = cwd / "pyproject.toml"
-    p.write_text(
-        """
-[tool.changelog_gen]
-allow_dirty = true
-allowed_branches = ["release_candidate"]
-""",
-    )
+def test_generate_aborts_if_unsupported_current_branch(cli_runner, config_factory):
+    config_factory(allow_dirty=True, allowed_branches=["release_candidate"])
     result = cli_runner.invoke(["generate"])
 
     assert result.exit_code == 1
@@ -334,15 +303,8 @@ allowed_branches = ["release_candidate"]
 
 
 @pytest.mark.usefixtures("changelog", "_conventional_commits")
-def test_generate_allows_supported_branch(cli_runner, cwd):
-    p = cwd / "pyproject.toml"
-    p.write_text(
-        """
-[tool.changelog_gen]
-allow_dirty = true
-allowed_branches = ["main"]
-""",
-    )
+def test_generate_allows_supported_branch(cli_runner, config_factory):
+    config_factory(allow_dirty=True, allowed_branches=["main"])
     result = cli_runner.invoke(["generate"])
 
     assert result.exit_code == 0
@@ -377,16 +339,8 @@ Write CHANGELOG for suggested version 0.0.1 [y/N]:
 
 
 @pytest.mark.usefixtures("changelog", "_conventional_commits")
-def test_generate_with_headers(cli_runner, cwd):
-    p = cwd / "pyproject.toml"
-    p.write_text(
-        """
-[tool.changelog_gen]
-allow_dirty = true
-commit_types.feat.header = "My Features"
-commit_types.fix.header = "My Fixes"
-""",
-    )
+def test_generate_with_headers(cli_runner, config_factory):
+    config_factory(allow_dirty=True, commit_types={"feat": {"header": "My Features"}, "fix": {"header": "My Fixes"}})
     result = cli_runner.invoke(["generate"])
 
     assert result.exit_code == 0
@@ -487,39 +441,34 @@ def test_generate_creates_release(
     mock_git,
     mock_bump,
     versions,
+    config_factory,
 ):
+    config_factory()
     monkeypatch.setattr(typer, "confirm", mock.MagicMock(return_value=True))
     result = cli_runner.invoke(["generate", "--commit", "--release"])
 
     assert result.exit_code == 0
     assert mock_git.commit.call_args == mock.call("0.0.0", "0.0.1", "v0.0.1", ["pyproject.toml", "CHANGELOG.md"])
-    assert mock_bump.replace.call_args == mock.call(versions["current"], versions["new"])
+    assert mock_bump.replace.call_args == mock.call(versions["current"].tag, versions["new"].tag)
 
 
 @pytest.mark.usefixtures("changelog", "_conventional_commits")
 def test_generate_creates_release_using_config(
     cli_runner,
-    cwd,
     monkeypatch,
     mock_git,
     mock_bump,
     versions,
+    config_factory,
 ):
-    p = cwd / "pyproject.toml"
-    p.write_text(
-        """
-[tool.changelog_gen]
-commit = true
-release = true
-""",
-    )
+    config_factory(commit=True, release=True)
 
     monkeypatch.setattr(typer, "confirm", mock.MagicMock(return_value=True))
     result = cli_runner.invoke(["generate"])
 
     assert result.exit_code == 0
     assert mock_git.commit.call_args == mock.call("0.0.0", "0.0.1", "v0.0.1", ["pyproject.toml", "CHANGELOG.md"])
-    assert mock_bump.replace.call_args == mock.call(versions["current"], versions["new"])
+    assert mock_bump.replace.call_args == mock.call(versions["current"].tag, versions["new"].tag)
 
 
 @pytest.mark.usefixtures("_conventional_commits")
@@ -727,16 +676,8 @@ class TestDelegatesToPerIssuePostProcess:
 @freeze_time("2022-04-14T16:45:03")
 class TestGenerateWithDate:
     @pytest.mark.usefixtures("_conventional_commits", "changelog")
-    def test_using_config(self, cli_runner, cwd, monkeypatch):
-        p = cwd / "pyproject.toml"
-        p.write_text(
-            """
-[tool.changelog_gen]
-commit = false
-release = true
-date_format = "on %Y-%m-%d"
-        """.strip(),
-        )
+    def test_using_config(self, cli_runner, config_factory, monkeypatch):
+        config_factory(commit=False, release=True, date_format="on %Y-%m-%d")
 
         monkeypatch.setattr(typer, "confirm", mock.MagicMock(return_value=True))
         writer_mock = mock.MagicMock()
@@ -759,16 +700,8 @@ date_format = "on %Y-%m-%d"
         assert writer_mock.add_version.call_args == mock.call("v0.0.1 (2022-04-14 at 16:45)")
 
     @pytest.mark.usefixtures("_conventional_commits", "changelog")
-    def test_override_config(self, cli_runner, cwd, monkeypatch):
-        p = cwd / "pyproject.toml"
-        p.write_text(
-            """
-[tool.changelog_gen]
-commit = false
-release = true
-date_format = "on %Y-%m-%d"
-        """.strip(),
-        )
+    def test_override_config(self, cli_runner, config_factory, monkeypatch):
+        config_factory(commit=False, release=True, date_format="on %Y-%m-%d")
 
         monkeypatch.setattr(typer, "confirm", mock.MagicMock(return_value=True))
         writer_mock = mock.MagicMock()
@@ -780,16 +713,8 @@ date_format = "on %Y-%m-%d"
         assert writer_mock.add_version.call_args == mock.call("v0.0.1 (2022-04-14 at 16:45)")
 
     @pytest.mark.usefixtures("_conventional_commits", "changelog")
-    def test_override_config_and_disable(self, cli_runner, cwd, monkeypatch):
-        p = cwd / "pyproject.toml"
-        p.write_text(
-            """
-[tool.changelog_gen]
-commit = false
-release = true
-date_format = "on %Y-%m-%d"
-        """.strip(),
-        )
+    def test_override_config_and_disable(self, cli_runner, config_factory, monkeypatch):
+        config_factory(commit=False, release=True, date_format="on %Y-%m-%d")
 
         monkeypatch.setattr(typer, "confirm", mock.MagicMock(return_value=True))
         writer_mock = mock.MagicMock()

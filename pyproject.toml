@@ -45,6 +45,7 @@ search = 'version = "{current_version}"'
 replace = 'version = "{new_version}"'
 
 [tool.changelog_gen]
+current_version = "0.11.1"
 release = true
 commit = true
 tag = true

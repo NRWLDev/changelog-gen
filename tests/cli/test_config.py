@@ -1,14 +1,19 @@
+import importlib.metadata
+
+
 def test_config_displayed(cli_runner):
     result = cli_runner.invoke(["config"])
 
+    version = importlib.metadata.version("changelog-gen")
     assert result.exit_code == 0
     assert (
         result.output.strip()
-        == """verbose = 0
+        == f"""current_version = '{version}'
+verbose = 0
 issue_link = 'https://github.com/NRWLDev/changelog-gen/issues/::issue_ref::'
 commit_link = 'https://github.com/NRWLDev/changelog-gen/commit/::commit_hash::'
 date_format = '- %Y-%m-%d'
-version_string = 'v{new_version}'
+version_string = 'v{{new_version}}'
 release = true
 commit = true
 tag = true

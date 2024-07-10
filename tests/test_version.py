@@ -41,10 +41,8 @@ current_version = "{current_version}"
         nv = config.version_config.parse(new_version)
 
         assert version.BumpVersion().get_version_info(semver) == {
-            "current": cv,
-            "current_str": current_version,
-            "new": nv,
-            "new_str": new_version,
+            "current": version._Version(current_version, cv),
+            "new": version._Version(new_version, nv),
         }
 
     @pytest.mark.parametrize(
@@ -90,10 +88,8 @@ parts.release.optional_value = "final"
         nv = config.version_config.parse(new_version)
 
         assert version.BumpVersion().get_version_info(semver) == {
-            "current": cv,
-            "current_str": current_version,
-            "new": nv,
-            "new_str": new_version,
+            "current": version._Version(current_version, cv),
+            "new": version._Version(new_version, nv),
         }
 
     def test_replace(self, cwd):

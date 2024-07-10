@@ -83,6 +83,7 @@ class PostProcessConfig:
 class Config:
     """Changelog configuration options."""
 
+    current_version: str = ""
     verbose: int = 0
 
     issue_link: str | None = None

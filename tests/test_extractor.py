@@ -355,14 +355,12 @@ def test_unique_issues():
         ),
     ],
 )
-def test_extract_version_tag_version_zero(sections, commit_types, expected_semver):
-    bv = mock.Mock()
-    bv.get_version_info = mock.Mock(return_value={"new": "0.0.0", "current": "0.0.0"})
+def test_extract_semver_version_zero(sections, commit_types, expected_semver):
     cfg = Config(commit_types=commit_types)
 
-    extractor.extract_version_tag(sections, cfg, "0.0.0", bv)
+    semver = extractor.extract_semver(sections, cfg, "0.0.0")
 
-    assert bv.get_version_info.call_args == mock.call(expected_semver)
+    assert semver == expected_semver
 
 
 @pytest.mark.parametrize(
@@ -381,14 +379,12 @@ def test_extract_version_tag_version_zero(sections, commit_types, expected_semve
         ),
     ],
 )
-def test_extract_version_tag(sections, commit_types, expected_semver):
-    bv = mock.Mock()
-    bv.get_version_info = mock.Mock(return_value={"new": "1.0.0", "current": "1.0.0"})
+def test_extract_semver(sections, commit_types, expected_semver):
     cfg = Config(commit_types=commit_types)
 
-    extractor.extract_version_tag(sections, cfg, "1.0.0", bv)
+    semver = extractor.extract_semver(sections, cfg, "1.0.0")
 
-    assert bv.get_version_info.call_args == mock.call(expected_semver)
+    assert semver == expected_semver
 
 
 def test_change_ordering():
