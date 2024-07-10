@@ -181,10 +181,10 @@ class Git:
             print(p)
             t = self.repo[p.tree]
             print(t)
-            # self.repo.reset_index(t.id)
+            self.repo.reset_index(t.id)
             # print(dir(c))
             # print(c.id)
             # print(c.parents)
-            porcelain.reset(self.repo, "hard", p.id)
+            # porcelain.reset(self.repo, "hard", c.parents[0])
             c = self.repo[self.repo.head()]
             print(c)
