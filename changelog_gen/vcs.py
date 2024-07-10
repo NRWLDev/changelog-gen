@@ -84,8 +84,11 @@ class Git:
         if self.provider == "git":
             tag = self.repo.git.tag("-l", f"*{version_string}")
         else:
-            tag_ = next(filter(lambda x: str(x).endswith(version_string), self.repo.refs.subkeys(b"refs/tags")), None)
-            tag = str(tag_) if tag_ else None
+            tag_ = next(
+                filter(lambda x: x.decode().endswith(version_string), self.repo.refs.subkeys(b"refs/tags")),
+                None,
+            )
+            tag = tag_.decode() if tag_ else None
         return tag or None
 
     @timer
@@ -101,9 +104,7 @@ class Git:
             return [m.split(":", 2) for m in logs.split("\x00") if m]
 
         latest_commit = self.repo[self.repo.head()]
-        print(latest_commit)
         tagged_commit = self.repo[f"refs/tags/{tag}".encode()]
-        print(tagged_commit)
         walker = self.repo.get_walker(include=[latest_commit.id, tagged_commit.id])
         print(len(list(walker)))
         return []
@@ -123,7 +124,7 @@ class Git:
             self.repo.stage(relpaths)
 
     @timer
-    def commit(self: T, current: str, new: str, tag: str, paths: list[str] | None = None) -> None:
+    def commit(self: T, current: str, new: str, tag: str, paths: list[str] | None = None) -> None:  # noqa: C901, PLR0912
         """Commit changes to git repository."""
         logger.warning("Would prepare Git commit")
         paths = paths or []
@@ -147,6 +148,19 @@ class Git:
             except git.GitCommandError as e:
                 msg = f"Unable to commit: {e}"
                 raise errors.VcsError(msg) from e
+        else:
+            s = porcelain.status(self.repo)
+            staged = [c for changes in s.staged.values() for c in changes]
+            msg = None
+            if not staged and not s.unstaged and not s.untracked:
+                msg = f"Unable to commit: 'On branch {porcelain.active_branch(self.repo).decode()}\nnothing to commit, working tree clean'"  # noqa: E501
+            if s.unstaged or s.untracked:
+                msg = "Unable to commit: 'Changes not staged for commit'"
+
+            if msg:
+                raise errors.VcsError(msg)
+
+            porcelain.commit(self.repo, message=message)
 
         if not self._tag:
             logger.warning("  Would tag with version '%s", tag)
@@ -159,6 +173,14 @@ class Git:
                 self.revert()
                 msg = f"Unable to tag: {e}"
                 raise errors.VcsError(msg) from e
+        else:
+            t = self.find_tag(tag)
+            if t is not None:
+                self.revert()
+                msg = f"Unable to tag: tag '{tag} already exists"
+                raise errors.VcsError(msg)
+
+            porcelain.tag_create(self.repo, tag)
 
     @timer
     def revert(self: T) -> None:
@@ -167,24 +189,9 @@ class Git:
             logger.warning("Would revert commit in Git")
             return
         if self.provider == "git":
-            c = self.dulwich[self.dulwich.head()]
-            print(c)
             self.repo.git.reset("HEAD~1", hard=True)
-            c = self.dulwich[self.dulwich.head()]
-            print(c)
         else:
             c = self.repo[self.repo.head()]
-            print(c)
-            t = self.repo[c.tree]
-            print(t)
             p = self.repo[c.parents[0]]
-            print(p)
             t = self.repo[p.tree]
-            print(t)
             self.repo.reset_index(t.id)
-            # print(dir(c))
-            # print(c.id)
-            # print(c.parents)
-            # porcelain.reset(self.repo, "hard", c.parents[0])
-            c = self.repo[self.repo.head()]
-            print(c)
