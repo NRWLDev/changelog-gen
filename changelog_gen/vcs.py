@@ -185,6 +185,6 @@ class Git:
             # print(dir(c))
             # print(c.id)
             # print(c.parents)
-            # porcelain.reset(self.repo, "hard", c.parents[0])
+            porcelain.reset(self.repo, "hard", p.id)
             c = self.repo[self.repo.head()]
             print(c)
