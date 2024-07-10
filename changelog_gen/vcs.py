@@ -36,6 +36,7 @@ class Git:
         self.dry_run = dry_run
         path = os.getenv("GIT_DIR", Path.cwd())
         self.repo = git.Repo() if provider == "git" else dulwich.repo.Repo(str(path))
+        self.dulwich = dulwich.repo.Repo(str(path))
         self.provider = provider
 
     @timer
@@ -166,7 +167,11 @@ class Git:
             logger.warning("Would revert commit in Git")
             return
         if self.provider == "git":
+            c = self.dulwich[self.dulwich.head()]
+            print(c)
             self.repo.git.reset("HEAD~1", hard=True)
+            c = self.dulwich[self.dulwich.head()]
+            print(c)
         else:
             c = self.repo[self.repo.head()]
             print(c)
