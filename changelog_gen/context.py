@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 import typing as t
 from enum import IntEnum
 
 import click
 
-from changelog_gen.config import Config
+if t.TYPE_CHECKING:
+    from changelog_gen.config import Config
 
 
 class Verbosity(IntEnum):
