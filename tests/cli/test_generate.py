@@ -562,6 +562,20 @@ class TestDelegatesToPerIssuePostProcess:
     # The behaviour of per_issue_post_process are tested in test_post_processor
 
     @pytest.mark.usefixtures("_conventional_commits", "changelog", "post_process_pyproject")
+    def test_no_httpx(
+        self,
+        cli_runner,
+        monkeypatch,
+    ):
+        monkeypatch.setattr(typer, "confirm", mock.MagicMock(return_value=True))
+        monkeypatch.setattr(command, "per_issue_post_process", None)
+
+        result = cli_runner.invoke(["generate"])
+
+        assert result.exit_code == 0
+        assert "httpx required to execute post process, install with `--extras post-process`." in result.output
+
+    @pytest.mark.usefixtures("_conventional_commits", "changelog", "post_process_pyproject")
     def test_load_config(
         self,
         cli_runner,

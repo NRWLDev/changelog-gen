@@ -29,7 +29,7 @@ from changelog_gen.version import BumpVersion
 
 try:
     from changelog_gen.post_processor import per_issue_post_process
-except ModuleNotFoundError:
+except ModuleNotFoundError:  # pragma: no cover
     per_issue_post_process = None
 
 tempfile_prefix = "_tmp_changelog"
