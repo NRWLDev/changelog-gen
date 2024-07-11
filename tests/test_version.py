@@ -205,6 +205,51 @@ filename = "pyproject.toml"
 pattern = 'version = "{version}"'"""
             )
 
+    def test_replace_invalid_pattern_dry_run(self, cwd):
+        p = cwd / "README.md"
+        p.write_text("0.0.0")
+        p = cwd / "pyproject.toml"
+        p.write_text(
+            """
+[tool.poetry]
+version = "0.0.0"
+
+[tool.changelog_gen]
+current_version = "0.0.0"
+
+[[tool.changelog_gen.files]]
+filename = "README.md"
+pattern = "{invalid}"
+
+[[tool.changelog_gen.files]]
+filename = "pyproject.toml"
+pattern = 'version = "{version}"'
+        """.strip(),
+        )
+        cfg = read(str(p))
+
+        current = version.Version("0.0.0", None)
+        new = version.Version("1.2.3", None)
+        with pytest.raises(errors.VersionError):
+            version.BumpVersion(cfg, dry_run=True).replace(current, new)
+        with p.open() as f:
+            assert (
+                f.read()
+                == """[tool.poetry]
+version = "0.0.0"
+
+[tool.changelog_gen]
+current_version = "0.0.0"
+
+[[tool.changelog_gen.files]]
+filename = "README.md"
+pattern = "{invalid}"
+
+[[tool.changelog_gen.files]]
+filename = "pyproject.toml"
+pattern = 'version = "{version}"'"""
+            )
+
     def test_replace_returns_modified_files(self, cwd):
         p = cwd / "pyproject.toml"
         p.write_text(
