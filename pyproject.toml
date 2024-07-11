@@ -11,11 +11,10 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.9"
 
-typer = "^0"
+typer-slim = "^0"
 httpx = "^0"
 rtoml = ">=0.9"
 bump-my-version = "^0"
-rich = "^13"
 gitpython = "^3.1.43"
 
 [tool.poetry.dev-dependencies]

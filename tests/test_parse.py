@@ -70,3 +70,52 @@ from changelog_gen import parse
 def test_parse(regex, version, expected):
     parsed = parse.parse(regex, version)
     assert parsed == expected
+
+
+@pytest.mark.parametrize(
+    ("patterns", "version_parts", "expected"),
+    [
+        (
+            [
+                "{major}.{minor}.{patch}",
+            ],
+            {"major": "0", "minor": "0", "patch": "0"},
+            "0.0.0",
+        ),
+        (
+            [
+                "{major}.{minor}.{patch}{release}{build}",
+                "{major}.{minor}.{patch}",
+            ],
+            {"major": "0", "minor": "0", "patch": "0"},
+            "0.0.0",
+        ),
+        (
+            [
+                "{major}.{minor}.{patch}{release}{build}",
+                "{major}.{minor}.{patch}",
+            ],
+            {"major": "0", "minor": "0", "patch": "0", "release": "rc", "build": "0"},
+            "0.0.0rc0",
+        ),
+        (
+            [
+                "{major}.{minor}.{patch}-{pre_l}{pre_n}",
+                "{major}.{minor}.{patch}",
+            ],
+            {"major": "0", "minor": "0", "patch": "0"},
+            "0.0.0",
+        ),
+        (
+            [
+                "{major}.{minor}.{patch}-{pre_l}{pre_n}",
+                "{major}.{minor}.{patch}",
+            ],
+            {"major": "1", "minor": "2", "patch": "3", "pre_l": "dev", "pre_n": "0"},
+            "1.2.3-dev0",
+        ),
+    ],
+)
+def test_serialise(patterns, version_parts, expected):
+    serialised = parse.serialise(patterns, version_parts)
+    assert serialised == expected

@@ -3,13 +3,19 @@ from unittest import mock
 import pytest
 
 from changelog_gen import errors, version
+from changelog_gen.config import Config
+
+
+@pytest.fixture()
+def cfg():
+    return Config()
 
 
 class TestBumpMyVersion:
     @pytest.mark.usefixtures("cwd")
-    def test_version_info_handles_errors(self):
+    def test_version_info_handles_errors(self, cfg):
         with pytest.raises(errors.VersionError) as e:
-            version.BumpVersion().get_version_info("patch")
+            version.BumpVersion(cfg).get_version_info("patch")
 
         assert (
             str(e.value)
@@ -27,7 +33,7 @@ error: Unable to determine the current version."""
             ("1.2.3", "2.0.0", "major"),
         ],
     )
-    def test_get_version_info(self, cwd, current_version, new_version, semver):
+    def test_get_version_info(self, cwd, current_version, new_version, semver, cfg):
         p = cwd / "pyproject.toml"
         p.write_text(
             f"""
@@ -40,7 +46,7 @@ current_version = "{current_version}"
         cv = config.version_config.parse(current_version)
         nv = config.version_config.parse(new_version)
 
-        assert version.BumpVersion().get_version_info(semver) == {
+        assert version.BumpVersion(cfg).get_version_info(semver) == {
             "current": version._Version(current_version, cv),
             "new": version._Version(new_version, nv),
         }
@@ -58,7 +64,7 @@ current_version = "{current_version}"
             ("1.2.3rc1", "1.2.3", "release"),
         ],
     )
-    def test_get_version_info_release_flow(self, cwd, current_version, new_version, semver):
+    def test_get_version_info_release_flow(self, cwd, current_version, new_version, semver, cfg):
         p = cwd / "pyproject.toml"
         p.write_text(
             f"""
@@ -87,12 +93,12 @@ parts.release.optional_value = "final"
         cv = config.version_config.parse(current_version)
         nv = config.version_config.parse(new_version)
 
-        assert version.BumpVersion().get_version_info(semver) == {
+        assert version.BumpVersion(cfg).get_version_info(semver) == {
             "current": version._Version(current_version, cv),
             "new": version._Version(new_version, nv),
         }
 
-    def test_replace(self, cwd):
+    def test_replace(self, cwd, cfg):
         p = cwd / "pyproject.toml"
         p.write_text(
             """
@@ -112,7 +118,7 @@ replace = 'version = "{new_version}"'
 
         current = config.version_config.parse("0.0.0")
         new = config.version_config.parse("1.2.3")
-        version.BumpVersion().replace(current, new)
+        version.BumpVersion(cfg).replace(current, new)
         with p.open() as f:
             assert (
                 f.read()
@@ -136,7 +142,7 @@ replace = 'version = "{new_version}"'"""
             ({"allow_dirty": True}, {"dry_run": False, "allow_dirty": True}),
         ],
     )
-    def test_replace_config_kwargs(self, cwd, kwargs, expected_kwargs, monkeypatch):
+    def test_replace_config_kwargs(self, cwd, kwargs, expected_kwargs, monkeypatch, cfg):
         p = cwd / "pyproject.toml"
         p.write_text(
             """
@@ -150,7 +156,7 @@ current_version = "0.0.0"
 
         current = config.version_config.parse("0.0.0")
         new = config.version_config.parse("1.2.3")
-        version.BumpVersion(**kwargs).replace(current, new)
+        version.BumpVersion(cfg, **kwargs).replace(current, new)
 
         assert version.get_configuration.call_args == mock.call(
             version.find_config_file.return_value,
@@ -158,12 +164,12 @@ current_version = "0.0.0"
         )
 
     @pytest.mark.usefixtures("cwd")
-    def test_replace_handles_configuration_error(self, monkeypatch):
+    def test_replace_handles_configuration_error(self, monkeypatch, cfg):
         monkeypatch.setattr(version.logger, "warning", mock.Mock())
         current = {"major": mock.Mock(value=0), "minor": mock.Mock(value=0), "patch": mock.Mock(value=0)}
         new = {"major": mock.Mock(value=1), "minor": mock.Mock(value=2), "patch": mock.Mock(value=3)}
         with pytest.raises(errors.VersionError) as e:
-            version.BumpVersion().replace(current, new)
+            version.BumpVersion(cfg).replace(current, new)
 
         assert (
             str(e.value)
