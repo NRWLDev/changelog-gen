@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import contextlib
 import importlib.metadata
-import logging
-import logging.config
 import platform
 import shlex
 import subprocess
@@ -13,11 +11,9 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Optional
 
-import click
 import rtoml
 import typer
 from pygments import formatters, highlight, lexers
-from rich.logging import RichHandler
 
 from changelog_gen import (
     config,
@@ -26,45 +22,13 @@ from changelog_gen import (
     writer,
 )
 from changelog_gen.cli import util
-from changelog_gen.extractor import extract_version_tag
+from changelog_gen.context import Context
 from changelog_gen.post_processor import per_issue_post_process
 from changelog_gen.util import timer
 from changelog_gen.vcs import Git
 from changelog_gen.version import BumpVersion
 
-logger = logging.getLogger(__name__)
-
-VERBOSITY = {
-    0: logging.ERROR,
-    1: logging.WARNING,
-    2: logging.INFO,
-    3: logging.DEBUG,
-}
-
 tempfile_prefix = "_tmp_changelog"
-
-
-@timer
-def setup_logging(verbose: int = 0) -> None:
-    """Configure the logging."""
-    logging.basicConfig(
-        level=VERBOSITY.get(verbose, logging.DEBUG),
-        format="%(message)s",
-        datefmt="[%X]",
-        handlers=[
-            RichHandler(
-                rich_tracebacks=True,
-                show_level=False,
-                show_path=False,
-                show_time=False,
-                tracebacks_suppress=[click],
-            ),
-        ],
-    )
-    httpx_logger = logging.getLogger("httpx")
-    httpx_logger.disabled = True
-    root_logger = logging.getLogger("")
-    root_logger.setLevel(VERBOSITY.get(verbose, logging.DEBUG))
 
 
 def _version_callback(*, value: bool) -> None:
@@ -90,32 +54,33 @@ app = typer.Typer(name="changelog", callback=_callback)
 
 
 @timer
-def process_info(info: dict, cfg: config.Config, *, dry_run: bool) -> None:
+def process_info(info: dict, context: Context, *, dry_run: bool) -> None:
     """Process git info and raise on invalid state."""
     if dry_run:
         return
 
+    cfg = context.config
     if info["dirty"] and not cfg.allow_dirty:
-        logger.error("Working directory is not clean. Use `allow_dirty` configuration to ignore.")
+        context.error("Working directory is not clean. Use `allow_dirty` configuration to ignore.")
         raise typer.Exit(code=1)
 
     if info["missing_local"] and not cfg.allow_missing:
-        logger.error(
-            "Current local branch is missing commits from remote %s.\nUse `allow_missing` configuration to ignore.",
+        context.error(
+            "Current local branch is missing commits from remote {}.\nUse `allow_missing` configuration to ignore.",
             info["branch"],
         )
         raise typer.Exit(code=1)
 
     if info["missing_remote"] and not cfg.allow_missing:
-        logger.error(
-            "Current remote branch is missing commits from local %s.\nUse `allow_missing` configuration to ignore.",
+        context.error(
+            "Current remote branch is missing commits from local {}.\nUse `allow_missing` configuration to ignore.",
             info["branch"],
         )
         raise typer.Exit(code=1)
 
     allowed_branches = cfg.allowed_branches
     if allowed_branches and info["branch"] not in allowed_branches:
-        logger.error("Current branch not in allowed generation branches.")
+        context.error("Current branch not in allowed generation branches.")
         raise typer.Exit(code=1)
 
 
@@ -141,14 +106,13 @@ def init(
 
     Detect and raise if a CHANGELOG already exists, if not create a new file.
     """
-    setup_logging(verbose)
-    cfg = config.Config()
+    context = Context(config.Config(), verbose)
     extension = util.detect_extension()
     if extension is not None:
-        logger.error("CHANGELOG.%s detected.", extension.value)
+        context.error("CHANGELOG.{} detected.", extension.value)
         raise typer.Exit(code=1)
 
-    w = writer.new_writer(file_format, cfg)
+    w = writer.new_writer(context, file_format)
     w.write()
 
 
@@ -192,7 +156,6 @@ def gen(  # noqa: PLR0913
     Read release notes and generate a new CHANGELOG entry for the current version.
     """
     start = time.time()
-    setup_logging(verbose)
     cfg = config.read(
         release=release,
         allow_dirty=allow_dirty,
@@ -205,22 +168,31 @@ def gen(  # noqa: PLR0913
         post_process_auth_env=post_process_auth_env,
         verbose=verbose,
     )
+    context = Context(cfg, verbose)
 
     if platform.system() == "Windows" and interactive:
-        logger.debug("Disabling interactive on windows.")
+        context.debug("Disabling interactive on windows.")
         interactive = False
 
     try:
-        _gen(cfg, version_part, version_tag, dry_run=dry_run, interactive=interactive, include_all=include_all, yes=yes)
+        _gen(
+            context,
+            version_part,
+            version_tag,
+            dry_run=dry_run,
+            interactive=interactive,
+            include_all=include_all,
+            yes=yes,
+        )
     except errors.ChangelogException as ex:
-        logger.error("%s", ex)  # noqa: TRY400
-        logger.debug("Run time (error) %f", (time.time() - start) * 1000)
+        context.error(str(ex))
+        context.debug("Run time (error) {}", (time.time() - start) * 1000)
         raise typer.Exit(code=1) from ex
-    logger.debug("Run time %f", (time.time() - start) * 1000)
+    context.debug("Run time %f", (time.time() - start) * 1000)
 
 
 @timer
-def create_with_editor(content: str, extension: writer.Extension) -> str:
+def create_with_editor(context: Context, content: str, extension: writer.Extension) -> str:
     """Open temporary file in editor to allow modifications."""
     editor = util.get_editor()
     tmpfile = NamedTemporaryFile(
@@ -241,7 +213,7 @@ def create_with_editor(content: str, extension: writer.Extension) -> str:
         try:
             subprocess.call(editor)  # noqa: S603
         except OSError as e:
-            logger.error("Error: could not open editor!")  # noqa: TRY400
+            context.error("Error: could not open editor!")
             raise typer.Exit(code=1) from e
 
         with Path(tmpfile.name).open() as f:
@@ -256,7 +228,7 @@ def create_with_editor(content: str, extension: writer.Extension) -> str:
 
 @timer
 def _gen(  # noqa: PLR0913
-    cfg: config.Config,
+    context: Context,
     version_part: str | None = None,
     new_version: str | None = None,
     *,
@@ -265,50 +237,54 @@ def _gen(  # noqa: PLR0913
     include_all: bool = False,
     yes: bool = False,
 ) -> None:
-    bv = BumpVersion(dry_run=dry_run, allow_dirty=cfg.allow_dirty)
-    git = Git(dry_run=dry_run, commit=cfg.commit, release=cfg.release, tag=cfg.tag)
+    cfg = context.config
+    bv = BumpVersion(cfg, new_version, dry_run=dry_run, allow_dirty=cfg.allow_dirty)
+    git = Git(context=context, dry_run=dry_run, commit=cfg.commit, release=cfg.release, tag=cfg.tag)
 
     extension = util.detect_extension()
 
     if extension is None:
-        logger.error("No CHANGELOG file detected, run `changelog init`")
+        context.error("No CHANGELOG file detected, run `changelog init`")
         raise typer.Exit(code=1)
 
-    process_info(git.get_current_info(), cfg, dry_run=dry_run)
+    process_info(git.get_current_info(), context, dry_run=dry_run)
 
-    version_info_ = bv.get_version_info(version_part or "patch")
-    current = version_info_["current_str"]
-    new_version_str = new_version
-    if version_part:
-        new_version_str = version_info_["new_str"]
+    current = cfg.current_version
+    if current == "":
+        # Fetch from bumpversion until deprecated
+        version_info_ = bv.get_version_info("patch")
+        current = str(version_info_["current"])
 
-    e = extractor.ChangeExtractor(cfg=cfg, git=git, dry_run=dry_run, include_all=include_all)
+    e = extractor.ChangeExtractor(context=context, git=git, dry_run=dry_run, include_all=include_all)
     sections = e.extract(current)
 
     unique_issues = e.unique_issues(sections)
     if not unique_issues and cfg.reject_empty:
-        logger.error("No changes present and reject_empty configured.")
+        context.error("No changes present and reject_empty configured.")
         raise typer.Exit(code=0)
 
-    if new_version_str is None:
-        version_info_ = extract_version_tag(sections, cfg, current, bv)
-        new_version_str = version_info_["new_str"]
+    semver = extractor.extract_semver(sections, context, current)
+    semver = version_part or semver
 
-    version_tag = cfg.version_string.format(new_version=new_version_str)
+    version_info_ = bv.get_version_info(semver)
+    new = version_info_["new"]
+    current = version_info_["current"]
+
+    version_tag = cfg.version_string.format(new_version=str(new))
     version_string = version_tag
 
     date_fmt = cfg.date_format
     if date_fmt:
         version_string += f" {datetime.now(timezone.utc).strftime(date_fmt)}"
 
-    w = writer.new_writer(extension, cfg, dry_run=dry_run)
+    w = writer.new_writer(context, extension, dry_run=dry_run)
 
     w.add_version(version_string)
     w.consume(cfg.type_headers, sections)
 
-    changes = create_with_editor(str(w), extension) if interactive else str(w)
+    changes = create_with_editor(context, str(w), extension) if interactive else str(w)
 
-    logger.error(changes)
+    context.error(changes)
     w.content = changes.split("\n")[2:-2]
 
     processed = False
@@ -316,21 +292,21 @@ def _gen(  # noqa: PLR0913
         dry_run
         or yes
         or typer.confirm(
-            f"Write CHANGELOG for suggested version {new_version_str}",
+            f"Write CHANGELOG for suggested version {new}",
         )
     ):
         paths = []
         if cfg.release:
-            paths = bv.replace(version_info_["current"], version_info_["new"])
+            paths = bv.replace(current, new)
 
         w.write()
 
         paths.append(f"CHANGELOG.{extension.value}")
 
-        git.commit(current, new_version_str, version_tag, paths)
+        git.commit(str(current), str(new), version_tag, paths)
         processed = True
 
     post_process = cfg.post_process
     if post_process and processed:
         unique_issues = [r for r in unique_issues if not r.startswith("__")]
-        per_issue_post_process(post_process, sorted(unique_issues), new_version_str, dry_run=dry_run)
+        per_issue_post_process(post_process, sorted(unique_issues), str(new), dry_run=dry_run)

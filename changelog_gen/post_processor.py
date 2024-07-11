@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 import os
 import typing as t
 from http import HTTPStatus
@@ -12,8 +11,7 @@ from changelog_gen.util import timer
 
 if t.TYPE_CHECKING:
     from changelog_gen.config import PostProcessConfig
-
-logger = logging.getLogger(__name__)
+    from changelog_gen.context import Context
 
 
 class BearerAuth(httpx.Auth):
@@ -28,13 +26,13 @@ class BearerAuth(httpx.Auth):
         yield request
 
 
-def make_client(cfg: PostProcessConfig) -> httpx.Client:
+def make_client(context: Context, cfg: PostProcessConfig) -> httpx.Client:
     """Generate HTTPx client with authorization if configured."""
     auth = None
     if cfg.auth_env:
         user_auth = os.environ.get(cfg.auth_env)
         if not user_auth:
-            logger.error('Missing environment variable "%s"', cfg.auth_env)
+            context.error('Missing environment variable "{}"', cfg.auth_env)
             raise typer.Exit(code=1)
 
         if cfg.auth_type == "bearer":
@@ -44,8 +42,8 @@ def make_client(cfg: PostProcessConfig) -> httpx.Client:
             try:
                 username, api_key = user_auth.split(":")
             except ValueError as e:
-                logger.error(  # noqa: TRY400
-                    "Unexpected content in %s, need '{username}:{api_key}' for basic auth",
+                context.error(
+                    "Unexpected content in {}, need '{{username}}:{{api_key}}' for basic auth",
                     cfg.auth_env,
                 )
                 raise typer.Exit(code=1) from e
@@ -60,6 +58,7 @@ def make_client(cfg: PostProcessConfig) -> httpx.Client:
 
 @timer
 def per_issue_post_process(
+    context: Context,
     cfg: PostProcessConfig,
     issue_refs: list[str],
     version_tag: str,
@@ -69,9 +68,9 @@ def per_issue_post_process(
     """Run post process for all provided issue references."""
     if not cfg.url:
         return
-    logger.warning("Post processing:")
+    context.warning("Post processing:")
 
-    client = make_client(cfg)
+    client = make_client(context, cfg)
 
     for issue in issue_refs:
         url, body = cfg.url, cfg.body
@@ -82,18 +81,21 @@ def per_issue_post_process(
             url = url.replace(find, replace)
             body = body.replace(find, replace)
 
+        context.indent()
         if dry_run:
-            logger.warning("  Would request: %s %s %s", cfg.verb, url, body)
+            context.warning("Would request: {} {} {}", cfg.verb, url, body)
         else:
-            logger.info("  Request: %s %s", cfg.verb, url)
+            context.info("Request: {} {}", cfg.verb, url)
             r = client.request(
                 method=cfg.verb,
                 url=url,
                 content=body,
             )
+            context.indent()
             try:
-                logger.info("    Response: %s", HTTPStatus(r.status_code).name)
+                context.info("Response: {}", HTTPStatus(r.status_code).name)
                 r.raise_for_status()
             except httpx.HTTPError as e:
-                logger.error("Post process request failed.")  # noqa: TRY400
-                logger.warning("  %s", e.response.text)
+                context.error("Post process request failed.")
+                context.warning("{}", e.response.text)
+    context.reset()

@@ -4,19 +4,26 @@ def test_config_displayed(cli_runner):
     assert result.exit_code == 0
     assert (
         result.output.strip()
-        == """verbose = 0
-issue_link = 'https://github.com/NRWLDev/changelog-gen/issues/::issue_ref::'
-commit_link = 'https://github.com/NRWLDev/changelog-gen/commit/::commit_hash::'
-date_format = '- %Y-%m-%d'
+        == r"""current_version = '0.0.0'
+parser = '(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)'
+verbose = 0
+issue_link = 'null'
+commit_link = 'null'
+date_format = 'null'
 version_string = 'v{new_version}'
-release = true
-commit = true
-tag = true
+release = false
+commit = false
+tag = false
 allow_dirty = false
 allow_missing = false
-reject_empty = true
+reject_empty = false
 post_process = 'null'
-allowed_branches = ['main']
+serializers = ['{major}.{minor}.{patch}']
+allowed_branches = []
+
+[parts]
+
+[files]
 [commit_types.feat]
 header = 'Features and Improvements'
 semver = 'minor'

@@ -30,8 +30,9 @@ def _empty_config(config_factory):
     config_factory()
 
 
-@pytest.mark.usefixtures("cwd")
-def test_read_handles_missing_file():
+def test_read_handles_missing_file(cwd):
+    p = cwd / "pyproject.toml"
+    p.unlink()
     assert config.read() == config.Config()
 
 
