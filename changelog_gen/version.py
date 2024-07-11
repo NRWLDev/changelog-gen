@@ -40,7 +40,27 @@ class ModifyFile:
 
     filename: str
     path: Path
-    pattern: str
+    patterns: list[str]
+
+    def update(self: t.Self, current: str, new: str) -> tuple[Path, Path]:
+        """Update file with configured patterns."""
+        with self.path.open("r") as f:
+            contents = f.read()
+
+        for pattern in self.patterns:
+            try:
+                search, replace = pattern.format(version=current), pattern.format(version=new)
+            except KeyError as e:
+                msg = f"Incorrect pattern for {self.filename}"
+                raise errors.VersionError(msg) from e
+
+            contents = contents.replace(search, replace)
+
+        backup = Path(f"{self.path}.bak")
+        with backup.open("w") as f:
+            f.write(contents)
+
+        return (self.path, backup)
 
 
 @dataclass
@@ -148,37 +168,25 @@ class BumpVersion:  # noqa: D101
             return [fc.filename for fc in config.files_to_modify]
 
         cwd = Path.cwd()
-        files_to_modify = [
-            ModifyFile(file["filename"], cwd / file["filename"], file.get("pattern", "{version}"))
-            for file in self.config.files
-        ]
-        # Replace own configuration
-        files_to_modify.append(
-            ModifyFile("pyproject.toml", cwd / "pyproject.toml", 'current_version = "{version}"'),
-        )
+        files_to_modify = {
+            "pyproject.toml": ModifyFile("pyproject.toml", cwd / "pyproject.toml", ['current_version = "{version}"']),
+        }
+        for file in self.config.files:
+            mf = files_to_modify.get(file["filename"], ModifyFile(file["filename"], cwd / file["filename"], []))
+            mf.patterns.append(file.get("pattern", "{version}"))
+            files_to_modify[file["filename"]] = mf
 
         modified_files = []
-        for file in files_to_modify:
-            with file.path.open("r") as f:
-                contents = f.read()
-
+        for file in files_to_modify.values():
             try:
-                search, replace = file.pattern.format(version=current.raw), file.pattern.format(version=version.raw)
-            except KeyError as e:
+                modified_files.append(file.update(current.raw, version.raw))
+            except Exception:  # noqa: PERF203
                 for _original, backup in modified_files:
                     backup.unlink()
-                msg = f"Incorrect pattern for {file.filename}"
-                raise errors.VersionError(msg) from e
-
-            contents = contents.replace(search, replace)
-
-            backup = Path(f"{file.path}.bak")
-            modified_files.append((file.path, backup))
-            with backup.open("w") as f:
-                f.write(contents)
+                raise
 
         for original, backup in modified_files:
             original.write_text(backup.read_text())
             backup.unlink()
 
-        return sorted({mf.filename for mf in files_to_modify})
+        return sorted({mf.filename for mf in files_to_modify.values()})
