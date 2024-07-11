@@ -162,7 +162,11 @@ class BumpVersion:  # noqa: D101
             with file.path.open("r") as f:
                 contents = f.read()
 
-            search, replace = file.pattern.format(version=current.raw), file.pattern.format(version=version.raw)
+            try:
+                search, replace = file.pattern.format(version=current.raw), file.pattern.format(version=version.raw)
+            except KeyError as e:
+                msg = f"Incorrect pattern for {file.filename}"
+                raise errors.VersionError(msg) from e
             contents = contents.replace(search, replace)
 
             with file.path.open("w") as f:
