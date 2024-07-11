@@ -36,8 +36,10 @@ coverage = "7.4.3"  # something breaks >7.4.4 and require passing `--cov-config=
 ruff = "^0.4.0"
 pre-commit = "^3.0.2"
 
-[tool.changelog_gen]
+[tool.bumpversion]
 current_version = "0.11.1"
+
+[tool.changelog_gen]
 release = true
 commit = true
 tag = true

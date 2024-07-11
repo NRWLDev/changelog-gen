@@ -4,6 +4,7 @@ import logging
 import typing as t
 from dataclasses import dataclass
 from pathlib import Path
+from warnings import warn
 
 try:
     from bumpversion.bump import get_next_version
@@ -67,6 +68,17 @@ class BumpVersion:  # noqa: D101
         """Get version info for a semver release."""
         if self.config.current_version == "":
             try:
+                find_config_file  # noqa: B018
+            except NameError as e:  # pragma: no cover
+                msg = "bump-my-version is being deprecated, to continue using it install with `extras=bump-my-version`."
+                raise errors.ChangelogException(msg) from e
+
+            warn(
+                "bump-my-version support will be dropped in a future version, please move configuration to [tool.changelog_gen].",  # noqa: E501
+                FutureWarning,
+                stacklevel=2,
+            )
+            try:
                 found_config_file = find_config_file()
                 config = get_configuration(found_config_file)
             except ConfigurationError as e:
@@ -105,6 +117,17 @@ class BumpVersion:  # noqa: D101
     @timer
     def replace(self: T, current: Version, version: Version) -> list[str]:  # noqa: D102
         if self.config.current_version == "":
+            try:
+                find_config_file  # noqa: B018
+            except NameError as e:  # pragma: no cover
+                msg = "bump-my-version is being deprecated, to continue using it install with `extras=bump-my-version`."
+                raise errors.ChangelogException(msg) from e
+
+            warn(
+                "bump-my-version support will be dropped in a future version, please move configuration to [tool.changelog_gen].",  # noqa: E501
+                FutureWarning,
+                stacklevel=2,
+            )
             try:
                 found_config_file = find_config_file()
                 config = get_configuration(found_config_file, dry_run=self.dry_run, allow_dirty=self.allow_dirty)
