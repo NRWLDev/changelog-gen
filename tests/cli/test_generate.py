@@ -616,7 +616,11 @@ class TestDelegatesToPerIssuePostProcess:
     ):
         monkeypatch.setattr(typer, "confirm", mock.MagicMock(return_value=True))
         monkeypatch.setenv("MY_API_AUTH", "username:key")
-        httpx_mock.add_response()
+        for issue in ["1", "2", "3", "4"]:
+            httpx_mock.add_response(
+                method="POST",
+                url=f"https://my-api/{issue}/release",
+            )
 
         result = cli_runner.invoke(["generate"])
 
