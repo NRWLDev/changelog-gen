@@ -608,6 +608,21 @@ class TestDelegatesToPerIssuePostProcess:
         ]
 
     @pytest.mark.usefixtures("_conventional_commits", "changelog", "post_process_pyproject")
+    def test_post_process_called(
+        self,
+        cli_runner,
+        monkeypatch,
+        httpx_mock,
+    ):
+        monkeypatch.setattr(typer, "confirm", mock.MagicMock(return_value=True))
+        monkeypatch.setenv("MY_API_AUTH", "username:key")
+        httpx_mock.add_response()
+
+        result = cli_runner.invoke(["generate"])
+
+        assert result.exit_code == 0
+
+    @pytest.mark.usefixtures("_conventional_commits", "changelog", "post_process_pyproject")
     def test_generate_post_process_url(
         self,
         cli_runner,
