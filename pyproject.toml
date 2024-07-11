@@ -22,7 +22,7 @@ typing_extensions = { version = "^4.7.0", python = "<3.10" }
 [tool.poetry.extras]
 legacy = ["bump-my-version"]
 post-process = ["httpx"]
-post-process-test = ["pytest-httpx"]
+test = ["httpx", "bump-my-version", "pytest-httpx"]
 
 [tool.poetry.dev-dependencies]
 

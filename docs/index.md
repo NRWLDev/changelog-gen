@@ -15,6 +15,6 @@ control of versioning.
 ```bash
 pip install changelog-gen
 
-pip install changelog-gen[bump-my-version]  # legacy bump-my-version support
-pip install changelog-gen[post-process]     # include httpx support for post-process hooks
+pip install changelog-gen[legacy]       # legacy bump-my-version support
+pip install changelog-gen[post-process] # include httpx support for post-process hooks
 ```
