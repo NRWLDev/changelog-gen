@@ -14,6 +14,7 @@ except ImportError:
 from changelog_gen import errors
 from changelog_gen.cli import command
 from changelog_gen.config import PostProcessConfig
+from changelog_gen.context import Context
 from changelog_gen.version import Version
 
 
@@ -557,6 +558,11 @@ def test_generate_reject_empty(
     )
 
 
+class FakeContext:
+    def __eq__(self, other):
+        return isinstance(other, Context)
+
+
 @pytest.mark.skipif(httpx_not_installed, reason="httpx not installed")
 class TestDelegatesToPerIssuePostProcess:
     # The behaviour of per_issue_post_process are tested in test_post_processor
@@ -590,6 +596,7 @@ class TestDelegatesToPerIssuePostProcess:
         assert result.exit_code == 0
         assert post_process_mock.call_args_list == [
             mock.call(
+                FakeContext(),
                 PostProcessConfig(
                     url="https://my-api/::issue_ref::/release",
                     auth_env="MY_API_AUTH",
@@ -616,6 +623,7 @@ class TestDelegatesToPerIssuePostProcess:
         assert result.exit_code == 0
         assert post_process_mock.call_args_list == [
             mock.call(
+                FakeContext(),
                 PostProcessConfig(
                     url=api_url,
                     auth_env="MY_API_AUTH",
@@ -641,6 +649,7 @@ class TestDelegatesToPerIssuePostProcess:
         assert result.exit_code == 0
         assert post_process_mock.call_args_list == [
             mock.call(
+                FakeContext(),
                 PostProcessConfig(
                     url="https://my-api/::issue_ref::/release",
                     auth_env="OTHER_API_AUTH",
@@ -666,6 +675,7 @@ class TestDelegatesToPerIssuePostProcess:
         assert result.exit_code == 0
         assert post_process_mock.call_args_list == [
             mock.call(
+                FakeContext(),
                 PostProcessConfig(
                     url="https://my-api/::issue_ref::/release",
                     auth_env="MY_API_AUTH",

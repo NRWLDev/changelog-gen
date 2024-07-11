@@ -318,4 +318,4 @@ def _gen(  # noqa: PLR0913
             return
 
         unique_issues = [r for r in unique_issues if not r.startswith("__")]
-        per_issue_post_process(post_process, sorted(unique_issues), str(new), dry_run=dry_run)
+        per_issue_post_process(context, post_process, sorted(unique_issues), str(new), dry_run=dry_run)
