@@ -55,7 +55,7 @@ filename = "README.md"
 
 [[tool.changelog_gen.files]]
 filename = "pyproject.toml"
-pattern = 'version = "{current_version}"'
+pattern = 'version = "{version}"'
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
