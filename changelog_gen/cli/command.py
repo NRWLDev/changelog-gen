@@ -27,6 +27,11 @@ from changelog_gen.util import timer
 from changelog_gen.vcs import Git
 from changelog_gen.version import BumpVersion
 
+try:
+    from changelog_gen.post_processor import per_issue_post_process
+except ModuleNotFoundError:
+    per_issue_post_process = None
+
 tempfile_prefix = "_tmp_changelog"
 
 
@@ -226,7 +231,7 @@ def create_with_editor(context: Context, content: str, extension: writer.Extensi
 
 
 @timer
-def _gen(  # noqa: PLR0913, PLR0915
+def _gen(  # noqa: PLR0913
     context: Context,
     version_part: str | None = None,
     new_version: str | None = None,
@@ -308,9 +313,7 @@ def _gen(  # noqa: PLR0913, PLR0915
     post_process = cfg.post_process
     if post_process and processed:
         # Don't import httpx unless required
-        try:
-            from changelog_gen.post_processor import per_issue_post_process
-        except ModuleNotFoundError:
+        if per_issue_post_process is None:
             context.error("httpx required to execute post process, install with `--extras post-process`.")
             return
 
