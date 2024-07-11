@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.11.2 - 2024-07-11
+
+### Features and Improvements
+
+- Implement version bumping in house, prepare to deprecate bump-my-version. [[#14](https://github.com/NRWLDev/changelog-gen/issues/14)] [[6f5511c](https://github.com/NRWLDev/changelog-gen/commit/6f5511cf6bfd80ec4dd455c27b86e3c586241536)]
+
+### Bug fixes
+
+- Clean up modified files if failure occurs part way through. [[eacfad0](https://github.com/NRWLDev/changelog-gen/commit/eacfad08f00ba11e99ddecd2555e99337ef756d6)]
+- Handle invalid patterns in file configuration [[f1c0a6b](https://github.com/NRWLDev/changelog-gen/commit/f1c0a6be5c426bcc14c6ccf2961744ad80f9aaf9)]
+
 ## v0.11.1 - 2024-07-09
 
 ### Bug fixes
