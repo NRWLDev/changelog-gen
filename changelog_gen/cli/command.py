@@ -308,10 +308,11 @@ def _gen(  # noqa: PLR0913, PLR0915
     post_process = cfg.post_process
     if post_process and processed:
         # Don't import httpx unless required
-        try:  # noqa: SIM105
+        try:
             from changelog_gen.post_processor import per_issue_post_process
         except ModuleNotFoundError:
-            pass
+            context.error("httpx required to execute post process, install with `--extras post-process`.")
+            return
 
         unique_issues = [r for r in unique_issues if not r.startswith("__")]
         per_issue_post_process(post_process, sorted(unique_issues), str(new), dry_run=dry_run)

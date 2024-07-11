@@ -136,7 +136,7 @@ class BumpVersion:  # noqa: D101
         }
 
     @timer
-    def replace(self: T, current: Version, version: Version) -> list[str]:  # noqa: D102
+    def replace(self: T, current: Version, version: Version) -> list[str]:  # noqa: D102, C901
         if self.config.current_version == "":
             try:
                 find_config_file  # noqa: B018
@@ -180,14 +180,16 @@ class BumpVersion:  # noqa: D101
         modified_files = []
         for file in files_to_modify.values():
             try:
-                modified_files.append(file.update(current.raw, version.raw, self.dry_run))
+                modified_files.append(file.update(current.raw, version.raw, dry_run=self.dry_run))
             except Exception:  # noqa: PERF203
-                for _original, backup in modified_files:
-                    backup.unlink()
+                if not self.dry_run:
+                    for _original, backup in modified_files:
+                        backup.unlink()
                 raise
 
-        for original, backup in modified_files:
-            original.write_text(backup.read_text())
-            backup.unlink()
+        if not self.dry_run:
+            for original, backup in modified_files:
+                original.write_text(backup.read_text())
+                backup.unlink()
 
         return sorted({mf.filename for mf in files_to_modify.values()})
