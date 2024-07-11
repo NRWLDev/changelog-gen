@@ -1208,9 +1208,9 @@ files = [
 [extras]
 legacy = ["bump-my-version"]
 post-process = ["httpx"]
-post-process-test = []
+test = ["bump-my-version", "httpx"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "bfbbb122d667604b533cb40cd53fcb6eba777de9fbcbc92a9c222b591b5792b0"
+content-hash = "7a846a26eaa4433813666c0af487cbf87044eaf22bbe831b9049253479ae3f0a"
