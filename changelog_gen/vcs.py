@@ -1,30 +1,32 @@
 from __future__ import annotations
 
-import logging
-from typing import TypeVar
+import typing as t
 
 import git
 
 from changelog_gen import errors
 from changelog_gen.util import timer
 
-logger = logging.getLogger(__name__)
+if t.TYPE_CHECKING:
+    from changelog_gen.context import Context
 
-T = TypeVar("T", bound="Git")
+T = t.TypeVar("T", bound="Git")
 
 
 class Git:
     """VCS implementation for git repositories."""
 
     @timer
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self: T,
+        context: Context,
         *,
         commit: bool = True,
         release: bool = True,
         tag: bool = True,
         dry_run: bool = False,
     ) -> None:
+        self.context = context
         self._commit = commit
         self._release = release
         self._tag = tag
@@ -73,14 +75,14 @@ class Git:
     def add_paths(self: T, paths: list[str]) -> None:
         """Add path to git repository."""
         if self.dry_run:
-            logger.warning("  Would add paths '%s' to Git", "', '".join(paths))
+            self.context.warning("  Would add paths '{}' to Git", "', '".join(paths))
             return
         self.repo.git.add(*paths, update=True)
 
     @timer
     def commit(self: T, current: str, new: str, tag: str, paths: list[str] | None = None) -> None:
         """Commit changes to git repository."""
-        logger.warning("Would prepare Git commit")
+        self.context.warning("Would prepare Git commit")
         paths = paths or []
 
         if paths:
@@ -93,7 +95,7 @@ class Git:
 
         message = "\n".join(msg).strip()
         if self.dry_run or not self._commit:
-            logger.warning("  Would commit to Git with message '%s", message)
+            self.context.warning("  Would commit to Git with message '{}", message)
             return
 
         try:
@@ -103,7 +105,7 @@ class Git:
             raise errors.VcsError(msg) from e
 
         if not self._tag:
-            logger.warning("  Would tag with version '%s", tag)
+            self.context.warning("  Would tag with version '{}", tag)
             return
 
         try:
@@ -117,6 +119,6 @@ class Git:
     def revert(self: T) -> None:
         """Revert a commit."""
         if self.dry_run:
-            logger.warning("Would revert commit in Git")
+            self.context.warning("Would revert commit in Git")
             return
         self.repo.git.reset("HEAD~1", hard=True)

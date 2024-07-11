@@ -8,9 +8,8 @@
 
 # Details
 
-`changelog-gen` is a CHANGELOG generator intended to be used in conjunction
-with [bump-my-version](https://github.com/callowayproject/bump-my-version) to generate
-changelogs and create release tags.
+`changelog-gen` is a CHANGELOG generator, to detect semantic versioning changes
+from conventional commits, and generate release tags.
 
 See the [docs](https://nrwldev.github.io/changelog-gen) for more details.
 

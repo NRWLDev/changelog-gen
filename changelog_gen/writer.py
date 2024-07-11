@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 import typing as t
 from enum import Enum
 from pathlib import Path
@@ -11,11 +10,8 @@ from tempfile import NamedTemporaryFile
 from changelog_gen.util import timer
 
 if t.TYPE_CHECKING:
-    from changelog_gen import config
+    from changelog_gen.context import Context
     from changelog_gen.extractor import Change, SectionDict
-
-
-logger = logging.getLogger(__name__)
 
 
 class Extension(Enum):
@@ -36,10 +32,11 @@ class BaseWriter:
     def __init__(
         self: t.Self,
         changelog: Path,
-        cfg: config.Config,
+        context: Context,
         *,
         dry_run: bool = False,
     ) -> None:
+        self.context = context
         self.existing = []
         self.changelog = changelog
         if self.changelog.exists():
@@ -47,8 +44,8 @@ class BaseWriter:
             self.existing = lines[self.file_header_line_count + 1 :]
         self.content = []
         self.dry_run = dry_run
-        self.issue_link = cfg.issue_link
-        self.commit_link = cfg.commit_link
+        self.issue_link = context.config.issue_link
+        self.commit_link = context.config.commit_link
 
     @timer
     def add_version(self: t.Self, version: str) -> None:
@@ -115,11 +112,11 @@ class BaseWriter:
     @timer
     def _write(self: t.Self, content: list[str]) -> None:
         if self.dry_run:
-            logger.warning("Would write to '%s'", self.changelog.name)
+            self.context.warning("Would write to '{}'", self.changelog.name)
             with NamedTemporaryFile("wb") as output_file:
                 output_file.write(("\n".join(content)).encode("utf-8"))
         else:
-            logger.warning("Writing to '%s'", self.changelog.name)
+            self.context.warning("Writing to '{}'", self.changelog.name)
             self.changelog.write_text("\n".join(content))
 
 
@@ -217,8 +214,8 @@ class RstWriter(BaseWriter):
 
 @timer
 def new_writer(
+    context: Context,
     extension: Extension,
-    cfg: config.Config,
     *,
     dry_run: bool = False,
 ) -> BaseWriter:
@@ -226,9 +223,9 @@ def new_writer(
     changelog = Path(f"CHANGELOG.{extension.value}")
 
     if extension == Extension.MD:
-        return MdWriter(changelog, cfg, dry_run=dry_run)
+        return MdWriter(changelog, context, dry_run=dry_run)
     if extension == Extension.RST:
-        return RstWriter(changelog, cfg, dry_run=dry_run)
+        return RstWriter(changelog, context, dry_run=dry_run)
 
     msg = f'Changelog extension "{extension.value}" not supported.'
     raise ValueError(msg)

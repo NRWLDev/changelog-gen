@@ -18,6 +18,85 @@ allow_dirty = false
   auth_env = "JIRA_AUTH"
 ```
 
+## Versioning
+
+`changelog-gen` is bringing version management "in house", and deprecating
+subprocess calls to `bump-my-version`.
+
+The configuration is very similar to
+[bump-my-version](https://github.com/callowayproject/bump-my-version?tab=readme-ov-file#semantic-versioning-example),
+but with a few simplifications.
+
+The minimum required configuration to manage versions is the current version,
+which can be moved directly from `[tool.bumpversion]`
+
+```toml
+[tool.changelog_gen]
+current_version = "1.2.3"
+```
+
+If multiple files have the current version string in them, they can be
+configured for replacement.
+
+Where the version string can safely be replaced with the default pattern
+`{version}`, use:
+
+```
+[[tool.changelog_gen.files]]
+filename = "README.md"
+```
+
+For files that might contain other version strings that could match and
+shouldn't be updated, a search/replace pattern can be configured.
+
+```
+[[tool.changelog_gen.files]]
+filename = "pyproject.toml"
+pattern = 'version = "{version}"'
+```
+
+### Version patterns
+
+The default versioning parser is
+`(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)`, with the matching serialiser
+`{major}.{minor}.{patch}`. This will support the typical semver use case of
+`X.Y.Z` version strings.
+
+If you want to support a pre-release flow, configure a parser, suitable
+serialisers, and any custom components (non incrementing integers).
+
+```toml
+[tool.changelog_gen]
+parser = '''(?x)
+    (?P<major>0|[1-9]\d*)\.
+    (?P<minor>0|[1-9]\d*)\.
+    (?P<patch>0|[1-9]\d*)
+    (?:
+        (?P<pre_l>[a-zA-Z-]+)         # pre-release label
+        (?P<pre_n>0|[1-9]\d*)         # pre-release version number
+    )?                                # pre-release section is optional
+'''
+serializers = [
+    "{major}.{minor}.{patch}-{pre_l}{pre_n}",
+    "{major}.{minor}.{patch}",
+]
+
+[tool.changelog_gen.parts]
+pre_l = ["dev", "rc"]
+```
+
+In the above example on creating a major/minor/patch release, the `pre_l`
+component will increment to the initial value `dev`, and `pre_n` will be 0.
+
+* `0.0.0`
+* `0.0.0      → 0.0.1-dev0`  [changelog generate]
+* `0.0.1-dev0 → 0.0.1-dev1`  [changelog generate --version-part pre_n]
+* `0.0.1-dev1 → 0.0.1-rc0`   [changelog generate --version-part pre_l]
+* `0.0.1-rc   → 0.0.1`       [changelog generate --version-part pre_l]
+
+When the release component reaches the end of the configured component parts,
+the optional components will be dropped.
+
 ## Configuration file -- Global configuration
 
 General configuration is grouped in a `[changelog_gen]` section.
