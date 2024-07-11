@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.11.3 - 2024-07-11
+
+### Features and Improvements
+
+- Move httpx to an optional extra for post-process support. [[5c3eb5a](https://github.com/NRWLDev/changelog-gen/commit/5c3eb5a25cb031688aec45c225289d326af6f04c)]
+
 ## v0.11.2 - 2024-07-11
 
 ### Features and Improvements
