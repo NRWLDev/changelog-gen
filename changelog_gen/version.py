@@ -42,7 +42,7 @@ class ModifyFile:
     path: Path
     patterns: list[str]
 
-    def update(self: t.Self, current: str, new: str) -> tuple[Path, Path]:
+    def update(self: t.Self, current: str, new: str, *, dry_run: bool) -> tuple[Path, Path]:
         """Update file with configured patterns."""
         with self.path.open("r") as f:
             contents = f.read()
@@ -57,8 +57,9 @@ class ModifyFile:
             contents = contents.replace(search, replace)
 
         backup = Path(f"{self.path}.bak")
-        with backup.open("w") as f:
-            f.write(contents)
+        if not dry_run:
+            with backup.open("w") as f:
+                f.write(contents)
 
         return (self.path, backup)
 
@@ -179,7 +180,7 @@ class BumpVersion:  # noqa: D101
         modified_files = []
         for file in files_to_modify.values():
             try:
-                modified_files.append(file.update(current.raw, version.raw))
+                modified_files.append(file.update(current.raw, version.raw, self.dry_run))
             except Exception:  # noqa: PERF203
                 for _original, backup in modified_files:
                     backup.unlink()

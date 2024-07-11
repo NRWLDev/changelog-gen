@@ -26,7 +26,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip poetry
         poetry config virtualenvs.create false
-        poetry install --extras "bump-my-version"
+        poetry install --extras bump-my-version post-process
     - name: Generate coverage report
       run: |
         pytest --cov=changelog_gen --cov-report=xml --cov-config=pyproject.toml -vvv
@@ -55,12 +55,12 @@ jobs:
       run: |
         python -m pip install --upgrade pip poetry
         poetry config virtualenvs.create false
-        poetry install --extras "bump-my-version"
+        poetry install --extras bump-my-version post-process
     - name: Run legacy tests
       run: |
         sh -c 'pytest -m "backwards_compat"; ret=$?; [ $ret = 5 ] && exit 0 || exit $ret'
 
-  test-non-legacy:
+  test-core:
 
     runs-on: ubuntu-latest
 
@@ -97,7 +97,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip poetry
         poetry config virtualenvs.create false
-        poetry install --extras "bump-my-version"
+        poetry install --extras bump-my-version post-process
     - name: Test with pytest
       run: |
         pytest

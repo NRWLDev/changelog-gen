@@ -4,6 +4,13 @@ import pytest
 import typer
 from freezegun import freeze_time
 
+try:
+    import httpx  # noqa: F401
+
+    httpx_not_installed = False
+except ImportError:
+    httpx_not_installed = True
+
 from changelog_gen import errors
 from changelog_gen.cli import command
 from changelog_gen.config import PostProcessConfig
@@ -550,6 +557,7 @@ def test_generate_reject_empty(
     )
 
 
+@pytest.mark.skipif(httpx_not_installed, reason="httpx not installed")
 class TestDelegatesToPerIssuePostProcess:
     # The behaviour of per_issue_post_process are tested in test_post_processor
 

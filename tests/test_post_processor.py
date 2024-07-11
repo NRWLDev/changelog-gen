@@ -1,12 +1,13 @@
 from http import HTTPStatus
 from unittest import mock
 
-import httpx
 import pytest
 import typer
 
-from changelog_gen import post_processor
-from changelog_gen.config import PostProcessConfig
+httpx = pytest.importorskip("httpx")
+
+from changelog_gen import post_processor  # noqa: E402
+from changelog_gen.config import PostProcessConfig  # noqa: E402
 
 
 def test_bearer_auth_flow():

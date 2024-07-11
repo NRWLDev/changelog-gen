@@ -17,5 +17,5 @@ def install(context):
 @invoke.task
 def install_dev(context):
     """Install development requirements for `backend`."""
-    context.run("poetry install")
+    context.run("poetry install --extras legacy postprocess")
     context.run("poetry run pre-commit install")

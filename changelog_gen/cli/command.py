@@ -23,7 +23,6 @@ from changelog_gen import (
 )
 from changelog_gen.cli import util
 from changelog_gen.context import Context
-from changelog_gen.post_processor import per_issue_post_process
 from changelog_gen.util import timer
 from changelog_gen.vcs import Git
 from changelog_gen.version import BumpVersion
@@ -227,7 +226,7 @@ def create_with_editor(context: Context, content: str, extension: writer.Extensi
 
 
 @timer
-def _gen(  # noqa: PLR0913
+def _gen(  # noqa: PLR0913, PLR0915
     context: Context,
     version_part: str | None = None,
     new_version: str | None = None,
@@ -308,5 +307,11 @@ def _gen(  # noqa: PLR0913
 
     post_process = cfg.post_process
     if post_process and processed:
+        # Don't import httpx unless required
+        try:  # noqa: SIM105
+            from changelog_gen.post_processor import per_issue_post_process
+        except ModuleNotFoundError:
+            pass
+
         unique_issues = [r for r in unique_issues if not r.startswith("__")]
         per_issue_post_process(post_process, sorted(unique_issues), str(new), dry_run=dry_run)
