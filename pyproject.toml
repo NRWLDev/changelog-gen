@@ -36,17 +36,14 @@ coverage = "7.4.3"  # something breaks >7.4.4 and require passing `--cov-config=
 ruff = "^0.4.0"
 pre-commit = "^3.0.2"
 
-[tool.bumpversion]
-current_version = "0.11.1"
-
 [tool.changelog_gen]
+current_version = "0.11.1"
 release = true
 commit = true
 tag = true
 reject_empty = true
 allowed_branches = [
     "main",
-    "feat/14",
 ]
 date_format = "- %Y-%m-%d"
 issue_link = "https://github.com/NRWLDev/changelog-gen/issues/::issue_ref::"
