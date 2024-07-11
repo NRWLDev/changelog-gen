@@ -1,6 +1,11 @@
 import pytest
 
-from changelog_gen import parse
+from changelog_gen import errors, parse
+
+
+def test_parse_failure():
+    with pytest.raises(errors.ParseError):
+        parse.parse(r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)", "invalid")
 
 
 @pytest.mark.parametrize(
@@ -22,7 +27,7 @@ from changelog_gen import parse
                 )?                                # pre-release section is optional
             """,
             "0.0.0",
-            {"major": "0", "minor": "0", "patch": "0"},
+            {"major": "0", "minor": "0", "patch": "0", "release": None, "build": None},
         ),
         (
             r"""(?x)
@@ -49,7 +54,7 @@ from changelog_gen import parse
                 )?                                # pre-release section is optional
             """,
             "0.0.0",
-            {"major": "0", "minor": "0", "patch": "0"},
+            {"major": "0", "minor": "0", "patch": "0", "pre_l": None, "pre_n": None},
         ),
         (
             r"""(?x)
@@ -70,6 +75,11 @@ from changelog_gen import parse
 def test_parse(regex, version, expected):
     parsed = parse.parse(regex, version)
     assert parsed == expected
+
+
+def test_serialise_failure():
+    with pytest.raises(errors.SerialiseError):
+        parse.serialise(["{major}.{minor}.{patch}"], {"major": 1, "minor": 2})
 
 
 @pytest.mark.parametrize(
@@ -119,3 +129,84 @@ def test_parse(regex, version, expected):
 def test_serialise(patterns, version_parts, expected):
     serialised = parse.serialise(patterns, version_parts)
     assert serialised == expected
+
+
+@pytest.mark.parametrize(
+    ("version_parts", "component", "expected"),
+    [
+        (
+            {"major": "0", "minor": "0", "patch": "0"},
+            "patch",
+            {"major": "0", "minor": "0", "patch": "1"},
+        ),
+        (
+            {"major": "0", "minor": "0", "patch": "0"},
+            "minor",
+            {"major": "0", "minor": "1", "patch": "0"},
+        ),
+        (
+            {"major": "0", "minor": "0", "patch": "1"},
+            "minor",
+            {"major": "0", "minor": "1", "patch": "0"},
+        ),
+        (
+            {"major": "0", "minor": "9", "patch": "1"},
+            "minor",
+            {"major": "0", "minor": "10", "patch": "0"},
+        ),
+        (
+            {"major": "0", "minor": "10", "patch": "1"},
+            "minor",
+            {"major": "0", "minor": "11", "patch": "0"},
+        ),
+        (
+            {"major": "0", "minor": "0", "patch": "0"},
+            "major",
+            {"major": "1", "minor": "0", "patch": "0"},
+        ),
+        (
+            {"major": "0", "minor": "1", "patch": "2"},
+            "major",
+            {"major": "1", "minor": "0", "patch": "0"},
+        ),
+    ],
+)
+def test_bump_vanilla(version_parts, component, expected):
+    new_parts = parse.bump(version_parts, component, {})
+    assert new_parts == expected
+
+
+@pytest.mark.parametrize(
+    ("version_parts", "component", "expected"),
+    [
+        (
+            {"major": "0", "minor": "0", "patch": "0", "release": None, "build": None},
+            "patch",
+            {"major": "0", "minor": "0", "patch": "1", "release": "dev", "build": "0"},
+        ),
+        (
+            {"major": "0", "minor": "0", "patch": "0", "release": "rc", "build": "0"},
+            "build",
+            {"major": "0", "minor": "0", "patch": "0", "release": "rc", "build": "1"},
+        ),
+        (
+            {"major": "0", "minor": "0", "patch": "1", "release": "dev", "build": "1"},
+            "release",
+            {"major": "0", "minor": "0", "patch": "1", "release": "rc", "build": "0"},
+        ),
+        (
+            {"major": "0", "minor": "0", "patch": "1", "release": "rc", "build": "1"},
+            "release",
+            {"major": "0", "minor": "0", "patch": "1", "release": None, "build": None},
+        ),
+    ],
+)
+def test_bump_configured_components(version_parts, component, expected):
+    new_parts = parse.bump(version_parts, component, component_config={"release": ["dev", "rc"]})
+    assert new_parts == expected
+
+
+def test_bump_unset_optional_component():
+    version_parts = {"major": "0", "minor": "0", "patch": "0", "release": None, "build": None}
+    with pytest.raises(errors.BumpError):
+        parse.bump(version_parts, "release", component_config={"release": ["dev", "rc"]})

@@ -84,6 +84,11 @@ class Config:
     """Changelog configuration options."""
 
     current_version: str = ""
+    parser: str = r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"
+    serializers: list[str] = dataclasses.field(default_factory=lambda: ["{major}.{minor}.{patch}"])
+    parts: dict[str, list[str]] = dataclasses.field(default_factory=dict)
+    files: dict = dataclasses.field(default_factory=dict)
+
     verbose: int = 0
 
     issue_link: str | None = None
@@ -172,7 +177,7 @@ def check_deprecations(cfg: dict) -> None:  # noqa: ARG001
 
 
 @timer
-def read(**kwargs) -> Config:
+def read(path: str = "pyproject.toml", **kwargs) -> Config:
     """Read configuration from local environment.
 
     Supported configuration locations (checked in order):
@@ -181,7 +186,7 @@ def read(**kwargs) -> Config:
     overrides, post_process = _process_overrides(kwargs)
     cfg = {}
 
-    pyproject = Path("pyproject.toml")
+    pyproject = Path(path)
 
     if pyproject.exists():
         # parse pyproject

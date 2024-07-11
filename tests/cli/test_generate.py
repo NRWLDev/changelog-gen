@@ -1,34 +1,18 @@
 from unittest import mock
 
 import pytest
-import rtoml
 import typer
 from freezegun import freeze_time
 
 from changelog_gen import errors
 from changelog_gen.cli import command
 from changelog_gen.config import PostProcessConfig
-from changelog_gen.version import _Version
+from changelog_gen.version import Version
 
 
 @pytest.fixture(autouse=True)
 def _patch_subprocess(monkeypatch):
     monkeypatch.setattr(command.subprocess, "call", mock.Mock())
-
-
-@pytest.fixture()
-def config_factory(cwd):
-    def factory(**config):
-        p = cwd / "pyproject.toml"
-        with p.open("w") as f:
-            rtoml.dump({"tool": {"changelog_gen": config, "bumpversion": {"current_version": "0.0.0"}}}, f)
-
-    return factory
-
-
-@pytest.fixture(autouse=True)
-def config(config_factory):
-    return config_factory()
 
 
 @pytest.fixture(autouse=True)
@@ -51,8 +35,8 @@ def mock_git(monkeypatch):
 @pytest.fixture()
 def versions():
     return {
-        "current": _Version("0.0.0", mock.Mock()),
-        "new": _Version("0.0.1", mock.Mock()),
+        "current": Version("0.0.0", mock.Mock()),
+        "new": Version("0.0.1", mock.Mock()),
     }
 
 
@@ -150,10 +134,8 @@ def post_process_pyproject(cwd):
     p = cwd / "pyproject.toml"
     p.write_text(
         """
-[tool.bumpversion]
-current_version = "0.0.0"
-
 [tool.changelog_gen]
+current_version = "0.0.0"
 commit = true
 post_process.url = "https://my-api/::issue_ref::/release"
 post_process.auth_env = "MY_API_AUTH"
@@ -191,13 +173,13 @@ def test_generate_aborts_if_changelog_missing(cli_runner):
 )
 def test_generate_interactive(cli_runner, monkeypatch, platform, expected):
     monkeypatch.setattr(command, "_gen", mock.Mock())
-    monkeypatch.setattr(command.config, "read", mock.Mock())
+    monkeypatch.setattr(command, "Context", mock.Mock())
     monkeypatch.setattr(command.platform, "system", mock.Mock(return_value=platform))
     result = cli_runner.invoke(["generate"])
 
     assert result.exit_code == 0
     assert command._gen.call_args == mock.call(
-        command.config.read.return_value,
+        command.Context.return_value,
         None,
         None,
         dry_run=False,
@@ -449,7 +431,25 @@ def test_generate_creates_release(
 
     assert result.exit_code == 0
     assert mock_git.commit.call_args == mock.call("0.0.0", "0.0.1", "v0.0.1", ["pyproject.toml", "CHANGELOG.md"])
-    assert mock_bump.replace.call_args == mock.call(versions["current"].tag, versions["new"].tag)
+    assert mock_bump.replace.call_args == mock.call(versions["current"], versions["new"])
+
+
+@pytest.mark.usefixtures("changelog", "_conventional_commits")
+def test_generate_creates_release_bump_version(
+    cli_runner,
+    monkeypatch,
+    mock_git,
+    mock_bump,
+    versions,
+    config_factory,
+):
+    config_factory(use_bump=True)
+    monkeypatch.setattr(typer, "confirm", mock.MagicMock(return_value=True))
+    result = cli_runner.invoke(["generate", "--commit", "--release"])
+
+    assert result.exit_code == 0
+    assert mock_git.commit.call_args == mock.call("0.0.0", "0.0.1", "v0.0.1", ["pyproject.toml", "CHANGELOG.md"])
+    assert mock_bump.replace.call_args == mock.call(versions["current"], versions["new"])
 
 
 @pytest.mark.usefixtures("changelog", "_conventional_commits")
@@ -457,8 +457,6 @@ def test_generate_creates_release_using_config(
     cli_runner,
     monkeypatch,
     mock_git,
-    mock_bump,
-    versions,
     config_factory,
 ):
     config_factory(commit=True, release=True)
@@ -468,7 +466,6 @@ def test_generate_creates_release_using_config(
 
     assert result.exit_code == 0
     assert mock_git.commit.call_args == mock.call("0.0.0", "0.0.1", "v0.0.1", ["pyproject.toml", "CHANGELOG.md"])
-    assert mock_bump.replace.call_args == mock.call(versions["current"].tag, versions["new"].tag)
 
 
 @pytest.mark.usefixtures("_conventional_commits")
@@ -516,7 +513,7 @@ def test_generate_uses_supplied_version_part(
     assert mock_bump.get_version_info.call_args == mock.call("major")
 
 
-@pytest.mark.usefixtures("_conventional_commits")
+@pytest.mark.usefixtures("_conventional_commits", "config")
 def test_generate_dry_run(
     cli_runner,
     changelog,
@@ -535,7 +532,7 @@ def test_generate_dry_run(
     )
 
 
-@pytest.mark.usefixtures("_empty_conventional_commits")
+@pytest.mark.usefixtures("_empty_conventional_commits", "config")
 def test_generate_reject_empty(
     cli_runner,
     changelog,
@@ -730,11 +727,11 @@ class TestCreateWithEditor:
     def test_subprocess_error_handled(self, monkeypatch):
         monkeypatch.setattr(command.subprocess, "call", mock.Mock(side_effect=OSError))
         with pytest.raises(typer.Exit):
-            command.create_with_editor("content", command.writer.Extension.MD)
+            command.create_with_editor(mock.Mock(), "content", command.writer.Extension.MD)
 
     def test_unlink_handled(self, monkeypatch):
         monkeypatch.setattr(command.Path, "unlink", mock.Mock(side_effect=OSError))
-        content = command.create_with_editor("content", command.writer.Extension.MD)
+        content = command.create_with_editor(mock.Mock(), "content", command.writer.Extension.MD)
         assert content == "content"
 
     def test_subprocess_call(self, monkeypatch, tmp_path):
@@ -747,7 +744,7 @@ class TestCreateWithEditor:
         monkeypatch.setattr(command.subprocess, "call", mock.Mock())
         monkeypatch.setattr(command, "NamedTemporaryFile", mock.Mock(return_value=mock_file))
 
-        command.create_with_editor("content", command.writer.Extension.MD)
+        command.create_with_editor(mock.Mock(), "content", command.writer.Extension.MD)
 
         assert command.subprocess.call.call_args == mock.call(["vim", str(f)])
 
@@ -761,6 +758,6 @@ class TestCreateWithEditor:
         monkeypatch.setattr(command.subprocess, "call", mock.Mock())
         monkeypatch.setattr(command, "NamedTemporaryFile", mock.Mock(return_value=mock_file))
 
-        command.create_with_editor("content", command.writer.Extension.MD)
+        command.create_with_editor(mock.Mock(), "content", command.writer.Extension.MD)
 
         assert command.subprocess.call.call_args == mock.call(["vim", str(f)])

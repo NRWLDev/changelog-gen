@@ -2,6 +2,7 @@ import os
 import pathlib
 
 import pytest
+import rtoml
 
 
 @pytest.fixture()
@@ -28,3 +29,27 @@ def git_repo(git_repo):
         yield git_repo
     finally:
         os.chdir(orig)
+
+
+@pytest.fixture()
+def config_factory(cwd):
+    def factory(*, use_bump=False, **config):
+        p = cwd / "pyproject.toml"
+        if not use_bump:
+            config["current_version"] = "0.0.0"
+
+        data = {
+            "tool": {
+                "changelog_gen": config,
+                "bumpversion": {"current_version": "0.0.0"},
+            },
+        }
+        with p.open("w") as f:
+            rtoml.dump(data, f)
+
+    return factory
+
+
+@pytest.fixture(autouse=True)
+def config(config_factory):
+    return config_factory()

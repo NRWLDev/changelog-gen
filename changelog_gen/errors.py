@@ -18,5 +18,17 @@ class VersionError(ChangelogException):
     """Bumpversion error."""
 
 
+class ParseError(ChangelogException):
+    """Parse error."""
+
+
+class SerialiseError(ChangelogException):
+    """Serialise error."""
+
+
+class BumpError(ChangelogException):
+    """Version bump error."""
+
+
 class UnsupportedReplaceError(ChangelogException):
     """Unsupported ::replace:: in configuration string."""

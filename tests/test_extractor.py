@@ -5,6 +5,7 @@ import pytest
 
 from changelog_gen import extractor
 from changelog_gen.config import CommitType, Config
+from changelog_gen.context import Context
 from changelog_gen.extractor import Change, ChangeExtractor
 from changelog_gen.vcs import Git
 
@@ -65,10 +66,10 @@ Refs: #2
 
 def test_git_commit_extraction(conventional_commits):
     hashes = conventional_commits
-    cfg = Config()
-    git = Git()
+    ctx = Context(Config())
+    git = Git(ctx)
 
-    e = ChangeExtractor(cfg, git)
+    e = ChangeExtractor(ctx, git)
 
     sections = e.extract("0.0.2")
 
@@ -108,10 +109,10 @@ def test_git_commit_extraction(conventional_commits):
 
 def test_git_commit_extraction_include_all(conventional_commits):
     hashes = conventional_commits
-    cfg = Config()
-    git = Git()
+    ctx = Context(Config())
+    git = Git(ctx)
 
-    e = ChangeExtractor(cfg, git, include_all=True)
+    e = ChangeExtractor(ctx, git, include_all=True)
 
     sections = e.extract("0.0.2")
 
@@ -176,10 +177,10 @@ def test_git_commit_extraction_handles_random_tags(conventional_commits, multive
     multiversion_repo.api.index.commit("fix: Detail about 5")
     hashes.append(str(multiversion_repo.api.head.commit))
 
-    cfg = Config()
-    git = Git()
+    ctx = Context(Config())
+    git = Git(ctx)
 
-    e = ChangeExtractor(cfg, git)
+    e = ChangeExtractor(ctx, git)
 
     sections = e.extract("0.0.2")
 
@@ -247,16 +248,18 @@ Refs: #2
         multiversion_repo.api.index.commit(msg)
         hashes.append(str(multiversion_repo.api.head.commit))
 
-    cfg = Config(
-        commit_types={
-            "custom": CommitType("Bug fixes"),
-            "feat": CommitType("Features and Improvements"),
-            "bug": CommitType("Bug fixes"),
-        },
+    ctx = Context(
+        Config(
+            commit_types={
+                "custom": CommitType("Bug fixes"),
+                "feat": CommitType("Features and Improvements"),
+                "bug": CommitType("Bug fixes"),
+            },
+        ),
     )
-    git = Git()
+    git = Git(ctx)
 
-    e = ChangeExtractor(cfg, git)
+    e = ChangeExtractor(ctx, git)
 
     sections = e.extract("0.0.2")
 
@@ -295,10 +298,10 @@ Refs: #1
         multiversion_repo.api.index.commit(msg)
         hashes.append(str(multiversion_repo.api.head.commit))
 
-    cfg = Config()
-    git = Git()
+    ctx = Context(Config())
+    git = Git(ctx)
 
-    e = ChangeExtractor(cfg, git)
+    e = ChangeExtractor(ctx, git)
 
     sections = e.extract("0.0.2")
 
@@ -317,10 +320,10 @@ Refs: #1
 
 
 def test_unique_issues():
-    cfg = Config(commit_types={"bug": CommitType("BugFix"), "feat": CommitType("Features")})
+    ctx = Context(Config(commit_types={"bug": CommitType("BugFix"), "feat": CommitType("Features")}))
     git = mock.Mock()
 
-    e = ChangeExtractor(cfg, git)
+    e = ChangeExtractor(ctx, git)
 
     assert e.unique_issues(
         {
@@ -356,9 +359,9 @@ def test_unique_issues():
     ],
 )
 def test_extract_semver_version_zero(sections, commit_types, expected_semver):
-    cfg = Config(commit_types=commit_types)
+    ctx = Context(Config(commit_types=commit_types))
 
-    semver = extractor.extract_semver(sections, cfg, "0.0.0")
+    semver = extractor.extract_semver(sections, ctx, "0.0.0")
 
     assert semver == expected_semver
 
@@ -380,9 +383,9 @@ def test_extract_semver_version_zero(sections, commit_types, expected_semver):
     ],
 )
 def test_extract_semver(sections, commit_types, expected_semver):
-    cfg = Config(commit_types=commit_types)
+    ctx = Context(Config(commit_types=commit_types))
 
-    semver = extractor.extract_semver(sections, cfg, "1.0.0")
+    semver = extractor.extract_semver(sections, ctx, "1.0.0")
 
     assert semver == expected_semver
 

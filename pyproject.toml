@@ -14,8 +14,12 @@ python = "^3.9"
 typer-slim = "^0"
 httpx = "^0"
 rtoml = ">=0.9"
-bump-my-version = "^0"
 gitpython = "^3.1.43"
+bump-my-version = { version="^0", optional=true }
+pygments = "^2.18.0"
+
+[tool.poetry.extras]
+bump-my-version = ["bump-my-version"]
 
 [tool.poetry.dev-dependencies]
 
@@ -32,17 +36,6 @@ coverage = "7.4.3"  # something breaks >7.4.4 and require passing `--cov-config=
 ruff = "^0.4.0"
 pre-commit = "^3.0.2"
 
-[tool.bumpversion]
-current_version = "0.11.1"
-
-[[tool.bumpversion.files]]
-filename = "README.md"
-
-[[tool.bumpversion.files]]
-filename = "pyproject.toml"
-search = 'version = "{current_version}"'
-replace = 'version = "{new_version}"'
-
 [tool.changelog_gen]
 current_version = "0.11.1"
 release = true
@@ -51,11 +44,18 @@ tag = true
 reject_empty = true
 allowed_branches = [
     "main",
+    "feat/14",
 ]
 date_format = "- %Y-%m-%d"
 issue_link = "https://github.com/NRWLDev/changelog-gen/issues/::issue_ref::"
 commit_link = "https://github.com/NRWLDev/changelog-gen/commit/::commit_hash::"
 
+[[tool.changelog_gen.files]]
+filename = "README.md"
+
+[[tool.changelog_gen.files]]
+filename = "pyproject.toml"
+pattern = 'version = "{current_version}"'
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
