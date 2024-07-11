@@ -149,15 +149,15 @@ class BumpVersion:  # noqa: D101
 
         cwd = Path.cwd()
         files_to_modify = [
-            ModifyFile("pyproject.toml", cwd / "pyproject.toml", 'current_version = "{version}"'),
+            ModifyFile(file["filename"], cwd / file["filename"], file.get("pattern", "{version}"))
+            for file in self.config.files
         ]
-        files_to_modify.extend(
-            [
-                ModifyFile(file["filename"], cwd / file["filename"], file.get("pattern", "{version}"))
-                for file in self.config.files
-            ],
+        # Replace own configuration
+        files_to_modify.append(
+            ModifyFile("pyproject.toml", cwd / "pyproject.toml", 'current_version = "{version}"'),
         )
 
+        modified_files = []
         for file in files_to_modify:
             with file.path.open("r") as f:
                 contents = f.read()
@@ -165,10 +165,20 @@ class BumpVersion:  # noqa: D101
             try:
                 search, replace = file.pattern.format(version=current.raw), file.pattern.format(version=version.raw)
             except KeyError as e:
+                for _original, backup in modified_files:
+                    backup.unlink()
                 msg = f"Incorrect pattern for {file.filename}"
                 raise errors.VersionError(msg) from e
+
             contents = contents.replace(search, replace)
 
-            with file.path.open("w") as f:
+            backup = Path(f"{file.path}.bak")
+            modified_files.append((file.path, backup))
+            with backup.open("w") as f:
                 f.write(contents)
+
+        for original, backup in modified_files:
+            original.write_text(backup.read_text())
+            backup.unlink()
+
         return sorted({mf.filename for mf in files_to_modify})
