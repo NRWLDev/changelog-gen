@@ -1211,4 +1211,4 @@ bump-my-version = ["bump-my-version"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "1b5f4826ab3f447b019c037f1b392824b8d51365f9c82627a26870cf53616f07"
+content-hash = "5d5cc213caaa78970dbdfc1a9e8cc7202384584f9e88df391249728fb6f2b232"
