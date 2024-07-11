@@ -59,9 +59,6 @@ filename = "README.md"
 filename = "pyproject.toml"
 pattern = 'version = "{version}"'
 
-[tool.changelog_gen.post_process]
-url = "localhost"
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = [
