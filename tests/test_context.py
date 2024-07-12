@@ -1,3 +1,4 @@
+from pathlib import Path
 from unittest import mock
 
 import pytest
@@ -54,9 +55,10 @@ def test_stacktrace(monkeypatch):
     except:  # noqa: E722
         c.stacktrace()
 
+    name = Path(__file__)
     assert c._echo.call_args == mock.call(
-        """Traceback (most recent call last):
-  File "/home/edgy/code/nrwl/changelog-gen/tests/test_context.py", line 53, in test_stacktrace
+        f"""Traceback (most recent call last):
+  File "{name}", line 54, in test_stacktrace
     raise Exception("message")  # noqa: TRY002, EM101\nException: message
 """,
     )
