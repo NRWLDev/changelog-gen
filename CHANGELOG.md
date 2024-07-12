@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.11.5 - 2024-07-12
+
+### Bug fixes
+
+- Add additional error handling. [[d0709e1](https://github.com/NRWLDev/changelog-gen/commit/d0709e116d8ca2055062786063dd9b6a4805e66b)]
+
 ## v0.11.4 - 2024-07-12
 
 ### Bug fixes
