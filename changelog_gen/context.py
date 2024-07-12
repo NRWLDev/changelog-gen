@@ -72,5 +72,7 @@ class Context:
             sio = io.StringIO()
             traceback.print_exception(t, v, tb, None, sio)
             s = sio.getvalue()
+            # Clean up odd python 3.11, 3.12 formatting on mac
+            s.replace("\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^", "")
             sio.close()
             self._echo(s)

@@ -1,4 +1,3 @@
-import platform
 from pathlib import Path
 from unittest import mock
 
@@ -57,16 +56,10 @@ def test_stacktrace(monkeypatch):
         c.stacktrace()
 
     name = Path(__file__)
-    newline = (
-        ""
-        if platform.system() == "Linux" or platform.python_version_tuple() < (3, 11)
-        else "\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^"
-    )
-    print(platform.system())  # noqa: T201
     assert c._echo.call_args == mock.call(
         f"""Traceback (most recent call last):
-  File "{name}", line 55, in test_stacktrace
-    raise Exception("message")  # noqa: TRY002, EM101{newline}
+  File "{name}", line 54, in test_stacktrace
+    raise Exception("message")  # noqa: TRY002, EM101
 Exception: message
 """,
     )
