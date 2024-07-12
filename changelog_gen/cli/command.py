@@ -92,9 +92,12 @@ def process_info(info: dict, context: Context, *, dry_run: bool) -> None:
 def display_config() -> None:
     """Display current configuration."""
     cfg = config.read()
+    data = {k: v for k, v in cfg.to_dict().items() if v is not None}
+    if "post_process" in data:
+        data["post_process"] = {k: v for k, v in data["post_process"].items() if v is not None}
     typer.echo(
         highlight(
-            rtoml.dumps(cfg.to_dict(), pretty=True),
+            rtoml.dumps(data, pretty=True),
             lexers.TOMLLexer(),
             formatters.TerminalFormatter(),
         ),
@@ -137,9 +140,9 @@ def gen(  # noqa: PLR0913
     dry_run: bool = typer.Option(default=False, help="Don't write release notes, check for errors."),
     allow_dirty: Optional[bool] = typer.Option(None, help="Don't abort if branch contains uncommitted changes."),
     allow_missing: Optional[bool] = typer.Option(None, help="Don't abort if branch missing commits on origin."),
-    release: Optional[bool] = typer.Option(None, help="Use bumpversion to tag the release."),
-    commit: Optional[bool] = typer.Option(None, help="Commit changes made to changelog after writing."),
-    tag: Optional[bool] = typer.Option(None, help="Tag changes made after writing."),
+    release: Optional[bool] = typer.Option(default=True, help="Use bumpversion to tag the release."),
+    commit: Optional[bool] = typer.Option(default=True, help="Commit changes made to changelog after writing."),
+    tag: Optional[bool] = typer.Option(default=True, help="Tag changes made after writing."),
     reject_empty: Optional[bool] = typer.Option(None, help="Don't accept changes if there are no release notes."),
     include_all: Optional[bool] = typer.Option(
         default=False,
@@ -192,7 +195,7 @@ def gen(  # noqa: PLR0913
         context.error(str(ex))
         context.debug("Run time (error) {}", (time.time() - start) * 1000)
         raise typer.Exit(code=1) from ex
-    context.debug("Run time %f", (time.time() - start) * 1000)
+    context.debug("Run time {}", (time.time() - start) * 1000)
 
 
 @timer
@@ -288,7 +291,8 @@ def _gen(  # noqa: PLR0913
 
     changes = create_with_editor(context, str(w), extension) if interactive else str(w)
 
-    context.error(changes)
+    # If auto accepting don't print to screen unless verbosity set
+    context.error(changes) if not yes else context.warning(changes)
     w.content = changes.split("\n")[2:-2]
 
     processed = False

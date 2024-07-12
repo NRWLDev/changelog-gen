@@ -99,9 +99,9 @@ class Config:
     allowed_branches: list[str] = dataclasses.field(default_factory=list)
     commit_types: dict[str, CommitType] = dataclasses.field(default_factory=lambda: SUPPORTED_TYPES)
 
-    release: bool = False
-    commit: bool = False
-    tag: bool = False
+    release: bool = True
+    commit: bool = True
+    tag: bool = True
     allow_dirty: bool = False
     allow_missing: bool = False
     reject_empty: bool = False

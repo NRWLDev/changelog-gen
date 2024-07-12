@@ -484,7 +484,7 @@ def test_generate_uses_supplied_version_tag(
     mock_git,
 ):
     monkeypatch.setattr(typer, "confirm", mock.MagicMock(return_value=True))
-    result = cli_runner.invoke(["generate", "--version-tag", "0.3.2", "--commit"])
+    result = cli_runner.invoke(["generate", "--version-tag", "0.3.2", "--no-release"])
 
     assert result.exit_code == 0
     assert (

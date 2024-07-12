@@ -44,17 +44,29 @@ class ModifyFile:
 
     def update(self: t.Self, current: str, new: str, *, dry_run: bool) -> tuple[Path, Path]:
         """Update file with configured patterns."""
-        with self.path.open("r") as f:
-            contents = f.read()
+        try:
+            with self.path.open("r") as f:
+                contents = f.read()
+        except FileNotFoundError as e:
+            msg = f"Configured file not found '{self.filename}'."
+            raise errors.VersionError(msg) from e
 
         for pattern in self.patterns:
             try:
                 search, replace = pattern.format(version=current), pattern.format(version=new)
             except KeyError as e:
-                msg = f"Incorrect pattern for {self.filename}"
+                msg = f"Incorrect pattern '{pattern}' for '{self.filename}'."
                 raise errors.VersionError(msg) from e
 
-            contents = contents.replace(search, replace)
+            if search == replace:
+                msg = f"Pattern '{pattern}' generated no change for '{self.filename}'."
+                raise errors.VersionError(msg)
+
+            new_contents = contents.replace(search, replace)
+            if new_contents == contents:
+                msg = f"No change for '{self.filename}', ensure pattern '{pattern}' is correct."
+                raise errors.VersionError(msg)
+            contents = new_contents
 
         backup = Path(f"{self.path}.bak")
         if not dry_run:
@@ -91,11 +103,16 @@ class BumpVersion:  # noqa: D101
             try:
                 find_config_file  # noqa: B018
             except NameError as e:  # pragma: no cover
-                msg = "bump-my-version is being deprecated, to continue using it install with `extras=bump-my-version`."
-                raise errors.ChangelogException(msg) from e
+                warn(
+                    "bump-my-version is being deprecated, to continue using it install with `extras=bump-my-version`, or migrate to [tool.changelog_gen] configuration.",
+                    FutureWarning,
+                    stacklevel=2,
+                )
+                msg = "Unable to determine the current version."
+                raise errors.VersionError(msg) from e
 
             warn(
-                "bump-my-version support will be dropped in a future version, please move configuration to [tool.changelog_gen].",  # noqa: E501
+                "bump-my-version support will be dropped in a future version, please move configuration to [tool.changelog_gen].",
                 FutureWarning,
                 stacklevel=2,
             )
@@ -145,7 +162,7 @@ class BumpVersion:  # noqa: D101
                 raise errors.ChangelogException(msg) from e
 
             warn(
-                "bump-my-version support will be dropped in a future version, please move configuration to [tool.changelog_gen].",  # noqa: E501
+                "bump-my-version support will be dropped in a future version, please move configuration to [tool.changelog_gen].",
                 FutureWarning,
                 stacklevel=2,
             )

@@ -7,17 +7,13 @@ def test_config_displayed(cli_runner):
         == r"""current_version = '0.0.0'
 parser = '(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)'
 verbose = 0
-issue_link = 'null'
-commit_link = 'null'
-date_format = 'null'
 version_string = 'v{new_version}'
-release = false
-commit = false
-tag = false
+release = true
+commit = true
+tag = true
 allow_dirty = false
 allow_missing = false
 reject_empty = false
-post_process = 'null'
 serialisers = ['{major}.{minor}.{patch}']
 allowed_branches = []
 
@@ -68,3 +64,16 @@ semver = 'patch'
 header = 'Miscellaneous'
 semver = 'patch'"""
     )
+
+
+def test_post_process_config_displayed(cli_runner, config_factory):
+    config_factory(post_process={"url": "http://localhost"})
+    result = cli_runner.invoke(["config"])
+
+    assert result.exit_code == 0
+    assert result.output.strip().endswith("""
+[post_process]
+url = 'http://localhost'
+verb = 'POST'
+body = '{"body": "Released on ::version::"}'
+auth_type = 'basic'""")

@@ -31,7 +31,11 @@ class Git:
         self._release = release
         self._tag = tag
         self.dry_run = dry_run
-        self.repo = git.Repo()
+        try:
+            self.repo = git.Repo()
+        except git.exc.InvalidGitRepositoryError as e:
+            msg = "No git repository found, please run git init."
+            raise errors.VcsError(msg) from e
 
     @timer
     def get_current_info(self: T) -> dict[str, str]:
@@ -39,10 +43,21 @@ class Git:
         branch = self.repo.active_branch.name
         try:
             missing_local = list(self.repo.iter_commits(f"HEAD..origin/{branch}"))
+        except git.GitCommandError as e:
+            if f"bad revision 'HEAD..origin/{branch}'" in str(e):
+                missing_local = []
+            else:
+                msg = f"Unable to determine missing commit status: {e}"
+                raise errors.VcsError(msg) from e
+
+        try:
             missing_remote = list(self.repo.iter_commits(f"origin/{branch}..HEAD"))
         except git.GitCommandError as e:
-            msg = f"Unable to determine missing commit status: {e}"
-            raise errors.VcsError(msg) from e
+            if f"bad revision 'origin/{branch}..HEAD'" in str(e):
+                missing_remote = ["missing"]
+            else:
+                msg = f"Unable to determine missing commit status: {e}"
+                raise errors.VcsError(msg) from e
 
         return {
             "missing_local": missing_local != [],
@@ -64,11 +79,19 @@ class Git:
     def get_logs(self: T, tag: str | None) -> list:
         """Fetch logs since last tag."""
         args = [f"{tag}..HEAD"] if tag else []
-        logs = self.repo.git.log(
-            *args,
-            z=True,  # separate with \x00 rather than \n to differentiate multiline commits
-            format="%h:%H:%B",  # message only
-        )
+        try:
+            logs = self.repo.git.log(
+                *args,
+                z=True,  # separate with \x00 rather than \n to differentiate multiline commits
+                format="%h:%H:%B",  # message only
+            )
+        except git.exc.GitCommandError as e:
+            msg = (
+                "Unable to fetch commit logs."
+                if "does not have any commits yet" not in str(e)
+                else "No commit logs available."
+            )
+            raise errors.VcsError(msg) from e
         return [m.split(":", 2) for m in logs.split("\x00") if m]
 
     @timer

@@ -355,6 +355,11 @@ def test_config_defaults():
     for attr in [
         "release",
         "commit",
+        "tag",
+    ]:
+        assert getattr(c, attr) is True
+
+    for attr in [
         "allow_dirty",
         "allow_missing",
         "reject_empty",

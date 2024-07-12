@@ -26,6 +26,56 @@ def config_factory():
     return factory
 
 
+class TestModifyFile:
+    def test_missing_file_raises(self, cwd):
+        mf = version.ModifyFile("filename", cwd / "filename", [])
+
+        with pytest.raises(errors.VersionError, match="Configured file not found 'filename'"):
+            mf.update("0.0.0", "0.0.1", dry_run=False)
+
+    def test_invalid_pattern_raises(self, cwd):
+        (cwd / "filename").write_text("0.0.0")
+        mf = version.ModifyFile("filename", cwd / "filename", ["{invalid}"])
+
+        with pytest.raises(errors.VersionError, match="Incorrect pattern '{invalid}' for 'filename'."):
+            mf.update("0.0.0", "0.0.1", dry_run=False)
+
+    def test_nullop_pattern_raises(self, cwd):
+        (cwd / "filename").write_text("0.0.0")
+        mf = version.ModifyFile("filename", cwd / "filename", ["invalid"])
+
+        with pytest.raises(errors.VersionError, match="Pattern 'invalid' generated no change for 'filename'."):
+            mf.update("0.0.0", "0.0.1", dry_run=False)
+
+    def test_pattern_no_change_raises(self, cwd):
+        (cwd / "filename").write_text("0.0.0")
+        mf = version.ModifyFile("filename", cwd / "filename", ["version = {version}"])
+
+        with pytest.raises(
+            errors.VersionError,
+            match="No change for 'filename', ensure pattern 'version = {version}' is correct.",
+        ):
+            mf.update("0.0.0", "0.0.1", dry_run=False)
+
+    def test_update_applies_multiple_updates(self, cwd):
+        (cwd / "filename").write_text('version1 = "0.0.0"\nversion2 = "0.0.0"')
+        mf = version.ModifyFile("filename", cwd / "filename", ['version1 = "{version}"', 'version2 = "{version}'])
+
+        mf.update("0.0.0", "0.0.1", dry_run=False)
+
+        assert (cwd / "filename.bak").read_text() == 'version1 = "0.0.1"\nversion2 = "0.0.1"'
+
+    def test_update_writes_to_backup(self, cwd):
+        (cwd / "filename").write_text("0.0.0")
+        mf = version.ModifyFile("filename", cwd / "filename", ["{version}"])
+
+        original, backup = mf.update("0.0.0", "0.0.1", dry_run=False)
+
+        assert (cwd / "filename").read_text() == "0.0.0"
+        assert original.read_text() == "0.0.0"
+        assert backup.read_text() == "0.0.1"
+
+
 class TestInHouse:
     def test_get_version_info_uses_provided_version(self, config_factory):
         cfg = config_factory(current_version="0.0.0")
@@ -127,9 +177,7 @@ pattern = 'version = "{version}"'"""
             )
 
     def test_replace_dry_run(self, cwd):
-        p = cwd / "pyproject.toml"
-        p.write_text(
-            """
+        content = """
 [tool.poetry]
 version = "0.0.0"
 
@@ -139,33 +187,20 @@ current_version = "0.0.0"
 [[tool.changelog_gen.files]]
 filename = "pyproject.toml"
 pattern = 'version = "{version}"'
-        """.strip(),
-        )
+        """.strip()
+
+        p = cwd / "pyproject.toml"
+        p.write_text(content)
         cfg = read(str(p))
 
         current = version.Version("0.0.0", None)
         new = version.Version("1.2.3", None)
         version.BumpVersion(cfg, dry_run=True).replace(current, new)
         with p.open() as f:
-            assert (
-                f.read()
-                == """[tool.poetry]
-version = "0.0.0"
-
-[tool.changelog_gen]
-current_version = "0.0.0"
-
-[[tool.changelog_gen.files]]
-filename = "pyproject.toml"
-pattern = 'version = "{version}"'"""
-            )
+            assert f.read() == content
 
     def test_replace_invalid_pattern_reverts_files(self, cwd):
-        p = cwd / "README.md"
-        p.write_text("0.0.0")
-        p = cwd / "pyproject.toml"
-        p.write_text(
-            """
+        content = """
 [tool.poetry]
 version = "0.0.0"
 
@@ -179,38 +214,25 @@ pattern = "{invalid}"
 [[tool.changelog_gen.files]]
 filename = "pyproject.toml"
 pattern = 'version = "{version}"'
-        """.strip(),
-        )
+        """.strip()
+
+        (cwd / "README.md").write_text("0.0.0")
+        p = cwd / "pyproject.toml"
+        p.write_text(content)
         cfg = read(str(p))
 
         current = version.Version("0.0.0", None)
         new = version.Version("1.2.3", None)
         with pytest.raises(errors.VersionError):
             version.BumpVersion(cfg).replace(current, new)
-        with p.open() as f:
-            assert (
-                f.read()
-                == """[tool.poetry]
-version = "0.0.0"
 
-[tool.changelog_gen]
-current_version = "0.0.0"
-
-[[tool.changelog_gen.files]]
-filename = "README.md"
-pattern = "{invalid}"
-
-[[tool.changelog_gen.files]]
-filename = "pyproject.toml"
-pattern = 'version = "{version}"'"""
-            )
+        with (cwd / "pyproject.toml").open() as f:
+            assert f.read() == content
+        with (cwd / "README.md").open() as f:
+            assert f.read() == "0.0.0"
 
     def test_replace_invalid_pattern_dry_run(self, cwd):
-        p = cwd / "README.md"
-        p.write_text("0.0.0")
-        p = cwd / "pyproject.toml"
-        p.write_text(
-            """
+        content = """
 [tool.poetry]
 version = "0.0.0"
 
@@ -224,31 +246,21 @@ pattern = "{invalid}"
 [[tool.changelog_gen.files]]
 filename = "pyproject.toml"
 pattern = 'version = "{version}"'
-        """.strip(),
-        )
+        """.strip()
+        (cwd / "README.md").write_text("0.0.0")
+        p = cwd / "pyproject.toml"
+        p.write_text(content)
         cfg = read(str(p))
 
         current = version.Version("0.0.0", None)
         new = version.Version("1.2.3", None)
         with pytest.raises(errors.VersionError):
             version.BumpVersion(cfg, dry_run=True).replace(current, new)
-        with p.open() as f:
-            assert (
-                f.read()
-                == """[tool.poetry]
-version = "0.0.0"
 
-[tool.changelog_gen]
-current_version = "0.0.0"
-
-[[tool.changelog_gen.files]]
-filename = "README.md"
-pattern = "{invalid}"
-
-[[tool.changelog_gen.files]]
-filename = "pyproject.toml"
-pattern = 'version = "{version}"'"""
-            )
+        with (cwd / "pyproject.toml").open() as f:
+            assert f.read() == content
+        with (cwd / "README.md").open() as f:
+            assert f.read() == "0.0.0"
 
     def test_replace_returns_modified_files(self, cwd):
         p = cwd / "pyproject.toml"

@@ -54,6 +54,11 @@ def multiversion_v_repo(git_repo):
     return git_repo
 
 
+def test_init_no_repo(context):
+    with pytest.raises(errors.VcsError, match="No git repository found"):
+        Git(context)
+
+
 def test_get_current_info_branch(multiversion_repo, monkeypatch, context):
     monkeypatch.setattr(vcs.git.Repo, "iter_commits", mock.Mock(return_value=[]))
     path = multiversion_repo.workspace
@@ -87,15 +92,51 @@ def test_get_current_info_dirty(multiversion_repo, monkeypatch, context):
 
 
 @pytest.mark.usefixtures("multiversion_repo")
-def test_get_current_info_missing_remote_branch(monkeypatch, context):
+def test_get_current_info_error_remote_branch(monkeypatch, context):
     monkeypatch.setattr(
         vcs.git.Repo,
         "iter_commits",
         mock.Mock(side_effect=vcs.git.GitCommandError("git iter_commits")),
     )
 
-    with pytest.raises(errors.VcsError):
+    with pytest.raises(errors.VcsError, match="Unable to determine missing commit status"):
         Git(context).get_current_info()
+
+
+@pytest.mark.usefixtures("multiversion_repo")
+def test_get_current_info_error_local_branch(monkeypatch, context):
+    monkeypatch.setattr(
+        vcs.git.Repo,
+        "iter_commits",
+        mock.Mock(side_effect=[[], vcs.git.GitCommandError("git iter_commits")]),
+    )
+
+    with pytest.raises(errors.VcsError, match="Unable to determine missing commit status"):
+        Git(context).get_current_info()
+
+
+@pytest.mark.usefixtures("multiversion_repo")
+def test_get_current_info_no_local_branch(monkeypatch, context):
+    monkeypatch.setattr(
+        vcs.git.Repo,
+        "iter_commits",
+        mock.Mock(side_effect=[vcs.git.GitCommandError("cmd", "bad revision 'HEAD..origin/main'"), []]),
+    )
+
+    info = Git(context).get_current_info()
+    assert info["missing_local"] is False
+
+
+@pytest.mark.usefixtures("multiversion_repo")
+def test_get_current_info_no_remote_branch(monkeypatch, context):
+    monkeypatch.setattr(
+        vcs.git.Repo,
+        "iter_commits",
+        mock.Mock(side_effect=[[], vcs.git.GitCommandError("cmd", "bad revision 'origin/main..HEAD'")]),
+    )
+
+    info = Git(context).get_current_info()
+    assert info["missing_remote"] is True
 
 
 @pytest.mark.usefixtures("multiversion_repo")
@@ -204,6 +245,18 @@ def test_commit_no_changes_staged(multiversion_repo, context):
         Git(context).commit("current_version", "new_version", "version_tag")
 
     assert "Changes not staged for commit" in str(e.value)
+
+
+@pytest.mark.usefixtures("git_repo")
+def test_get_logs_empty_repo(context):
+    with pytest.raises(errors.VcsError, match="No commit logs available."):
+        Git(context).get_logs(None)
+
+
+@pytest.mark.usefixtures("git_repo")
+def test_get_logs_unknown_revision(context):
+    with pytest.raises(errors.VcsError, match="Unable to fetch commit logs."):
+        Git(context).get_logs("0.0.2")
 
 
 def test_get_logs(multiversion_repo, context):

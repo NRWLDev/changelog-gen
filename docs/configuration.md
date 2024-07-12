@@ -103,27 +103,27 @@ General configuration is grouped in a `[changelog_gen]` section.
 
 ### `commit = (True | False)`
   _**[optional]**_<br />
-  **default**: False
+  **default**: True
 
-  Commit changes to the changelog after writing.
+  Commit changes to the changelog (and configured files) after writing.
 
-  Also available as `--commit` (e.g. `changelog generate --commit`)
+  Also available as `--commit/--no-commit` (e.g. `changelog generate --commit`)
 
 ### `tag = (True | False)`
   _**[optional]**_<br />
-  **default**: False
+  **default**: True
 
   Tag the committed changes with the new version.
 
-  Also available as `--tag` (e.g. `changelog generate --tag`)
+  Also available as `--tag/--no-tag` (e.g. `changelog generate --tag`)
 
 ### `release = (True | False)`
   _**[optional]**_<br />
-  **default**: False
+  **default**: True
 
-  Modify version strings in files with bumpversion.
+  Modify version strings in configured files.
 
-  Also available as `--release` (e.g. `changelog generate --release`)
+  Also available as `--release/--no-release` (e.g. `changelog generate --release`)
 
 ### `allow_dirty = (True | False)`
   _**[optional]**_<br />
