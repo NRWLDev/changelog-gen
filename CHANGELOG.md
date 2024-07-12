@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.11.6 - 2024-07-12
+
+### Features and Improvements
+
+- Provide stacktrace on error for -vvv. [[4faf03b](https://github.com/NRWLDev/changelog-gen/commit/4faf03b1059ef7a3b92c48db42ddacbd894b50ef)]
+
 ## v0.11.5 - 2024-07-12
 
 ### Bug fixes
