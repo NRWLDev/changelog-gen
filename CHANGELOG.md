@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.11.7 - 2024-07-12
+
+### Miscellaneous
+
+- Add pypi metadata, classifiers etc. [[488d8cf](https://github.com/NRWLDev/changelog-gen/commit/488d8cfda84fc941df4ee4bc071001e2b77b37a5)]
+
 ## v0.11.6 - 2024-07-12
 
 ### Features and Improvements
