@@ -72,7 +72,7 @@ class ChangeExtractor:
         for i, (short_hash, commit_hash, log) in enumerate(logs):
             m = reg.match(log)
             if m:
-                self.context.debug("  Parsing commit log: {}", log.strip())
+                self.context.debug("  Parsing commit log: %s", log.strip())
                 commit_type = m[1]
                 scope = (m[2] or "").replace("(", "(`").replace(")", "`)")
                 breaking = m[3] is not None
@@ -85,14 +85,14 @@ class ChangeExtractor:
                 issue_ref = f"__{i}__"
                 breaking = breaking or "BREAKING CHANGE" in details
 
-                self.context.info("  commit_type: '{}'", commit_type)
-                self.context.info("  scope: '{}'", scope)
-                self.context.info("  breaking: {}", breaking)
-                self.context.info("  description: '{}'", description)
-                self.context.info("  details: '{}'", details)
+                self.context.info("  commit_type: '%s'", commit_type)
+                self.context.info("  scope: '%s'", scope)
+                self.context.info("  breaking: %s", breaking)
+                self.context.info("  description: '%s'", description)
+                self.context.info("  details: '%s'", details)
 
                 if breaking:
-                    self.context.info("  Breaking change detected:\n    {}: {}", commit_type, description)
+                    self.context.info("  Breaking change detected:\n    %s: %s", commit_type, description)
 
                 change = Change(
                     description=description,
@@ -111,13 +111,13 @@ class ChangeExtractor:
                     ]:
                         m = re.match(pattern, line)
                         if m:
-                            self.context.info("  '{}' footer extracted '{}'", target, m[1])
+                            self.context.info("  '%s' footer extracted '%s'", target, m[1])
                             setattr(change, target, m[1])
 
                 header = self.type_headers.get(commit_type, commit_type)
                 sections[header][change.issue_ref] = change
             elif self.include_all:
-                self.context.debug("  Including non-conventional commit log (include-all): {}", log.strip())
+                self.context.debug("  Including non-conventional commit log (include-all): %s", log.strip())
                 issue_ref = f"__{i}__"
                 change = Change(
                     description=log.strip().split("\n")[0],
@@ -132,7 +132,7 @@ class ChangeExtractor:
                 sections[header][change.issue_ref] = change
 
             else:
-                self.context.debug("  Skipping commit log (not conventional): {}", log.strip())
+                self.context.debug("  Skipping commit log (not conventional): %s", log.strip())
 
     @timer
     def extract(self: t.Self, current_version: str) -> SectionDict:
@@ -179,16 +179,16 @@ def extract_semver(
         for issue in section_issues.values():
             if semvers.index(semver) < semvers.index(semver_mapping.get(issue.commit_type, "patch")):
                 semver = semver_mapping.get(issue.commit_type, "patch")
-                context.info("'{}' change detected from commit_type '{}'", semver, issue.commit_type)
+                context.info("'%s' change detected from commit_type '%s'", semver, issue.commit_type)
             if issue.breaking and semver != "major":
                 semver = "major"
-                context.info("'{}' change detected from breaking issue '{}'", semver, issue.commit_type)
+                context.info("'%s' change detected from breaking issue '%s'", semver, issue.commit_type)
 
     if current.startswith("0.") and semver != "patch":
         # If currently on 0.X releases, downgrade semver by one, major -> minor etc.
         idx = semvers.index(semver)
         new_ = semvers[max(idx - 1, 0)]
-        context.info("'{}' change downgraded to '{}' for 0.x release.", semver, new_)
+        context.info("'%s' change downgraded to '%s' for 0.x release.", semver, new_)
         semver = new_
 
     context.reset()

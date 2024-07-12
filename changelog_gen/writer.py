@@ -112,11 +112,11 @@ class BaseWriter:
     @timer
     def _write(self: t.Self, content: list[str]) -> None:
         if self.dry_run:
-            self.context.warning("Would write to '{}'", self.changelog.name)
+            self.context.warning("Would write to '%s'", self.changelog.name)
             with NamedTemporaryFile("wb") as output_file:
                 output_file.write(("\n".join(content)).encode("utf-8"))
         else:
-            self.context.warning("Writing to '{}'", self.changelog.name)
+            self.context.warning("Writing to '%s'", self.changelog.name)
             self.changelog.write_text("\n".join(content))
 
 

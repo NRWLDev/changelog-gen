@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import io
+import sys
+import traceback
 import typing as t
 from enum import IntEnum
 
@@ -40,7 +43,7 @@ class Context:
 
     def _echo(self: t.Self, message: str, *args) -> None:
         """Echo to the console."""
-        message = message.format(*args)
+        message = message % args
         click.echo(f"{'  ' * self._indent}{message}")
 
     def error(self: t.Self, message: str, *args) -> None:
@@ -61,3 +64,13 @@ class Context:
         """Echo to the console for -vvv."""
         if self._verbose > Verbosity.verbose2:
             self._echo(message, *args)
+
+    def stacktrace(self: t.Self) -> None:
+        """Echo exceptions to console for -vvv."""
+        if self._verbose > Verbosity.verbose2:
+            t, v, tb = sys.exc_info()
+            sio = io.StringIO()
+            traceback.print_exception(t, v, tb, None, sio)
+            s = sio.getvalue()
+            sio.close()
+            self._echo(s)

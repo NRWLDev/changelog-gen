@@ -98,7 +98,7 @@ class Git:
     def add_paths(self: T, paths: list[str]) -> None:
         """Add path to git repository."""
         if self.dry_run:
-            self.context.warning("  Would add paths '{}' to Git", "', '".join(paths))
+            self.context.warning("  Would add paths '%s' to Git", "', '".join(paths))
             return
         self.repo.git.add(*paths, update=True)
 
@@ -118,7 +118,7 @@ class Git:
 
         message = "\n".join(msg).strip()
         if self.dry_run or not self._commit:
-            self.context.warning("  Would commit to Git with message '{}", message)
+            self.context.warning("  Would commit to Git with message '%s", message)
             return
 
         try:
@@ -128,7 +128,7 @@ class Git:
             raise errors.VcsError(msg) from e
 
         if not self._tag:
-            self.context.warning("  Would tag with version '{}", tag)
+            self.context.warning("  Would tag with version '%s", tag)
             return
 
         try:

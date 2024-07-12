@@ -70,14 +70,14 @@ def process_info(info: dict, context: Context, *, dry_run: bool) -> None:
 
     if info["missing_local"] and not cfg.allow_missing:
         context.error(
-            "Current local branch is missing commits from remote {}.\nUse `allow_missing` configuration to ignore.",
+            "Current local branch is missing commits from remote %s.\nUse `allow_missing` configuration to ignore.",
             info["branch"],
         )
         raise typer.Exit(code=1)
 
     if info["missing_remote"] and not cfg.allow_missing:
         context.error(
-            "Current remote branch is missing commits from local {}.\nUse `allow_missing` configuration to ignore.",
+            "Current remote branch is missing commits from local %s.\nUse `allow_missing` configuration to ignore.",
             info["branch"],
         )
         raise typer.Exit(code=1)
@@ -116,7 +116,7 @@ def init(
     context = Context(config.Config(), verbose)
     extension = util.detect_extension()
     if extension is not None:
-        context.error("CHANGELOG.{} detected.", extension.value)
+        context.error("CHANGELOG.%s detected.", extension.value)
         raise typer.Exit(code=1)
 
     w = writer.new_writer(context, file_format)
@@ -192,10 +192,11 @@ def gen(  # noqa: PLR0913
             yes=yes,
         )
     except errors.ChangelogException as ex:
+        context.stacktrace()
+        context.debug("Run time (error) %f", (time.time() - start) * 1000)
         context.error(str(ex))
-        context.debug("Run time (error) {}", (time.time() - start) * 1000)
         raise typer.Exit(code=1) from ex
-    context.debug("Run time {}", (time.time() - start) * 1000)
+    context.debug("Run time %f", (time.time() - start) * 1000)
 
 
 @timer

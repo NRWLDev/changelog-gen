@@ -43,3 +43,32 @@ def test_verbosity(verbosity, monkeypatch):
         getattr(c, message)(message)
 
     assert c._echo.call_args_list == [mock.call(message) for message in messages[: verbosity + 1]]
+
+
+def test_stacktrace(monkeypatch):
+    monkeypatch.setattr(Context, "_echo", mock.Mock())
+    c = Context(mock.Mock(), 3)
+
+    try:
+        raise Exception("message")  # noqa: TRY002, EM101
+    except:  # noqa: E722
+        c.stacktrace()
+
+    assert c._echo.call_args == mock.call(
+        """Traceback (most recent call last):
+  File "/home/edgy/code/nrwl/changelog-gen/tests/test_context.py", line 53, in test_stacktrace
+    raise Exception("message")  # noqa: TRY002, EM101\nException: message
+""",
+    )
+
+
+def test_stacktrace_quiet(monkeypatch):
+    monkeypatch.setattr(Context, "_echo", mock.Mock())
+    c = Context(mock.Mock(), 2)
+
+    try:
+        raise Exception("message")  # noqa: TRY002, EM101
+    except:  # noqa: E722
+        c.stacktrace()
+
+    assert c._echo.call_count == 0

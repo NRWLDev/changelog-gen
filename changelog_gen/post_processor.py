@@ -32,7 +32,7 @@ def make_client(context: Context, cfg: PostProcessConfig) -> httpx.Client:
     if cfg.auth_env:
         user_auth = os.environ.get(cfg.auth_env)
         if not user_auth:
-            context.error('Missing environment variable "{}"', cfg.auth_env)
+            context.error('Missing environment variable "%s"', cfg.auth_env)
             raise typer.Exit(code=1)
 
         if cfg.auth_type == "bearer":
@@ -43,7 +43,7 @@ def make_client(context: Context, cfg: PostProcessConfig) -> httpx.Client:
                 username, api_key = user_auth.split(":")
             except ValueError as e:
                 context.error(
-                    "Unexpected content in {}, need '{{username}}:{{api_key}}' for basic auth",
+                    "Unexpected content in %s, need '{{username}}:{{api_key}}' for basic auth",
                     cfg.auth_env,
                 )
                 raise typer.Exit(code=1) from e
@@ -83,9 +83,9 @@ def per_issue_post_process(
 
         context.indent()
         if dry_run:
-            context.warning("Would request: {} {} {}", cfg.verb, url, body)
+            context.warning("Would request: %s %s %s", cfg.verb, url, body)
         else:
-            context.info("Request: {} {}", cfg.verb, url)
+            context.info("Request: %s %s", cfg.verb, url)
             r = client.request(
                 method=cfg.verb,
                 url=url,
@@ -93,9 +93,9 @@ def per_issue_post_process(
             )
             context.indent()
             try:
-                context.info("Response: {}", HTTPStatus(r.status_code).name)
+                context.info("Response: %s", HTTPStatus(r.status_code).name)
                 r.raise_for_status()
             except httpx.HTTPError as e:
                 context.error("Post process request failed.")
-                context.warning("{}", e.response.text)
+                context.warning("%s", e.response.text)
     context.reset()

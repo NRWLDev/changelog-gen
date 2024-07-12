@@ -56,7 +56,7 @@ class TestMakeClient:
             post_processor.make_client(ctx, cfg)
 
         assert ctx.error.call_args == mock.call(
-            'Missing environment variable "{}"',
+            'Missing environment variable "%s"',
             "MY_API_AUTH",
         )
         assert e.value.exit_code == 1
@@ -78,7 +78,7 @@ class TestMakeClient:
             post_processor.make_client(ctx, cfg)
 
         assert ctx.error.call_args == mock.call(
-            "Unexpected content in {}, need '{{username}}:{{api_key}}' for basic auth",
+            "Unexpected content in %s, need '{{username}}:{{api_key}}' for basic auth",
             "MY_API_AUTH",
         )
         assert e.value.exit_code == 1
@@ -151,15 +151,15 @@ class TestPerIssuePostPrequest:
         ]
         assert ctx.warning.call_args_list == [
             mock.call("Post processing:"),
-            mock.call("{}", not_found_txt),
+            mock.call("%s", not_found_txt),
         ]
         assert ctx.info.call_args_list == [
-            mock.call("Request: {} {}", "POST", ep0),
-            mock.call("Response: {}", "OK"),
-            mock.call("Request: {} {}", "POST", ep1),
-            mock.call("Response: {}", "NOT_FOUND"),
-            mock.call("Request: {} {}", "POST", ep2),
-            mock.call("Response: {}", "OK"),
+            mock.call("Request: %s %s", "POST", ep0),
+            mock.call("Response: %s", "OK"),
+            mock.call("Request: %s %s", "POST", ep1),
+            mock.call("Response: %s", "NOT_FOUND"),
+            mock.call("Request: %s %s", "POST", ep2),
+            mock.call("Response: %s", "OK"),
         ]
 
     @pytest.mark.parametrize("cfg_verb", ["POST", "PUT", "GET"])
@@ -232,7 +232,7 @@ class TestPerIssuePostPrequest:
             ),
         ] + [
             mock.call(
-                "Would request: {} {} {}",
+                "Would request: %s %s %s",
                 cfg_verb,
                 cfg.url.replace("::issue_ref::", issue),
                 exp_body.replace("::issue_ref::", issue),
