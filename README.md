@@ -15,13 +15,14 @@ See the [docs](https://nrwldev.github.io/changelog-gen) for more details.
 
 ## Usage
 
-`changelog init` will generate an empty changelog with `changelog init` if you
-have not been maintaining changelogs previously. If you already have a
-changelog file, it will be detected.
+`changelog init` will generate an empty changelog file if you have not been
+maintaining changelogs previously. If you already have a changelog file, it
+will be detected.
 
 `changelog generate` will extract all commits matching the conventional format
-since the last release, detect the correct semver release, and generate the
-correct changelog entry. Depending on configuration, it will also tag the
+since the last release, detect the correct semantic version component to
+increment, and generate the correct changelog entry. Depending on
+configuration, it will also update release tags in files as well as tagging the
 release.
 
 ## Migrating from 0.8 to 0.9 (Conventional Commit support)
