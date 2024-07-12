@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.11.4 - 2024-07-12
+
+### Bug fixes
+
+- Serialisers not serializers [[6b0474f](https://github.com/NRWLDev/changelog-gen/commit/6b0474ff97ec9e01b3fad846b8622db2b3d32ac3)]
+
 ## v0.11.3 - 2024-07-11
 
 ### Features and Improvements
