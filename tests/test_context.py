@@ -57,7 +57,11 @@ def test_stacktrace(monkeypatch):
         c.stacktrace()
 
     name = Path(__file__)
-    newline = "" if platform.system() == "Linux" else "\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^"
+    newline = (
+        ""
+        if platform.system() == "Linux" or platform.python_version_tuple() < (3, 11)
+        else "\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^"
+    )
     print(platform.system())  # noqa: T201
     assert c._echo.call_args == mock.call(
         f"""Traceback (most recent call last):
