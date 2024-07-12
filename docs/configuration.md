@@ -76,7 +76,7 @@ parser = '''(?x)
         (?P<pre_n>0|[1-9]\d*)         # pre-release version number
     )?                                # pre-release section is optional
 '''
-serializers = [
+serialisers = [
     "{major}.{minor}.{patch}-{pre_l}{pre_n}",
     "{major}.{minor}.{patch}",
 ]

@@ -132,7 +132,7 @@ class BumpVersion:  # noqa: D101
         )
         return {
             "current": Version(self.config.current_version, None),
-            "new": Version(parse.serialise(self.config.serializers, next_version), None),
+            "new": Version(parse.serialise(self.config.serialisers, next_version), None),
         }
 
     @timer

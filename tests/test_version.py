@@ -78,7 +78,7 @@ class TestInHouse:
         (?P<build>0|[1-9]\\d*)        # pre-release version number
     )?                                # pre-release section is optional
 """,
-            serializers=[
+            serialisers=[
                 "{major}.{minor}.{patch}{release}{build}",
                 "{major}.{minor}.{patch}",
             ],

@@ -18,7 +18,7 @@ allow_dirty = false
 allow_missing = false
 reject_empty = false
 post_process = 'null'
-serializers = ['{major}.{minor}.{patch}']
+serialisers = ['{major}.{minor}.{patch}']
 allowed_branches = []
 
 [parts]

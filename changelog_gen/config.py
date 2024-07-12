@@ -85,7 +85,7 @@ class Config:
 
     current_version: str = ""
     parser: str = r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"
-    serializers: list[str] = dataclasses.field(default_factory=lambda: ["{major}.{minor}.{patch}"])
+    serialisers: list[str] = dataclasses.field(default_factory=lambda: ["{major}.{minor}.{patch}"])
     parts: dict[str, list[str]] = dataclasses.field(default_factory=dict)
     files: dict = dataclasses.field(default_factory=dict)
 
