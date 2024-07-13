@@ -162,23 +162,32 @@ fix.header = "Bugfixes"
 
     See `changelog config` for the existing configuration.
 
-..TODO
 ## Versioning
 
-`changelog-gen` is bringing version management "in house", and deprecating
-subprocess calls to `bump-my-version`.
-
-The configuration is very similar to
+Versioning configuration is very similar to
 [bump-my-version](https://github.com/callowayproject/bump-my-version?tab=readme-ov-file#semantic-versioning-example),
 but with a few simplifications.
 
+The default configuration will support the typical semver use case of `X.Y.Z`
+version strings.
+
+### `current_version`
+  _**[optional]**_<br />
+  **default**: None
+
 The minimum required configuration to manage versions is the current version,
 which can be moved directly from `[tool.bumpversion]`
+
+If not provided, `bumpversion` will be used to generate releases.
 
 ```toml
 [tool.changelog_gen]
 current_version = "1.2.3"
 ```
+
+### `files`
+  _**[optional]**_<br />
+  **default**: None
 
 If multiple files have the current version string in them, they can be
 configured for replacement.
@@ -200,15 +209,16 @@ filename = "pyproject.toml"
 pattern = 'version = "{version}"'
 ```
 
-### Version patterns
+### `parser`
+  _**[optional]**_<br />
+  **default**: `(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)`
 
-The default versioning parser is
-`(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)`, with the matching serialiser
-`{major}.{minor}.{patch}`. This will support the typical semver use case of
-`X.Y.Z` version strings.
+The parser is used to extract the existing semver components from the current
+version configuration.
 
-If you want to support a pre-release flow, configure a parser, suitable
-serialisers, and any custom components (non incrementing integers).
+If you want to support a pre-release flow, configure a parser a new parser for the custom components you require.
+
+Example:
 
 ```toml
 [tool.changelog_gen]
@@ -221,26 +231,39 @@ parser = '''(?x)
         (?P<pre_n>0|[1-9]\d*)         # pre-release version number
     )?                                # pre-release section is optional
 '''
+```
+
+### `serialisers`
+  _**[optional]**_<br />
+  **default**: `["{major}.{minor}.{patch}"]`
+
+The serialisers should be defined from most greedy to least in the case where
+there are optional components.
+
+Example:
+
+```toml
+[tool.changelog_gen]
 serialisers = [
     "{major}.{minor}.{patch}-{pre_l}{pre_n}",
     "{major}.{minor}.{patch}",
 ]
-
-[tool.changelog_gen.parts]
-pre_l = ["dev", "rc"]
 ```
 
-In the above example on creating a major/minor/patch release, the `pre_l`
-component will increment to the initial value `dev`, and `pre_n` will be 0.
+### `parts`
 
-* `0.0.0`
-* `0.0.0      → 0.0.1-dev0`  [changelog generate]
-* `0.0.1-dev0 → 0.0.1-dev1`  [changelog generate --version-part pre_n]
-* `0.0.1-dev1 → 0.0.1-rc0`   [changelog generate --version-part pre_l]
-* `0.0.1-rc   → 0.0.1`       [changelog generate --version-part pre_l]
+Where custom components have been defined, if a component uses non integer
+values the valid values can be defined.
 
 When the release component reaches the end of the configured component parts,
 the optional components will be dropped.
+
+Example:
+
+```
+[tool.changelog_gen.parts]
+pre_l = ["dev", "rc"]
+```
 
 ## Post processing
 
@@ -298,6 +321,7 @@ body = '{"body": "Released on ::version::"}'
 auth_env = "JIRA_AUTH"
 headers."content-type" = "application/json"
 ```
+
   This assumes an environment variable `JIRA_AUTH` with the content
   `user@domain.com:{api_key}`.  See
   [manage-api-tokens-for-your-atlassian-account](https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/)

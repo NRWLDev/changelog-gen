@@ -12,18 +12,21 @@ being called.
 By default the url will be called using a `POST` request, but the http verb can
 be changed depending on the service being called, and its requirements. The
 request
-[body](https://nrwldev.github.io/changelog-gen/configuration/#post_process) can
+[body](https://nrwldev.github.io/changelog-gen/configuration/#post_processbody) can
 also be configured with a `::version::` placeholder to add a comment to an
 existing issue.
 
-Optional headers can also be configured.
+Optional
+[headers](https://nrwldev.github.io/changelog-gen/configuration/#post_processheaders)
+can also be configured.
 
 ## Authorization
 
 Currently only basic auth and bearer tokens are supported, but if you find
 yourself with a usecase that needs a different form of authentication, please
 raise an issue. To provide authorization, configure an environment key to pull
-the authorization values from using `post_process.auth_env`.
+the authorization values from using
+[auth_env](https://nrwldev.github.io/changelog-gen/configuration/#post_processauth_env)
 
 For basic auth, the environment variable should be in the format
 `{user}:{api_key}`.
