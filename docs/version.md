@@ -76,6 +76,6 @@ the optional components will be dropped.
 
 By default, parsers and serialisers that do not strictly adhere to RFC-2119 are
 supported, but if you with to strict validation can be enforced. If
-[enabled](https://nrwldev.github.io/changelog-gen/configuration/#commit_types)
+[enabled](https://nrwldev.github.io/changelog-gen/configuration/#strict)
 the tool will error if an incorrect parser, serialiser or component
 configuration is provided.
