@@ -73,11 +73,6 @@ class PostProcessConfig:
     # The variable should contain "{user}:{api_key}"
     auth_env: str | None = None
 
-    @classmethod
-    def from_dict(cls: type[PostProcessConfig], data: dict) -> PostProcessConfig:
-        """Convert a dictionary of key value pairs into a PostProcessConfig object."""
-        return cls(**data)
-
 
 STRICT_VALIDATOR = re.compile(
     r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?$",
@@ -117,6 +112,12 @@ class Config:
     def __post_init__(self: t.Self) -> None:
         """Process parser and validate if strict check enabled."""
         self.parser = re.compile(self.parser)
+        if self.commit_types != SUPPORTED_TYPES:
+            for k, v in self.commit_types.items():
+                value = json.loads(v) if isinstance(v, str) else v
+                ct = CommitType(**value) if isinstance(value, dict) else value
+                self.commit_types[k] = ct
+
         if self.strict:
             parts = {component: self.parts.get(component, [0])[0] for component in self.parser.groupindex}
             # Validate major, minor, patch in regex
@@ -143,16 +144,6 @@ class Config:
     def type_headers(self: t.Self) -> dict[str, str]:
         """Generate `type: header` mapping from commit types."""
         return {ct: c.header for ct, c in self.commit_types.items()}
-
-    @classmethod
-    def from_dict(cls: type[Config], data: dict) -> Config:
-        """Convert a dictionary of key value pairs into a Config object."""
-        if "commit_types" in data:
-            for k, v in data["commit_types"].items():
-                value = json.loads(v) if isinstance(v, str) else v
-                ct = CommitType(**value) if isinstance(value, dict) else value
-                data["commit_types"][k] = ct
-        return cls(**data)
 
     def to_dict(self: Config) -> dict:
         """Convert a Config object to a dictionary of key value pairs."""
@@ -257,9 +248,9 @@ def read(path: str = "pyproject.toml", **kwargs) -> Config:
     if cfg.get("post_process"):
         pp = cfg["post_process"]
         try:
-            cfg["post_process"] = PostProcessConfig.from_dict(pp)
+            cfg["post_process"] = PostProcessConfig(**pp)
         except Exception as e:
             msg = f"Failed to create post_process: {e!s}"
             raise RuntimeError(msg) from e
 
-    return Config.from_dict(cfg)
+    return Config(**cfg)
