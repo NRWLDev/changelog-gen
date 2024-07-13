@@ -1,27 +1,19 @@
 # Configuration
 
-..TODO
-Of the command line arguments, most of them can be configured in `pyproject.toml` to remove
-the need to pass them in every time.
+General configuration is grouped in the `[tool.changelog_gen]` section of pyproject.toml.
 
-Example:
+## Simple configuration
 
 ```toml
 [tool.changelog_gen]
+current_version = "1.2.3"
 commit = true
-release = true
+tag = true
 allow_dirty = false
 
-[tool.changelog_gen.post_process]
-  url = "https://your-domain.atlassian.net/rest/api/2/issue/ISSUE-::issue_ref::/comment"
-  verb = "POST"
-  body = '{"body": "Released on v::version::"}'
-  auth_env = "JIRA_AUTH"
+[[tool.changelog_gen.files]]
+filename = "README.md"
 ```
-
-## Configuration file -- Global configuration
-
-General configuration is grouped in a `[changelog_gen]` section.
 
 ### `commit`
   _**[optional]**_<br />
