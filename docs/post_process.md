@@ -20,10 +20,12 @@ Optional headers can also be configured.
 
 ## Authorization
 
-Currently only basic auth is supported, but if you find yourself with a usecase
-that needs a different form of authentication, please raise an issue. To
-provide authorization, configure an environment key to pull the authorization
-values from using `post_process.auth_env`.
+Currently only basic auth and bearer tokens are supported, but if you find
+yourself with a usecase that needs a different form of authentication, please
+raise an issue. To provide authorization, configure an environment key to pull
+the authorization values from using `post_process.auth_env`.
 
 For basic auth, the environment variable should be in the format
 `{user}:{api_key}`.
+
+For bearer auth, the environment variable should be in the format `{api_key}`.

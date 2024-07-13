@@ -1,9 +1,9 @@
 # Semantic Versioning
 
 At the core of `changelog-gen` is the version detection and generation logic,
-check [here](https://semver.org) for details on semantic versioning, and [here]
-(https://datatracker.ietf.org/doc/html/rfc2119) for a more detailed look at the
-underlying RFC.
+check [here](https://semver.org) for details on semantic versioning, and
+[here](https://datatracker.ietf.org/doc/html/rfc2119) for a more detailed look
+at the underlying RFC.
 
 ## Version generation
 
@@ -64,10 +64,10 @@ In the above example on creating a major/minor/patch release, the `pre_l`
 component will increment to the initial value `dev`, and `pre_n` will be 0.
 
 * `0.0.0`
-* `0.0.0      → 0.0.1-dev0`  [changelog generate]
-* `0.0.1-dev0 → 0.0.1-dev1`  [changelog generate --version-part pre_n]
-* `0.0.1-dev1 → 0.0.1-rc0`   [changelog generate --version-part pre_l]
-* `0.0.1-rc   → 0.0.1`       [changelog generate --version-part pre_l]
+* `0.0.0      → 0.0.1-dev0  [changelog generate]`
+* `0.0.1-dev0 → 0.0.1-dev1  [changelog generate --version-part pre_n]`
+* `0.0.1-dev1 → 0.0.1-rc0   [changelog generate --version-part pre_l]`
+* `0.0.1-rc   → 0.0.1       [changelog generate --version-part pre_l]`
 
 When the release component reaches the end of the configured component parts,
 the optional components will be dropped.

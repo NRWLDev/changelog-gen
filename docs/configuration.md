@@ -261,42 +261,42 @@ remove.semver = "minor"
 fix.header = "Bugfixes"
 ```
 
-### `post_process =`
+### `post_process`
   _**[optional]**_<br />
   **default**: None
 
   Configure a REST API to contact when a release is made
 
-  See example on Jira configuration information.
+  See example on below Jira configuration information.
 
- `.url =`<br />
+#### `url`
   _**[required]**_<br />
   **default**: None<br />
   The url to contact.
   Can have the placeholders `::issue_ref::` and `::version::``.
 
-  `.verb =`<br />
+#### `verb`
   _**[optional]**_<br />
   **default**: POST<br />
   HTTP method to use.
 
-  `.body =`<br />
+#### `verb`
   _**[optional]**_<br />
   **default**: `{"body": "Released on ::version::"}`<br />
   The text to send to the API.
   Can have the placeholders `::issue_ref::` and `::version::`.
 
-  `.headers =`<br />
+#### `headers`
   _**[optional]**_<br />
   **default**: None<br />
   Headers dictionary to inject into http requests.
 
-  `.auth_type =`<br />
+#### `auth_type`
   _**[optional]**_<br />
   **default**: basic<br />
   Auth type to use for post process requests, supported options are `basic` and `bearer`.
 
-  `.auth_env =`<br />
+#### `auth_env`
   _**[optional]**_<br />
   **default**: None<br />
   Name of the environment variable to use to extract the basic auth information to contact the API.
@@ -304,6 +304,7 @@ fix.header = "Bugfixes"
   * For basic auth the content of the variable should be `{user}:{api key}`.
   * For bearer auth the content of the variable should be `{api key}`.
 
+### Post process example
   Example to post to JIRA:
 
 ```toml
@@ -314,19 +315,13 @@ body = '{"body": "Released on ::version::"}'
 auth_env = "JIRA_AUTH"
 headers."content-type" = "application/json"
 ```
-  This assumes an environment variable `JIRA_AUTH` with the content `user@domain.com:{api_key}`.
-  See
+  This assumes an environment variable `JIRA_AUTH` with the content
+  `user@domain.com:{api_key}`.  See
   [manage-api-tokens-for-your-atlassian-account](https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/)
   to generate a key.
 
-  Also partially available as `--post-process-url` and `--post-process-auth-env` (e.g. `changelog generate --post-process-url 'http://my-api-url.domain/comment/::issue_ref::' --post-process-auth-env MY_API_AUTH`)
-
-## Pre-release flows
-
-If your versioning uses prerelease version parts, after a major/minor/patch update creates e.g. `v0.0.1rc0`, use
-`--version-part=<part>` to trigger release flows, based on your configuration.
-
-```bash
-$ changelog generate --version-part build
-... v0.0.1rc1
-```
+  For simpler testing of post process flows, the url and auth env can be
+  provided on the command line as `--post-process-url` and
+  `--post-process-auth-env` (e.g. `changelog generate --post-process-url
+  'http://my-api-url.domain/comment/::issue_ref::' --post-process-auth-env
+  MY_API_AUTH`)
