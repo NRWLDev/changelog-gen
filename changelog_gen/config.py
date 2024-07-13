@@ -3,6 +3,7 @@ from __future__ import annotations
 import dataclasses
 import json
 import re
+import string
 import typing as t
 from pathlib import Path
 
@@ -121,11 +122,12 @@ class Config:
         if self.strict:
             parts = {component: self.parts.get(component, [0])[0] for component in self.parser.groupindex}
             # Validate major, minor, patch in regex
-            if {"major", "minor", "patch"} - set(parts.keys()):
+            configured_keys = set(parts.keys())
+            if {"major", "minor", "patch"} - configured_keys:
                 msg = "major.minor.patch, pattern required at minimum."
                 raise errors.UnsupportedParserError(msg)
 
-            # Validate all components covered by at least one serialiser
+            serialised_keys = set()
 
             for serialiser in self.serialisers:
                 version = serialiser.format(**parts)
@@ -134,6 +136,13 @@ class Config:
                 if m is None:
                     msg = f"{serialiser} generates non RFC-2119 version string."
                     raise errors.UnsupportedSerialiserError(msg)
+                serialised_keys.update([i[1] for i in string.Formatter().parse(serialiser)])
+
+            # Validate all components covered by at least one serialiser
+            missed_keys = configured_keys - serialised_keys
+            if missed_keys:
+                msg = f"Not all parsed components handled by a serialiser, missing {missed_keys}."
+                raise errors.UnsupportedSerialiserError(msg)
 
     @property
     def semver_mappings(self: t.Self) -> dict[str, str]:

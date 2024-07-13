@@ -442,6 +442,32 @@ def test_strict_validation():
     )
 
 
+def test_strict_validation_incomplete_serialiser():
+    with pytest.raises(
+        errors.UnsupportedSerialiserError,
+        match="Not all parsed components handled by a serialiser, missing {'build'}.",
+    ):
+        config.Config(
+            strict=True,
+            parser="""(?x)
+    (?P<major>0|[1-9]\\d*)\\.
+    (?P<minor>0|[1-9]\\d*)\\.
+    (?P<patch>0|[1-9]\\d*)
+    (?:
+        (?P<release>[a-zA-Z-]+)       # pre-release label
+        (?P<build>0|[1-9]\\d*)        # pre-release version number
+    )?                                # pre-release section is optional
+    """,
+            serialisers=[
+                # No serialiser handles {build} scenario
+                "{major}.{minor}.{patch}-{release}",
+            ],
+            parts={
+                "release": ["rc"],
+            },
+        )
+
+
 @pytest.mark.parametrize(
     "serialiser",
     [
