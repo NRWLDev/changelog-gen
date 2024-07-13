@@ -39,6 +39,14 @@ filename = "README.md"
 
   Also available as `--release/--no-release` (e.g. `changelog generate --release`)
 
+### `interactive`
+  _**[optional]**_<br />
+  **default**: True
+
+  Open proposed changes in an editor before writing to changelog.
+
+  Also available as `--interactive/--no-interactive` (e.g. `changelog generate --interactive`)
+
 ### `allow_dirty`
   _**[optional]**_<br />
   **default**: False
@@ -46,6 +54,14 @@ filename = "README.md"
   Don't abort if the current branch contains uncommitted changes
 
   Also available as `--allow-dirty` (e.g. `changelog generate --allow-dirty`)
+
+### `allow_missing`
+  _**[optional]**_<br />
+  **default**: False
+
+  Don't abort if the local and remote branches are out of sync.
+
+  Also available as `--allow-missing` (e.g. `changelog generate --allow-missing`)
 
 ### `reject_empty`
   _**[optional]**_<br />
@@ -167,10 +183,10 @@ version strings.
   _**[optional]**_<br />
   **default**: None
 
-The minimum required configuration to manage versions is the current version,
-which can be moved directly from `[tool.bumpversion]`
+  The minimum required configuration to manage versions is the current version,
+  which can be moved directly from `[tool.bumpversion]`
 
-If not provided, `bumpversion` will be used to generate releases.
+  If not provided, `bumpversion` will be used to generate releases.
 
 ```toml
 [tool.changelog_gen]
@@ -181,19 +197,19 @@ current_version = "1.2.3"
   _**[optional]**_<br />
   **default**: None
 
-If multiple files have the current version string in them, they can be
-configured for replacement.
+  If multiple files have the current version string in them, they can be
+  configured for replacement.
 
-Where the version string can safely be replaced with the default pattern
-`{version}`, use:
+  Where the version string can safely be replaced with the default pattern
+  `{version}`, use:
 
 ```
 [[tool.changelog_gen.files]]
 filename = "README.md"
 ```
 
-For files that might contain other version strings that could match and
-shouldn't be updated, a search/replace pattern can be configured.
+  For files that might contain other version strings that could match and
+  shouldn't be updated, a search/replace pattern can be configured.
 
 ```
 [[tool.changelog_gen.files]]
@@ -205,12 +221,12 @@ pattern = 'version = "{version}"'
   _**[optional]**_<br />
   **default**: `(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)`
 
-The parser is used to extract the existing semver components from the current
-version configuration.
+  The parser is used to extract the existing semver components from the current
+  version configuration.
 
-If you want to support a pre-release flow, configure a parser a new parser for the custom components you require.
+  If you want to support a pre-release flow, configure a parser a new parser for the custom components you require.
 
-Example:
+  Example:
 
 ```toml
 [tool.changelog_gen]
@@ -229,10 +245,10 @@ parser = '''(?x)
   _**[optional]**_<br />
   **default**: `["{major}.{minor}.{patch}"]`
 
-The serialisers should be defined from most greedy to least in the case where
-there are optional components.
+  The serialisers should be defined from most greedy to least in the case where
+  there are optional components.
 
-Example:
+  Example:
 
 ```toml
 [tool.changelog_gen]
@@ -246,13 +262,13 @@ serialisers = [
   _**[optional]**_<br />
   **default**: None
 
-Where custom components have been defined, if a component uses non integer
-values the valid values can be defined.
+  Where custom components have been defined, if a component uses non integer
+  values the valid values can be defined.
 
-When the release component reaches the end of the configured component parts,
-the optional components will be dropped.
+  When the release component reaches the end of the configured component parts,
+  the optional components will be dropped.
 
-Example:
+  Example:
 
 ```
 [tool.changelog_gen.parts]
@@ -263,8 +279,8 @@ pre_l = ["dev", "rc"]
   _**[optional]**_<br />
   **default**: False
 
-Enforce strict rules based on RFC-2119 and error if non conforming parser or
-serialisers are configured.
+  Enforce strict rules based on RFC-2119 and error if non conforming parser or
+  serialisers are configured.
 
 ## Post processing
 
