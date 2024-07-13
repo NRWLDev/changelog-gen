@@ -101,6 +101,7 @@ class Config:
     allowed_branches: list[str] = dataclasses.field(default_factory=list)
     commit_types: dict[str, CommitType] = dataclasses.field(default_factory=lambda: SUPPORTED_TYPES)
 
+    interactive: bool = True
     release: bool = True
     commit: bool = True
     tag: bool = True

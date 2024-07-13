@@ -91,21 +91,33 @@ the changelog, and create a tagged release.
 - xxx
 ```
 
-See [Configuration](/changelog-gen/configuration) below for default commit type configuration
+See [Configuration](/changelog-gen/configuration) for default commit type configuration
 and how to customize them.
 
-### Configuration flags
+### CLI options and toggles
+
+These options allow customising on a per run basis.
 
 * `--version_tag` specify the version tag to release.
 * `--version_part` specify the version component to increment.
 * `--dry-run` extract changes and preview the proposed changelog and version
   without committing or tagging any changes.
-* `--interactive` flag can be used to drop into an editor with the proposed
-  changes, to make any desired adjustments, prior to updating the changelog.
+* `--include-all` Include all commits, even incorrectly formatted ones, useful in combination with `--interactive`.
 * `-y, --yes` accept proposed changes and commit without previewing, interactive
   mode will still be triggered prior to automatic acceptance.
 * `-v[vv]` increase the output verbosity, handy if an error occurs or behaviour
   does not appear to match expectations.
+
+The following toggles allow overriding configuration per run.
+
+* `--interactive/--no-interactive` toggle configuration to drop into an editor with the proposed
+  changes, to make any desired adjustments, prior to updating the changelog.
+* `--allow-dirty/--no-allow-dirty` toggle configuration for allowing/rejecting git dirty status.
+* `--allow-missing/--no-allow-missing` toggle configuration for allowing/rejecting missing commits in local/remote.
+* `--reject-empty/--no-reject-empty` toggle configuration for updating configured files.
+* `--release/--no-release` toggle configuration for updating configured files.
+* `--commit/--no-commit` toggle configuration for committing changes.
+* `--tag/--no-tag` toggle configuration for tagging release changes.
 
 See [Configuration](/changelog-gen/configuration) for additional configuration and cli flags that are available.
 and how to customize them.

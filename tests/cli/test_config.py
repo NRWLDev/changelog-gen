@@ -9,6 +9,7 @@ parser = '(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)'
 strict = false
 verbose = 0
 version_string = 'v{new_version}'
+interactive = true
 release = true
 commit = true
 tag = true

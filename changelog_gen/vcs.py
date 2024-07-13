@@ -127,7 +127,7 @@ class Git:
             msg = f"Unable to commit: {e}"
             raise errors.VcsError(msg) from e
 
-        if not self._tag:
+        if not self._tag or not self._release:
             self.context.warning("  Would tag with version '%s", tag)
             return
 
