@@ -1,9 +1,9 @@
 # Overview
 
-`changelog-gen` is a CHANGELOG generator intended  to generate changelogs and
-create release tags from [conventional
-commit](https://www.conventionalcommits.org/en/v1.0.0/) formatted commit
-messages.
+`changelog-gen` is a CHANGELOG generator intended to remove the mental load of
+determining correct versioning, while generating changelogs and create release
+tags from [conventional commit](https://www.conventionalcommits.org/en/v1.0.0/)
+formatted commit messages.
 
 Usage of `bump-my-version` for version management is being deprecated, and
 brought in to `changelog_gen` to reduce the dependency chain, and allow more
