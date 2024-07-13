@@ -123,9 +123,14 @@ class Config:
         if self.strict:
             parts = {component: self.parts.get(component, [0])[0] for component in self.parser.groupindex}
             # Validate major, minor, patch in regex
-            configured_keys = set(parts.keys())
-            if {"major", "minor", "patch"} - configured_keys:
+            configured_keys = list(parts.keys())
+
+            if {"major", "minor", "patch"} - set(configured_keys):
                 msg = "major.minor.patch, pattern required at minimum."
+                raise errors.UnsupportedParserError(msg)
+
+            if configured_keys[:3] != ["major", "minor", "patch"]:
+                msg = "major.minor.patch, pattern order required."
                 raise errors.UnsupportedParserError(msg)
 
             serialised_keys = set()
@@ -140,7 +145,7 @@ class Config:
                 serialised_keys.update([i[1] for i in string.Formatter().parse(serialiser)])
 
             # Validate all components covered by at least one serialiser
-            missed_keys = configured_keys - serialised_keys
+            missed_keys = set(configured_keys) - serialised_keys
             if missed_keys:
                 msg = f"Not all parsed components handled by a serialiser, missing {missed_keys}."
                 raise errors.UnsupportedSerialiserError(msg)

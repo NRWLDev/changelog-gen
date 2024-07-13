@@ -442,6 +442,29 @@ def test_strict_validation():
     )
 
 
+def test_strict_validation_bad_parser():
+    with pytest.raises(errors.UnsupportedParserError, match="major.minor.patch, pattern required at minimum."):
+        config.Config(
+            strict=True,
+            parser="""(?x)
+    (?P<major>0|[1-9]\\d*)\\.
+    (?P<patch>0|[1-9]\\d*)
+    """,
+        )
+
+
+def test_strict_validation_bad_parser_order():
+    with pytest.raises(errors.UnsupportedParserError, match="major.minor.patch, pattern order required."):
+        config.Config(
+            strict=True,
+            parser="""(?x)
+    (?P<major>0|[1-9]\\d*)\\.
+    (?P<patch>0|[1-9]\\d*)\\.
+    (?P<minor>0|[1-9]\\d*)
+    """,
+        )
+
+
 def test_strict_validation_incomplete_serialiser():
     with pytest.raises(
         errors.UnsupportedSerialiserError,
@@ -495,15 +518,4 @@ def test_strict_validation_bad_serialiser(serialiser):
             parts={
                 "release": ["rc"],
             },
-        )
-
-
-def test_strict_validation_bad_parser():
-    with pytest.raises(errors.UnsupportedParserError, match="major.minor.patch, pattern required at minimum."):
-        config.Config(
-            strict=True,
-            parser="""(?x)
-    (?P<major>0|[1-9]\\d*)\\.
-    (?P<patch>0|[1-9]\\d*)
-    """,
         )
