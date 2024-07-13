@@ -5,11 +5,9 @@
 If you have a project with no changelog currently, run `changelog init` to
 generate an empty file.
 
-If you have also not generated any releases yet, check out the documentation
-for [bump-my-version](https://github.com/callowayproject/bump-my-version). Once
-bump-my-version is set up tag the repository with your current version. The
-current version is required to detect the correct semver changes based on your
-commits.
+If you have also not generated any releases yet, tag the repository with your
+current version.  The current version is required to detect the correct semver
+changes based on your commits.
 
 A basic pyproject.toml configuration can be as simple as:
 
@@ -18,49 +16,17 @@ A basic pyproject.toml configuration can be as simple as:
 name = "my-project"
 version = "0.0.0"
 
-[tool.bumpversion]
-current_version = "0.0.0"
-
-[[tool.bumpversion.files]]
-filename = "pyproject.toml"
-search = 'version = "{current_version}"'
-replace = 'version = "{new_version}"'
-
 [tool.changelog_gen]
-release = true
-commit = true
-tag = true
+current_version = "0.0.0"
 reject_empty = true
 allowed_branches = [
     "main",
 ]
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+pattern = 'version = "{version}"'
 ```
-
-Once all set up and you've made some commits, run `changelog generate` to
-generate a tagged release and add your changes to the changelog.
-
-```md
-## <version>
-
-### Features and Improvements
-- xxx
-- xxx
-
-### Bug fixes
-- xxx
-- xxx
-
-### Documentation
-- xxx
-- xxx
-
-### Miscellaneous
-- xxx
-- xxx
-```
-
-See [Configuration](/changelog-gen/configuration) below for default commit type configuration
-and how to customize them.
 
 ## Conventional commits
 
@@ -99,3 +65,52 @@ don't fit the conventional commit format. All non conventional commits will be
 included under a `Miscellaneous` heading. Combined with the `--interactive`
 flag commits can be included under the correct headings and/or excluded
 completely.
+
+## Generating changelog
+
+Run `changelog generate` to extract commits since the last release and populate
+the changelog, and create a tagged release.
+
+```md
+## <version>
+
+### Features and Improvements
+- xxx
+- xxx
+
+### Bug fixes
+- xxx
+- xxx
+
+### Documentation
+- xxx
+- xxx
+
+### Miscellaneous
+- xxx
+- xxx
+```
+
+See [Configuration](/changelog-gen/configuration) below for default commit type configuration
+and how to customize them.
+
+### Configuration flags
+
+* `--version_tag` specify the version tag to release.
+* `--version_part` specify the version component to increment.
+* `--dry-run` extract changes and preview the proposed changelog and version
+  without committing or tagging any changes.
+* `--interactive` flag can be used to drop into an editor with the proposed
+  changes, to make any desired adjustments, prior to updating the changelog.
+* `-y, --yes` accept proposed changes and commit without previewing, interactive
+  mode will still be triggered prior to automatic acceptance.
+* `-v[vv]` increase the output verbosity, handy if an error occurs or behaviour
+  does not appear to match expectations.
+
+See [Configuration](/changelog-gen/configuration) for additional configuration and cli flags that are available.
+and how to customize them.
+
+## View current configuration
+
+Use `changelog config` to view the currently configured values, including any
+system defaults.

@@ -6,6 +6,8 @@ repo_url: https://github.com/NRWLDev/changelog-gen
 nav:
   - index.md
   - usage.md
+  - version.md
+  - post_process.md
   - configuration.md
 theme:
   name: material
