@@ -269,34 +269,34 @@ fix.header = "Bugfixes"
 
   See example on below Jira configuration information.
 
-#### `url`
+#### `post_process.url`
   _**[required]**_<br />
   **default**: None<br />
   The url to contact.
   Can have the placeholders `::issue_ref::` and `::version::``.
 
-#### `verb`
+#### `post_process.verb`
   _**[optional]**_<br />
   **default**: POST<br />
   HTTP method to use.
 
-#### `verb`
+#### `post_process.verb`
   _**[optional]**_<br />
   **default**: `{"body": "Released on ::version::"}`<br />
   The text to send to the API.
   Can have the placeholders `::issue_ref::` and `::version::`.
 
-#### `headers`
+#### `post_process.headers`
   _**[optional]**_<br />
   **default**: None<br />
   Headers dictionary to inject into http requests.
 
-#### `auth_type`
+#### `post_process.auth_type`
   _**[optional]**_<br />
   **default**: basic<br />
   Auth type to use for post process requests, supported options are `basic` and `bearer`.
 
-#### `auth_env`
+#### `post_process.auth_env`
   _**[optional]**_<br />
   **default**: None<br />
   Name of the environment variable to use to extract the basic auth information to contact the API.
