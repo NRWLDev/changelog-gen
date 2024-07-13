@@ -243,6 +243,8 @@ serialisers = [
 ```
 
 ### `parts`
+  _**[optional]**_<br />
+  **default**: None
 
 Where custom components have been defined, if a component uses non integer
 values the valid values can be defined.
@@ -256,6 +258,13 @@ Example:
 [tool.changelog_gen.parts]
 pre_l = ["dev", "rc"]
 ```
+
+### `strict`
+  _**[optional]**_<br />
+  **default**: False
+
+Enforce strict rules based on RFC-2119 and error if non conforming parser or
+serialisers are configured.
 
 ## Post processing
 
