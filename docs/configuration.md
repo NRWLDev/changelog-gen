@@ -1,5 +1,6 @@
 # Configuration
 
+..TODO
 Of the command line arguments, most of them can be configured in `pyproject.toml` to remove
 the need to pass them in every time.
 
@@ -18,6 +19,150 @@ allow_dirty = false
   auth_env = "JIRA_AUTH"
 ```
 
+## Configuration file -- Global configuration
+
+General configuration is grouped in a `[changelog_gen]` section.
+
+### `commit`
+  _**[optional]**_<br />
+  **default**: True
+
+  Commit changes to the changelog (and configured files) after writing.
+
+  Also available as `--commit/--no-commit` (e.g. `changelog generate --commit`)
+
+### `tag`
+  _**[optional]**_<br />
+  **default**: True
+
+  Tag the committed changes with the new version.
+
+  Also available as `--tag/--no-tag` (e.g. `changelog generate --tag`)
+
+### `release`
+  _**[optional]**_<br />
+  **default**: True
+
+  Modify version strings in configured files.
+
+  Also available as `--release/--no-release` (e.g. `changelog generate --release`)
+
+### `allow_dirty`
+  _**[optional]**_<br />
+  **default**: False
+
+  Don't abort if the current branch contains uncommitted changes
+
+  Also available as `--allow-dirty` (e.g. `changelog generate --allow-dirty`)
+
+### `reject_empty`
+  _**[optional]**_<br />
+  **default**: False
+
+  Abort if there are no release notes to add to the change log.
+
+  Also available as `--reject-empty` (e.g. `changelog generate --reject-empty`)
+
+### `issue_link`
+  _**[optional]**_<br />
+  **default**: None
+
+  Create links in the CHANGELOG to the originating issue. A url that contains
+  an `issue_ref` placeholder for replacement.
+
+  Example:
+
+```toml
+[tool.changelog_gen]
+issue_link = "http://github.com/NRWLDev/changelog-gen/issues/::issue_ref::"
+```
+
+### `commit_link`
+  _**[optional]**_<br />
+  **default**: None
+
+  Create links in the CHANGELOG to the originating commit. A url that contains
+  a `::commit_hash::` placeholder for replacement.
+
+  Example:
+
+```toml
+[tool.changelog_gen]
+commit_link = "http://github.com/NRWLDev/changelog-gen/commit/::commit_hash::"
+```
+
+### `version_string`
+  _**[optional]**_<br />
+  **default**: `v{new_version}`
+
+  Format for the version tag, this will be passed into changelog, commit
+  messages, and any post processing.
+
+  Example:
+
+```toml
+[tool.changelog_gen]
+version_string = "{new_version}"
+```
+
+### `date_format`
+  _**[optional]**_<br />
+  **default**: None
+
+  Add a date on the version line, use [strftime and strptime format
+  codes](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes).
+  The format string can include any character, a space is included between the
+  version tag and the date tag.
+
+  Also available in cli as `--date-format` (e.g. `--date-format '%Y-%m-%d'`).
+
+  Example:
+
+```toml
+[tool.changelog_gen]
+date_format = "on %Y-%m-%d"
+```
+
+### `allowed_branches`
+  _**[optional]**_<br />
+  **default**: None
+
+  Prevent changelog being generated if the current branch is not in the
+  supplied list. By default all branches are allowed.
+
+  Example:
+
+```toml
+[tool.changelog_gen]
+allowed_branches = [
+  "main",
+  "develop",
+]
+```
+
+### `commit_types`
+  _**[optional]**_<br />
+  **default**: None
+
+  Provide new commit types and which headers and semver component in the
+  changelog they should map to, default semver is `patch`. Partial overrides to
+  the built in commit types can also be provided.
+
+  Example:
+
+```toml
+[tool.changelog_gen.commit_types]
+feat.header = "New Features"
+feat.semver = "minor"
+change.header = "Changes"
+remove.header = "Removals"
+remove.semver = "minor"
+fix.header = "Bugfixes"
+```
+
+    See `changelog config` for the existing configuration.
+
+..TODO
 ## Versioning
 
 `changelog-gen` is bringing version management "in house", and deprecating
@@ -97,169 +242,7 @@ component will increment to the initial value `dev`, and `pre_n` will be 0.
 When the release component reaches the end of the configured component parts,
 the optional components will be dropped.
 
-## Configuration file -- Global configuration
-
-General configuration is grouped in a `[changelog_gen]` section.
-
-### `commit = (True | False)`
-  _**[optional]**_<br />
-  **default**: True
-
-  Commit changes to the changelog (and configured files) after writing.
-
-  Also available as `--commit/--no-commit` (e.g. `changelog generate --commit`)
-
-### `tag = (True | False)`
-  _**[optional]**_<br />
-  **default**: True
-
-  Tag the committed changes with the new version.
-
-  Also available as `--tag/--no-tag` (e.g. `changelog generate --tag`)
-
-### `release = (True | False)`
-  _**[optional]**_<br />
-  **default**: True
-
-  Modify version strings in configured files.
-
-  Also available as `--release/--no-release` (e.g. `changelog generate --release`)
-
-### `allow_dirty = (True | False)`
-  _**[optional]**_<br />
-  **default**: False
-
-  Don't abort if the current branch contains uncommitted changes
-
-  Also available as `--allow-dirty` (e.g. `changelog generate --allow-dirty`)
-
-### `reject_empty = (True | False)`
-  _**[optional]**_<br />
-  **default**: False
-
-  Abort if there are no release notes to add to the change log.
-
-  Also available as `--reject-empty` (e.g. `changelog generate --reject-empty`)
-
-### `issue_link =`
-  _**[optional]**_<br />
-  **default**: None
-
-  Create links in the CHANGELOG to the originating issue. A url that contains
-  an `issue_ref` placeholder for replacement.
-
-  Example:
-
-```toml
-[tool.changelog_gen]
-issue_link = "http://github.com/NRWLDev/changelog-gen/issues/::issue_ref::"
-```
-
-### `commit_link =`
-  _**[optional]**_<br />
-  **default**: None
-
-  Create links in the CHANGELOG to the originating commit. A url that contains
-  a `::commit_hash::` placeholder for replacement.
-
-  Example:
-
-```toml
-[tool.changelog_gen]
-commit_link = "http://github.com/NRWLDev/changelog-gen/commit/::commit_hash::"
-```
-
-### `version_string =`
-  _**[optional]**_<br />
-  **default**: `v{new_version}`
-
-  Format for the version tag, this will be passed into changelog, commit
-  messages, and any post processing.
-
-  Example:
-
-```toml
-[tool.changelog_gen]
-version_string = "{new_version}"
-```
-
-### `date_format =`
-  _**[optional]**_<br />
-  **default**: None
-
-  Add a date on the version line, use [strftime and strptime format
-  codes](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes).
-  The format string can include any character, a space is included between the
-  version tag and the date tag.
-
-  Also available as `--date-format` (e.g. `--date-format '%Y-%m-%d'`).
-
-  Example:
-
-```toml
-[tool.changelog_gen]
-date_format = "on %Y-%m-%d"
-```
-
-### `allowed_branches =`
-  _**[optional]**_<br />
-  **default**: None
-
-  Prevent changelog being generated if the current branch is not in the
-  supplied list. By default all branches are allowed.
-
-  Example:
-
-```toml
-[tool.changelog_gen]
-allowed_branches = [
-  "main",
-  "develop",
-]
-```
-
-### `commit_types = `
-  _**[optional]**_<br />
-  **default**:
-
-```toml
-feat.header = "Features and Improvements"
-feat.semver = "minor"
-fix.header = "Bug fixes"
-fix.semver = "patch"
-docs.header = "Documentation"
-docs.semver = "patch"
-bug.header = "Bug fixes"
-bug.semver = "patch"
-chore.header = "Miscellaneous"
-chore.semver = "patch"
-ci.header = "Miscellaneous"
-ci.semver = "patch"
-perf.header = "Miscellaneous"
-perf.semver = "patch"
-refactor.header = "Miscellaneous"
-refactor.semver = "patch"
-revert.header = "Miscellaneous"
-revert.semver = "patch"
-style.header = "Miscellaneous"
-style.semver = "patch"
-test.header = "Miscellaneous"
-test.semver = "patch"
-```
-
-  Define commit types and which headers and semver in the changelog they should map to, default semver is `patch`.
-
-  Example:
-
-```toml
-[tool.changelog_gen.commit_types]
-feat.header = "New Features"
-feat.semver = "minor"
-change.header = "Changes"
-remove.header = "Removals"
-remove.semver = "minor"
-fix.header = "Bugfixes"
-```
+## Post processing
 
 ### `post_process`
   _**[optional]**_<br />
