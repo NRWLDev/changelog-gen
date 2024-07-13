@@ -263,7 +263,7 @@ the optional components will be dropped.
   **default**: POST<br />
   HTTP method to use.
 
-#### `post_process.verb`
+#### `post_process.body`
   _**[optional]**_<br />
   **default**: `{"body": "Released on ::version::"}`<br />
   The text to send to the API.
