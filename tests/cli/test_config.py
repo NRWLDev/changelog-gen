@@ -6,6 +6,7 @@ def test_config_displayed(cli_runner):
         result.output.strip()
         == r"""current_version = '0.0.0'
 parser = '(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)'
+strict = false
 verbose = 0
 version_string = 'v{new_version}'
 release = true

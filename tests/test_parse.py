@@ -1,3 +1,5 @@
+import re
+
 import pytest
 
 from changelog_gen import errors, parse
@@ -5,7 +7,7 @@ from changelog_gen import errors, parse
 
 def test_parse_failure():
     with pytest.raises(errors.ParseError):
-        parse.parse(r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)", "invalid")
+        parse.parse(re.compile(r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"), "invalid")
 
 
 @pytest.mark.parametrize(
@@ -73,7 +75,7 @@ def test_parse_failure():
     ],
 )
 def test_parse(regex, version, expected):
-    parsed = parse.parse(regex, version)
+    parsed = parse.parse(re.compile(regex), version)
     assert parsed == expected
 
 

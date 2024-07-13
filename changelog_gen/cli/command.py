@@ -92,12 +92,9 @@ def process_info(info: dict, context: Context, *, dry_run: bool) -> None:
 def display_config() -> None:
     """Display current configuration."""
     cfg = config.read()
-    data = {k: v for k, v in cfg.to_dict().items() if v is not None}
-    if "post_process" in data:
-        data["post_process"] = {k: v for k, v in data["post_process"].items() if v is not None}
     typer.echo(
         highlight(
-            rtoml.dumps(data, pretty=True),
+            rtoml.dumps(cfg.to_dict(), pretty=True, none_value=None),
             lexers.TOMLLexer(),
             formatters.TerminalFormatter(),
         ),

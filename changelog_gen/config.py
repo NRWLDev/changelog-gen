@@ -3,7 +3,7 @@ from __future__ import annotations
 import dataclasses
 import json
 import re
-import typing
+import typing as t
 from pathlib import Path
 
 import rtoml
@@ -79,15 +79,21 @@ class PostProcessConfig:
         return cls(**data)
 
 
+STRICT_VALIDATOR = re.compile(
+    r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?$",
+)
+
+
 @dataclasses.dataclass
 class Config:
     """Changelog configuration options."""
 
     current_version: str = ""
-    parser: str = r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"
+    parser: t.Pattern = r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"
     serialisers: list[str] = dataclasses.field(default_factory=lambda: ["{major}.{minor}.{patch}"])
     parts: dict[str, list[str]] = dataclasses.field(default_factory=dict)
     files: dict = dataclasses.field(default_factory=dict)
+    strict: bool = False
 
     verbose: int = 0
 
@@ -108,13 +114,33 @@ class Config:
 
     post_process: PostProcessConfig | None = None
 
+    def __post_init__(self: t.Self) -> None:
+        """Process parser and validate if strict check enabled."""
+        self.parser = re.compile(self.parser)
+        if self.strict:
+            parts = {component: self.parts.get(component, [0])[0] for component in self.parser.groupindex}
+            # Validate major, minor, patch in regex
+            if {"major", "minor", "patch"} - set(parts.keys()):
+                msg = "major.minor.patch, pattern required at minimum."
+                raise errors.UnsupportedParserError(msg)
+
+            # Validate all components covered by at least one serialiser
+
+            for serialiser in self.serialisers:
+                version = serialiser.format(**parts)
+                # validate that version string fits RFC2119
+                m = STRICT_VALIDATOR.match(version)
+                if m is None:
+                    msg = f"{serialiser} generates non RFC-2119 version string."
+                    raise errors.UnsupportedSerialiserError(msg)
+
     @property
-    def semver_mappings(self: typing.Self) -> dict[str, str]:
+    def semver_mappings(self: t.Self) -> dict[str, str]:
         """Generate `type: semver` mapping from commit types."""
         return {ct: c.semver for ct, c in self.commit_types.items()}
 
     @property
-    def type_headers(self: typing.Self) -> dict[str, str]:
+    def type_headers(self: t.Self) -> dict[str, str]:
         """Generate `type: header` mapping from commit types."""
         return {ct: c.header for ct, c in self.commit_types.items()}
 
@@ -130,7 +156,10 @@ class Config:
 
     def to_dict(self: Config) -> dict:
         """Convert a Config object to a dictionary of key value pairs."""
-        return dataclasses.asdict(self)
+        data = dataclasses.asdict(self)
+        data["parser"] = data["parser"].pattern
+
+        return data
 
 
 @timer

@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import contextlib
-import re
+import typing
 
 from changelog_gen import errors
 
 
-def parse(regex: str, version: str) -> dict[str, str | None]:
+def parse(regex: typing.Pattern, version: str) -> dict[str, str | None]:
     """Parse a version into parts dict."""
-    m = re.match(regex, version)
+    m = regex.match(version)
     if m is None:
         msg = "Can't parse version string."
         raise errors.ParseError(msg)
