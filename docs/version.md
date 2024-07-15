@@ -43,6 +43,7 @@ serialisers, and any custom components (non incrementing integers).
 
 ```toml
 [tool.changelog_gen]
+pre_release = true
 parser = '''(?x)
     (?P<major>0|[1-9]\d*)\.
     (?P<minor>0|[1-9]\d*)\.
@@ -71,6 +72,15 @@ component will increment to the initial value `dev`, and `pre_n` will be 0.
 
 When the release component reaches the end of the configured component parts,
 the optional components will be dropped.
+
+Prerelease flows are triggered on `major`, `minor`, and `patch`
+releases. If you only wanted them to occur on major releases, use the
+[pre_release_components](https://nrwldev.github.io/changelog-gen/configuration/#pre_release_components)
+configuration.
+
+They are also disabled by default, so configure
+`[tool.changelog_gen.pre_release]` or use `--prerelease` override on the
+command line.
 
 ## Strict validation
 

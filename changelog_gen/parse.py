@@ -31,8 +31,12 @@ def bump(
     version_parts: dict[str, str | None],
     component: str,
     component_config: dict[str, list[str]],
+    pre_release_components: list[str] | None = None,
+    *,
+    pre_release: bool,
 ) -> dict[str, str | None]:
     """Increment version component."""
+    pre_release_components = pre_release_components or ["major", "minor", "patch"]
     # Validate component in parts
     components = list(version_parts.keys())
     dependents = components[components.index(component) + 1 :]
@@ -58,5 +62,13 @@ def bump(
         new = str(int(version_parts[component]) + 1)
 
     version_parts[component] = new
+
+    # If bumping a semver component, and its not configured for pre_release
+    # or if pre_release is disabled
+    #   remove all optional components
+    if (component in ["major", "minor", "patch"] and component not in pre_release_components) or not pre_release:
+        for k in version_parts:
+            if k not in ["major", "minor", "patch"]:
+                version_parts[k] = None
 
     return version_parts

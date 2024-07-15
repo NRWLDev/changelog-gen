@@ -16,6 +16,7 @@ tag = true
 allow_dirty = false
 allow_missing = false
 reject_empty = false
+pre_release = false
 serialisers = ['{major}.{minor}.{patch}']
 allowed_branches = []
 

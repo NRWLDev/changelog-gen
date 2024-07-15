@@ -122,17 +122,31 @@ def init(
 
 @app.command("generate")
 def gen(  # noqa: PLR0913
-    version_tag: Optional[str] = typer.Option(None, help="Provide the desired version tag, skip auto generation."),
-    version_part: Optional[str] = typer.Option(None, help="Provide the desired version part, skip auto generation."),
+    version_tag: Optional[str] = typer.Option(
+        None,
+        help="Provide the desired version tag, skip auto generation.",
+        show_default=False,
+    ),
+    version_part: Optional[str] = typer.Option(
+        None,
+        help="Provide the desired version part, skip auto generation.",
+        show_default=False,
+    ),
     post_process_url: Optional[str] = typer.Option(
         None,
         help="Rest API endpoint to post release version notifications to.",
+        show_default=False,
     ),
     post_process_auth_env: Optional[str] = typer.Option(
         None,
         help="Name of the ENV variable that contains the rest API basic auth content.",
+        show_default=False,
     ),
-    date_format: Optional[str] = typer.Option(None, help="The date format for strftime - empty string allowed."),
+    date_format: Optional[str] = typer.Option(
+        None,
+        help="The date format for strftime - empty string allowed.",
+        show_default=False,
+    ),
     *,
     dry_run: bool = typer.Option(False, "--dry-run", help="Don't write release notes, check for errors."),  # noqa: FBT003
     include_all: bool = typer.Option(
@@ -140,16 +154,38 @@ def gen(  # noqa: PLR0913
         "--include-all",
         help="Include all commits, even ones that are incorrectly formatted.",
     ),
-    allow_dirty: Optional[bool] = typer.Option(None, help="Don't abort if branch contains uncommitted changes."),
-    allow_missing: Optional[bool] = typer.Option(None, help="Don't abort if branch missing commits on origin."),
-    reject_empty: Optional[bool] = typer.Option(None, help="Don't accept changes if there are no release notes."),
-    release: Optional[bool] = typer.Option(default=True, help="Update version strings in configured files."),
-    commit: Optional[bool] = typer.Option(
-        default=True,
-        help="Commit changes made to changelog, and configured files, after writing.",
+    allow_dirty: Optional[bool] = typer.Option(
+        None,
+        help="Don't abort if branch contains uncommitted changes.",
+        show_default=False,
     ),
-    tag: Optional[bool] = typer.Option(default=True, help="Tag changes made after release."),
-    interactive: Optional[bool] = typer.Option(default=None, help="Open changes in an editor before confirmation."),
+    allow_missing: Optional[bool] = typer.Option(
+        None,
+        help="Don't abort if branch missing commits on origin.",
+        show_default=False,
+    ),
+    reject_empty: Optional[bool] = typer.Option(
+        None,
+        help="Don't accept changes if there are no release notes.",
+        show_default=False,
+    ),
+    pre_release: Optional[bool] = typer.Option(None, help="Allow/disallow pre-releases.", show_default=False),
+    release: Optional[bool] = typer.Option(
+        None,
+        help="Update version strings in configured files.",
+        show_default=False,
+    ),
+    commit: Optional[bool] = typer.Option(
+        None,
+        help="Commit changes made to changelog, and configured files, after writing.",
+        show_default=False,
+    ),
+    tag: Optional[bool] = typer.Option(None, help="Tag changes made after release.", show_default=False),
+    interactive: Optional[bool] = typer.Option(
+        default=None,
+        help="Open changes in an editor before confirmation.",
+        show_default=False,
+    ),
     yes: bool = typer.Option(False, "--yes", "-y", help="Automatically accept changes."),  # noqa: FBT003
     verbose: int = typer.Option(0, "-v", "--verbose", help="Set output verbosity.", count=True, max=3),
     _version: Optional[bool] = typer.Option(
@@ -175,6 +211,7 @@ def gen(  # noqa: PLR0913
         interactive=interactive,
         post_process_url=post_process_url,
         post_process_auth_env=post_process_auth_env,
+        pre_release=pre_release,
         verbose=verbose,
     )
     context = Context(cfg, verbose)

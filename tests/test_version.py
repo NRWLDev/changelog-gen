@@ -119,6 +119,7 @@ class TestInHouse:
     def test_get_version_info_release_flow(self, current_version, new_version, semver, config_factory):
         cfg = config_factory(
             current_version=current_version,
+            pre_release=True,
             parser="""(?x)
     (?P<major>0|[1-9]\\d*)\\.
     (?P<minor>0|[1-9]\\d*)\\.
