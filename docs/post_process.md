@@ -32,3 +32,12 @@ For basic auth, the environment variable should be in the format
 `{user}:{api_key}`.
 
 For bearer auth, the environment variable should be in the format `{api_key}`.
+
+## Installation
+
+To use post_process functionality, there are some optional dependencies that
+need to be installed.
+
+```sh
+pip install changelog-gen[post-process]
+```
