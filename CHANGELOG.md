@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.11.8 - 2024-07-15
+
+### Features and Improvements
+
+- Allow configuration of when to trigger a pre-release. [[#19](https://github.com/NRWLDev/changelog-gen/issues/19)] [[88fdb0f](https://github.com/NRWLDev/changelog-gen/commit/88fdb0f7c3cbee182680eae6d8a57aa1832bdcf3)]
+- Add strict validation of parser/serialisers in line with RFC-2119 [[7417cfb](https://github.com/NRWLDev/changelog-gen/commit/7417cfbf636a26bc9b7c968053328273a953c6a0)]
+
 ## v0.11.7 - 2024-07-12
 
 ### Miscellaneous
