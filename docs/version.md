@@ -12,7 +12,7 @@ determine what type of release to trigger based on the commits since the last re
 
 ### Major
 
-Any breaking change will trigger a major release, unless the library is in then
+Any breaking change will trigger a major release, unless the package is in the
 initial `0.y.z` development release. In commit terms, any commit message with a
 `!` suffix in the type, or `BREAKING CHANGE` in the footers is considered a
 breaking change.
@@ -75,7 +75,7 @@ the optional components will be dropped.
 ## Strict validation
 
 By default, parsers and serialisers that do not strictly adhere to RFC-2119 are
-supported, but if you with to strict validation can be enforced. If
+supported, but if you wish, strict validation can be enforced. If
 [enabled](https://nrwldev.github.io/changelog-gen/configuration/#strict)
 the tool will error if an incorrect parser, serialiser or component
 configuration is provided.

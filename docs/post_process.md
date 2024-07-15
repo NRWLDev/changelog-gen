@@ -5,8 +5,10 @@ be processed to update an external source with details of the version release.
 This allows issues in jira, notion etc to be updated with the version it was
 released as a part of.
 
-The configured post process url should contain an `::issue_ref::` place holder,
-when processing each commit issue, the url will be dynamically updated before
+The configured [post
+process](https://nrwldev.github.io/changelog-gen/configuration/#post_process)
+url should contain an `::issue_ref::` place holder, when processing each commit
+issue, the url will be dynamically updated before
 being called.
 
 By default the url will be called using a `POST` request, but the http verb can
