@@ -7,9 +7,10 @@ General configuration is grouped in the `[tool.changelog_gen]` section of pyproj
 ```toml
 [tool.changelog_gen]
 current_version = "1.2.3"
-commit = true
-tag = true
-allow_dirty = false
+reject_empty = true
+allowed_branches = [
+    "main",
+]
 
 [[tool.changelog_gen.files]]
 filename = "README.md"

@@ -1,7 +1,7 @@
 # Overview
 
 `changelog-gen` is a CHANGELOG generator intended to remove the mental load of
-determining correct versioning, while generating changelogs and create release
+determining correct versioning, while generating changelogs and creating release
 tags from [conventional commit](https://www.conventionalcommits.org/en/v1.0.0/)
 formatted commit messages.
 

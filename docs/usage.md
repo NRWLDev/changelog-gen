@@ -12,20 +12,8 @@ changes based on your commits.
 A basic pyproject.toml configuration can be as simple as:
 
 ```toml
-[tool.poetry]
-name = "my-project"
-version = "0.0.0"
-
 [tool.changelog_gen]
 current_version = "0.0.0"
-reject_empty = true
-allowed_branches = [
-    "main",
-]
-
-[[tool.changelog_gen.files]]
-filename = "pyproject.toml"
-pattern = 'version = "{version}"'
 ```
 
 ## Generating changelog
