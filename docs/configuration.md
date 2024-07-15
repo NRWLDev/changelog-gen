@@ -218,6 +218,27 @@ filename = "pyproject.toml"
 pattern = 'version = "{version}"'
 ```
 
+### `pre_release`
+  _**[optional]**_<br />
+  **default**: false
+
+  Allow pre-release flows.
+
+  Also available as `--pre-release/--no-pre-release` (e.g. `changelog generate --pre-release`)
+
+### `pre_release_components`
+  _**[optional]**_<br />
+  **default**: None
+
+  Configure which components trigger a pre-release flow.
+
+  Example:
+
+```
+[tool.changelog_gen]
+pre_release_components = ["major", "minor"]
+```
+
 ### `parser`
   _**[optional]**_<br />
   **default**: `(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)`

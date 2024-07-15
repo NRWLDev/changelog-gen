@@ -174,7 +174,53 @@ def test_serialise(patterns, version_parts, expected):
     ],
 )
 def test_bump_vanilla(version_parts, component, expected):
-    new_parts = parse.bump(version_parts, component, {})
+    new_parts = parse.bump(version_parts, component, {}, pre_release=False)
+    assert new_parts == expected
+
+
+@pytest.mark.parametrize(
+    ("version_parts", "component", "pre_release_components", "expected"),
+    [
+        (
+            {"major": "0", "minor": "0", "patch": "0", "release": None, "build": None},
+            "patch",
+            ["major", "minor", "patch"],
+            {"major": "0", "minor": "0", "patch": "1", "release": "dev", "build": "0"},
+        ),
+        (
+            {"major": "0", "minor": "0", "patch": "0", "release": None, "build": None},
+            "patch",
+            ["major", "minor"],
+            {"major": "0", "minor": "0", "patch": "1", "release": None, "build": None},
+        ),
+        (
+            {"major": "0", "minor": "0", "patch": "0", "release": "rc", "build": "0"},
+            "build",
+            ["major", "minor", "patch"],
+            {"major": "0", "minor": "0", "patch": "0", "release": "rc", "build": "1"},
+        ),
+        (
+            {"major": "0", "minor": "0", "patch": "1", "release": "dev", "build": "1"},
+            "release",
+            ["major", "minor", "patch"],
+            {"major": "0", "minor": "0", "patch": "1", "release": "rc", "build": "0"},
+        ),
+        (
+            {"major": "0", "minor": "0", "patch": "1", "release": "rc", "build": "1"},
+            "release",
+            ["major", "minor", "patch"],
+            {"major": "0", "minor": "0", "patch": "1", "release": None, "build": None},
+        ),
+    ],
+)
+def test_bump_configured_components(version_parts, component, pre_release_components, expected):
+    new_parts = parse.bump(
+        version_parts,
+        component,
+        component_config={"release": ["dev", "rc"]},
+        pre_release_components=pre_release_components,
+        pre_release=True,
+    )
     assert new_parts == expected
 
 
@@ -184,31 +230,16 @@ def test_bump_vanilla(version_parts, component, expected):
         (
             {"major": "0", "minor": "0", "patch": "0", "release": None, "build": None},
             "patch",
-            {"major": "0", "minor": "0", "patch": "1", "release": "dev", "build": "0"},
-        ),
-        (
-            {"major": "0", "minor": "0", "patch": "0", "release": "rc", "build": "0"},
-            "build",
-            {"major": "0", "minor": "0", "patch": "0", "release": "rc", "build": "1"},
-        ),
-        (
-            {"major": "0", "minor": "0", "patch": "1", "release": "dev", "build": "1"},
-            "release",
-            {"major": "0", "minor": "0", "patch": "1", "release": "rc", "build": "0"},
-        ),
-        (
-            {"major": "0", "minor": "0", "patch": "1", "release": "rc", "build": "1"},
-            "release",
             {"major": "0", "minor": "0", "patch": "1", "release": None, "build": None},
         ),
     ],
 )
-def test_bump_configured_components(version_parts, component, expected):
-    new_parts = parse.bump(version_parts, component, component_config={"release": ["dev", "rc"]})
+def test_bump_configured_components_no_pre_release(version_parts, component, expected):
+    new_parts = parse.bump(version_parts, component, component_config={"release": ["dev", "rc"]}, pre_release=False)
     assert new_parts == expected
 
 
 def test_bump_unset_optional_component():
     version_parts = {"major": "0", "minor": "0", "patch": "0", "release": None, "build": None}
     with pytest.raises(errors.BumpError):
-        parse.bump(version_parts, "release", component_config={"release": ["dev", "rc"]})
+        parse.bump(version_parts, "release", component_config={"release": ["dev", "rc"]}, pre_release=False)

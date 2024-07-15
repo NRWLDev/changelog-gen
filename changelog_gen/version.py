@@ -145,7 +145,13 @@ class BumpVersion:  # noqa: D101
         next_version = (
             parse.parse(self.config.parser, self.new)
             if self.new
-            else parse.bump(current_version, semver, self.config.parts or {})
+            else parse.bump(
+                current_version,
+                semver,
+                self.config.parts or {},
+                self.config.pre_release_components,
+                pre_release=self.config.pre_release,
+            )
         )
         return {
             "current": Version(self.config.current_version, None),

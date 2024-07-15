@@ -109,6 +109,9 @@ class Config:
     allow_missing: bool = False
     reject_empty: bool = False
 
+    pre_release: bool = False
+    pre_release_components: list[str] | None = None
+
     post_process: PostProcessConfig | None = None
 
     def __post_init__(self: t.Self) -> None:
