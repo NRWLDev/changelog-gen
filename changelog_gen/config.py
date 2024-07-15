@@ -3,7 +3,8 @@ from __future__ import annotations
 import dataclasses
 import json
 import re
-import typing
+import string
+import typing as t
 from pathlib import Path
 
 import rtoml
@@ -73,10 +74,10 @@ class PostProcessConfig:
     # The variable should contain "{user}:{api_key}"
     auth_env: str | None = None
 
-    @classmethod
-    def from_dict(cls: type[PostProcessConfig], data: dict) -> PostProcessConfig:
-        """Convert a dictionary of key value pairs into a PostProcessConfig object."""
-        return cls(**data)
+
+STRICT_VALIDATOR = re.compile(
+    r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?$",
+)
 
 
 @dataclasses.dataclass
@@ -84,10 +85,11 @@ class Config:
     """Changelog configuration options."""
 
     current_version: str = ""
-    parser: str = r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"
+    parser: t.Pattern = r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"
     serialisers: list[str] = dataclasses.field(default_factory=lambda: ["{major}.{minor}.{patch}"])
     parts: dict[str, list[str]] = dataclasses.field(default_factory=dict)
     files: dict = dataclasses.field(default_factory=dict)
+    strict: bool = False
 
     verbose: int = 0
 
@@ -99,6 +101,7 @@ class Config:
     allowed_branches: list[str] = dataclasses.field(default_factory=list)
     commit_types: dict[str, CommitType] = dataclasses.field(default_factory=lambda: SUPPORTED_TYPES)
 
+    interactive: bool = True
     release: bool = True
     commit: bool = True
     tag: bool = True
@@ -108,29 +111,61 @@ class Config:
 
     post_process: PostProcessConfig | None = None
 
+    def __post_init__(self: t.Self) -> None:
+        """Process parser and validate if strict check enabled."""
+        self.parser = re.compile(self.parser)
+        if self.commit_types != SUPPORTED_TYPES:
+            for k, v in self.commit_types.items():
+                value = json.loads(v) if isinstance(v, str) else v
+                ct = CommitType(**value) if isinstance(value, dict) else value
+                self.commit_types[k] = ct
+
+        if self.strict:
+            parts = {component: self.parts.get(component, [0])[0] for component in self.parser.groupindex}
+            # Validate major, minor, patch in regex
+            configured_keys = list(parts.keys())
+
+            if {"major", "minor", "patch"} - set(configured_keys):
+                msg = "major.minor.patch, pattern required at minimum."
+                raise errors.UnsupportedParserError(msg)
+
+            if configured_keys[:3] != ["major", "minor", "patch"]:
+                msg = "major.minor.patch, pattern order required."
+                raise errors.UnsupportedParserError(msg)
+
+            serialised_keys = set()
+
+            for serialiser in self.serialisers:
+                version = serialiser.format(**parts)
+                # validate that version string fits RFC2119
+                m = STRICT_VALIDATOR.match(version)
+                if m is None:
+                    msg = f"{serialiser} generates non RFC-2119 version string."
+                    raise errors.UnsupportedSerialiserError(msg)
+                serialised_keys.update([i[1] for i in string.Formatter().parse(serialiser)])
+
+            # Validate all components covered by at least one serialiser
+            missed_keys = set(configured_keys) - serialised_keys
+            if missed_keys:
+                msg = f"Not all parsed components handled by a serialiser, missing {missed_keys}."
+                raise errors.UnsupportedSerialiserError(msg)
+
     @property
-    def semver_mappings(self: typing.Self) -> dict[str, str]:
+    def semver_mappings(self: t.Self) -> dict[str, str]:
         """Generate `type: semver` mapping from commit types."""
         return {ct: c.semver for ct, c in self.commit_types.items()}
 
     @property
-    def type_headers(self: typing.Self) -> dict[str, str]:
+    def type_headers(self: t.Self) -> dict[str, str]:
         """Generate `type: header` mapping from commit types."""
         return {ct: c.header for ct, c in self.commit_types.items()}
 
-    @classmethod
-    def from_dict(cls: type[Config], data: dict) -> Config:
-        """Convert a dictionary of key value pairs into a Config object."""
-        if "commit_types" in data:
-            for k, v in data["commit_types"].items():
-                value = json.loads(v) if isinstance(v, str) else v
-                ct = CommitType(**value) if isinstance(value, dict) else value
-                data["commit_types"][k] = ct
-        return cls(**data)
-
     def to_dict(self: Config) -> dict:
         """Convert a Config object to a dictionary of key value pairs."""
-        return dataclasses.asdict(self)
+        data = dataclasses.asdict(self)
+        data["parser"] = data["parser"].pattern
+
+        return data
 
 
 @timer
@@ -228,9 +263,9 @@ def read(path: str = "pyproject.toml", **kwargs) -> Config:
     if cfg.get("post_process"):
         pp = cfg["post_process"]
         try:
-            cfg["post_process"] = PostProcessConfig.from_dict(pp)
+            cfg["post_process"] = PostProcessConfig(**pp)
         except Exception as e:
             msg = f"Failed to create post_process: {e!s}"
             raise RuntimeError(msg) from e
 
-    return Config.from_dict(cfg)
+    return Config(**cfg)

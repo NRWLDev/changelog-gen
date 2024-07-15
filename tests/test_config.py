@@ -1,3 +1,5 @@
+import re
+
 import pytest
 
 from changelog_gen import config, errors
@@ -344,6 +346,11 @@ def test_config_defaults():
     assert c.version_string == "v{new_version}"
     assert c.allowed_branches == []
     assert c.commit_types == config.SUPPORTED_TYPES
+    assert c.parser == re.compile(r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)")
+    assert c.serialisers == ["{major}.{minor}.{patch}"]
+    assert c.parts == {}
+    assert c.files == {}
+
     for attr in [
         "issue_link",
         "commit_link",
@@ -360,6 +367,7 @@ def test_config_defaults():
         assert getattr(c, attr) is True
 
     for attr in [
+        "strict",
         "allow_dirty",
         "allow_missing",
         "reject_empty",
@@ -411,3 +419,103 @@ def test_commit_type():
     ct = config.CommitType("header", "semver")
     assert ct.header == "header"
     assert ct.semver == "semver"
+
+
+def test_strict_validation():
+    config.Config(
+        strict=True,
+        parser="""(?x)
+(?P<major>0|[1-9]\\d*)\\.
+(?P<minor>0|[1-9]\\d*)\\.
+(?P<patch>0|[1-9]\\d*)
+(?:
+    (?P<release>[a-zA-Z-]+)       # pre-release label
+    (?P<build>0|[1-9]\\d*)        # pre-release version number
+)?                                # pre-release section is optional
+""",
+        serialisers=[
+            "{major}.{minor}.{patch}-{release}{build}",
+        ],
+        parts={
+            "release": ["rc"],
+        },
+    )
+
+
+def test_strict_validation_bad_parser():
+    with pytest.raises(errors.UnsupportedParserError, match="major.minor.patch, pattern required at minimum."):
+        config.Config(
+            strict=True,
+            parser="""(?x)
+    (?P<major>0|[1-9]\\d*)\\.
+    (?P<patch>0|[1-9]\\d*)
+    """,
+        )
+
+
+def test_strict_validation_bad_parser_order():
+    with pytest.raises(errors.UnsupportedParserError, match="major.minor.patch, pattern order required."):
+        config.Config(
+            strict=True,
+            parser="""(?x)
+    (?P<major>0|[1-9]\\d*)\\.
+    (?P<patch>0|[1-9]\\d*)\\.
+    (?P<minor>0|[1-9]\\d*)
+    """,
+        )
+
+
+def test_strict_validation_incomplete_serialiser():
+    with pytest.raises(
+        errors.UnsupportedSerialiserError,
+        match="Not all parsed components handled by a serialiser, missing {'build'}.",
+    ):
+        config.Config(
+            strict=True,
+            parser="""(?x)
+    (?P<major>0|[1-9]\\d*)\\.
+    (?P<minor>0|[1-9]\\d*)\\.
+    (?P<patch>0|[1-9]\\d*)
+    (?:
+        (?P<release>[a-zA-Z-]+)       # pre-release label
+        (?P<build>0|[1-9]\\d*)        # pre-release version number
+    )?                                # pre-release section is optional
+    """,
+            serialisers=[
+                # No serialiser handles {build} scenario
+                "{major}.{minor}.{patch}-{release}",
+            ],
+            parts={
+                "release": ["rc"],
+            },
+        )
+
+
+@pytest.mark.parametrize(
+    "serialiser",
+    [
+        "{major}.{patch}",
+        "{major}.{patch}{release}",
+        "{major}.{minor}.{patch}{release}",
+    ],
+)
+def test_strict_validation_bad_serialiser(serialiser):
+    with pytest.raises(errors.UnsupportedSerialiserError, match=f"{serialiser} generates non RFC-2119 version string."):
+        config.Config(
+            strict=True,
+            parser="""(?x)
+    (?P<major>0|[1-9]\\d*)\\.
+    (?P<minor>0|[1-9]\\d*)\\.
+    (?P<patch>0|[1-9]\\d*)
+    (?:
+        (?P<release>[a-zA-Z-]+)       # pre-release label
+        (?P<build>0|[1-9]\\d*)        # pre-release version number
+    )?                                # pre-release section is optional
+    """,
+            serialisers=[
+                serialiser,
+            ],
+            parts={
+                "release": ["rc"],
+            },
+        )

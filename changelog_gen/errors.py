@@ -32,3 +32,11 @@ class BumpError(ChangelogException):
 
 class UnsupportedReplaceError(ChangelogException):
     """Unsupported ::replace:: in configuration string."""
+
+
+class UnsupportedParserError(ChangelogException):
+    """Unsupported parser in configuration."""
+
+
+class UnsupportedSerialiserError(ChangelogException):
+    """Unsupported serialiser in configuration."""

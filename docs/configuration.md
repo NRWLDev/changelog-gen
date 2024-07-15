@@ -1,107 +1,22 @@
 # Configuration
 
-Of the command line arguments, most of them can be configured in `pyproject.toml` to remove
-the need to pass them in every time.
+General configuration is grouped in the `[tool.changelog_gen]` section of pyproject.toml.
 
-Example:
-
-```toml
-[tool.changelog_gen]
-commit = true
-release = true
-allow_dirty = false
-
-[tool.changelog_gen.post_process]
-  url = "https://your-domain.atlassian.net/rest/api/2/issue/ISSUE-::issue_ref::/comment"
-  verb = "POST"
-  body = '{"body": "Released on v::version::"}'
-  auth_env = "JIRA_AUTH"
-```
-
-## Versioning
-
-`changelog-gen` is bringing version management "in house", and deprecating
-subprocess calls to `bump-my-version`.
-
-The configuration is very similar to
-[bump-my-version](https://github.com/callowayproject/bump-my-version?tab=readme-ov-file#semantic-versioning-example),
-but with a few simplifications.
-
-The minimum required configuration to manage versions is the current version,
-which can be moved directly from `[tool.bumpversion]`
+## Simple configuration
 
 ```toml
 [tool.changelog_gen]
 current_version = "1.2.3"
-```
+reject_empty = true
+allowed_branches = [
+    "main",
+]
 
-If multiple files have the current version string in them, they can be
-configured for replacement.
-
-Where the version string can safely be replaced with the default pattern
-`{version}`, use:
-
-```
 [[tool.changelog_gen.files]]
 filename = "README.md"
 ```
 
-For files that might contain other version strings that could match and
-shouldn't be updated, a search/replace pattern can be configured.
-
-```
-[[tool.changelog_gen.files]]
-filename = "pyproject.toml"
-pattern = 'version = "{version}"'
-```
-
-### Version patterns
-
-The default versioning parser is
-`(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)`, with the matching serialiser
-`{major}.{minor}.{patch}`. This will support the typical semver use case of
-`X.Y.Z` version strings.
-
-If you want to support a pre-release flow, configure a parser, suitable
-serialisers, and any custom components (non incrementing integers).
-
-```toml
-[tool.changelog_gen]
-parser = '''(?x)
-    (?P<major>0|[1-9]\d*)\.
-    (?P<minor>0|[1-9]\d*)\.
-    (?P<patch>0|[1-9]\d*)
-    (?:
-        (?P<pre_l>[a-zA-Z-]+)         # pre-release label
-        (?P<pre_n>0|[1-9]\d*)         # pre-release version number
-    )?                                # pre-release section is optional
-'''
-serialisers = [
-    "{major}.{minor}.{patch}-{pre_l}{pre_n}",
-    "{major}.{minor}.{patch}",
-]
-
-[tool.changelog_gen.parts]
-pre_l = ["dev", "rc"]
-```
-
-In the above example on creating a major/minor/patch release, the `pre_l`
-component will increment to the initial value `dev`, and `pre_n` will be 0.
-
-* `0.0.0`
-* `0.0.0      → 0.0.1-dev0`  [changelog generate]
-* `0.0.1-dev0 → 0.0.1-dev1`  [changelog generate --version-part pre_n]
-* `0.0.1-dev1 → 0.0.1-rc0`   [changelog generate --version-part pre_l]
-* `0.0.1-rc   → 0.0.1`       [changelog generate --version-part pre_l]
-
-When the release component reaches the end of the configured component parts,
-the optional components will be dropped.
-
-## Configuration file -- Global configuration
-
-General configuration is grouped in a `[changelog_gen]` section.
-
-### `commit = (True | False)`
+### `commit`
   _**[optional]**_<br />
   **default**: True
 
@@ -109,7 +24,7 @@ General configuration is grouped in a `[changelog_gen]` section.
 
   Also available as `--commit/--no-commit` (e.g. `changelog generate --commit`)
 
-### `tag = (True | False)`
+### `tag`
   _**[optional]**_<br />
   **default**: True
 
@@ -117,7 +32,7 @@ General configuration is grouped in a `[changelog_gen]` section.
 
   Also available as `--tag/--no-tag` (e.g. `changelog generate --tag`)
 
-### `release = (True | False)`
+### `release`
   _**[optional]**_<br />
   **default**: True
 
@@ -125,7 +40,15 @@ General configuration is grouped in a `[changelog_gen]` section.
 
   Also available as `--release/--no-release` (e.g. `changelog generate --release`)
 
-### `allow_dirty = (True | False)`
+### `interactive`
+  _**[optional]**_<br />
+  **default**: True
+
+  Open proposed changes in an editor before writing to changelog.
+
+  Also available as `--interactive/--no-interactive` (e.g. `changelog generate --interactive`)
+
+### `allow_dirty`
   _**[optional]**_<br />
   **default**: False
 
@@ -133,7 +56,15 @@ General configuration is grouped in a `[changelog_gen]` section.
 
   Also available as `--allow-dirty` (e.g. `changelog generate --allow-dirty`)
 
-### `reject_empty = (True | False)`
+### `allow_missing`
+  _**[optional]**_<br />
+  **default**: False
+
+  Don't abort if the local and remote branches are out of sync.
+
+  Also available as `--allow-missing` (e.g. `changelog generate --allow-missing`)
+
+### `reject_empty`
   _**[optional]**_<br />
   **default**: False
 
@@ -141,7 +72,7 @@ General configuration is grouped in a `[changelog_gen]` section.
 
   Also available as `--reject-empty` (e.g. `changelog generate --reject-empty`)
 
-### `issue_link =`
+### `issue_link`
   _**[optional]**_<br />
   **default**: None
 
@@ -155,7 +86,7 @@ General configuration is grouped in a `[changelog_gen]` section.
 issue_link = "http://github.com/NRWLDev/changelog-gen/issues/::issue_ref::"
 ```
 
-### `commit_link =`
+### `commit_link`
   _**[optional]**_<br />
   **default**: None
 
@@ -169,7 +100,7 @@ issue_link = "http://github.com/NRWLDev/changelog-gen/issues/::issue_ref::"
 commit_link = "http://github.com/NRWLDev/changelog-gen/commit/::commit_hash::"
 ```
 
-### `version_string =`
+### `version_string`
   _**[optional]**_<br />
   **default**: `v{new_version}`
 
@@ -183,7 +114,7 @@ commit_link = "http://github.com/NRWLDev/changelog-gen/commit/::commit_hash::"
 version_string = "{new_version}"
 ```
 
-### `date_format =`
+### `date_format`
   _**[optional]**_<br />
   **default**: None
 
@@ -192,7 +123,7 @@ version_string = "{new_version}"
   The format string can include any character, a space is included between the
   version tag and the date tag.
 
-  Also available as `--date-format` (e.g. `--date-format '%Y-%m-%d'`).
+  Also available in cli as `--date-format` (e.g. `--date-format '%Y-%m-%d'`).
 
   Example:
 
@@ -201,7 +132,7 @@ version_string = "{new_version}"
 date_format = "on %Y-%m-%d"
 ```
 
-### `allowed_branches =`
+### `allowed_branches`
   _**[optional]**_<br />
   **default**: None
 
@@ -218,36 +149,13 @@ allowed_branches = [
 ]
 ```
 
-### `commit_types = `
+### `commit_types`
   _**[optional]**_<br />
-  **default**:
+  **default**: None
 
-```toml
-feat.header = "Features and Improvements"
-feat.semver = "minor"
-fix.header = "Bug fixes"
-fix.semver = "patch"
-docs.header = "Documentation"
-docs.semver = "patch"
-bug.header = "Bug fixes"
-bug.semver = "patch"
-chore.header = "Miscellaneous"
-chore.semver = "patch"
-ci.header = "Miscellaneous"
-ci.semver = "patch"
-perf.header = "Miscellaneous"
-perf.semver = "patch"
-refactor.header = "Miscellaneous"
-refactor.semver = "patch"
-revert.header = "Miscellaneous"
-revert.semver = "patch"
-style.header = "Miscellaneous"
-style.semver = "patch"
-test.header = "Miscellaneous"
-test.semver = "patch"
-```
-
-  Define commit types and which headers and semver in the changelog they should map to, default semver is `patch`.
+  Provide new commit types and which headers and semver component in the
+  changelog they should map to, default semver is `patch`. Partial overrides to
+  the built in commit types can also be provided.
 
   Example:
 
@@ -261,42 +169,158 @@ remove.semver = "minor"
 fix.header = "Bugfixes"
 ```
 
-### `post_process =`
+    See `changelog config` for the existing configuration.
+
+## Versioning
+
+Versioning configuration is very similar to
+[bump-my-version](https://github.com/callowayproject/bump-my-version?tab=readme-ov-file#semantic-versioning-example),
+but with a few simplifications.
+
+The default configuration will support the typical semver use case of `X.Y.Z`
+version strings.
+
+### `current_version`
+  _**[optional]**_<br />
+  **default**: None
+
+  The minimum required configuration to manage versions is the current version,
+  which can be moved directly from `[tool.bumpversion]`
+
+  If not provided, `bumpversion` will be used to generate releases.
+
+```toml
+[tool.changelog_gen]
+current_version = "1.2.3"
+```
+
+### `files`
+  _**[optional]**_<br />
+  **default**: None
+
+  If multiple files have the current version string in them, they can be
+  configured for replacement.
+
+  Where the version string can safely be replaced with the default pattern
+  `{version}`, use:
+
+```
+[[tool.changelog_gen.files]]
+filename = "README.md"
+```
+
+  For files that might contain other version strings that could match and
+  shouldn't be updated, a search/replace pattern can be configured.
+
+```
+[[tool.changelog_gen.files]]
+filename = "pyproject.toml"
+pattern = 'version = "{version}"'
+```
+
+### `parser`
+  _**[optional]**_<br />
+  **default**: `(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)`
+
+  The parser is used to extract the existing semver components from the current
+  version configuration.
+
+  If you want to support a pre-release flow, configure a parser a new parser for the custom components you require.
+
+  Example:
+
+```toml
+[tool.changelog_gen]
+parser = '''(?x)
+    (?P<major>0|[1-9]\d*)\.
+    (?P<minor>0|[1-9]\d*)\.
+    (?P<patch>0|[1-9]\d*)
+    (?:
+        (?P<pre_l>[a-zA-Z-]+)         # pre-release label
+        (?P<pre_n>0|[1-9]\d*)         # pre-release version number
+    )?                                # pre-release section is optional
+'''
+```
+
+### `serialisers`
+  _**[optional]**_<br />
+  **default**: `["{major}.{minor}.{patch}"]`
+
+  The serialisers should be defined from most greedy to least in the case where
+  there are optional components.
+
+  Example:
+
+```toml
+[tool.changelog_gen]
+serialisers = [
+    "{major}.{minor}.{patch}-{pre_l}{pre_n}",
+    "{major}.{minor}.{patch}",
+]
+```
+
+### `parts`
+  _**[optional]**_<br />
+  **default**: None
+
+  Where custom components have been defined, if a component uses non integer
+  values the valid values can be defined.
+
+  When the release component reaches the end of the configured component parts,
+  the optional components will be dropped.
+
+  Example:
+
+```
+[tool.changelog_gen.parts]
+pre_l = ["dev", "rc"]
+```
+
+### `strict`
+  _**[optional]**_<br />
+  **default**: False
+
+  Enforce strict rules based on RFC-2119 and error if non conforming parser or
+  serialisers are configured.
+
+## Post processing
+
+### `post_process`
   _**[optional]**_<br />
   **default**: None
 
   Configure a REST API to contact when a release is made
 
-  See example on Jira configuration information.
+  See example on below Jira configuration information.
 
- `.url =`<br />
+#### `post_process.url`
   _**[required]**_<br />
   **default**: None<br />
   The url to contact.
   Can have the placeholders `::issue_ref::` and `::version::``.
 
-  `.verb =`<br />
+#### `post_process.verb`
   _**[optional]**_<br />
   **default**: POST<br />
   HTTP method to use.
 
-  `.body =`<br />
+#### `post_process.body`
   _**[optional]**_<br />
   **default**: `{"body": "Released on ::version::"}`<br />
   The text to send to the API.
   Can have the placeholders `::issue_ref::` and `::version::`.
 
-  `.headers =`<br />
+#### `post_process.headers`
   _**[optional]**_<br />
   **default**: None<br />
   Headers dictionary to inject into http requests.
 
-  `.auth_type =`<br />
+#### `post_process.auth_type`
   _**[optional]**_<br />
   **default**: basic<br />
   Auth type to use for post process requests, supported options are `basic` and `bearer`.
 
-  `.auth_env =`<br />
+#### `post_process.auth_env`
   _**[optional]**_<br />
   **default**: None<br />
   Name of the environment variable to use to extract the basic auth information to contact the API.
@@ -304,6 +328,7 @@ fix.header = "Bugfixes"
   * For basic auth the content of the variable should be `{user}:{api key}`.
   * For bearer auth the content of the variable should be `{api key}`.
 
+### Post process example
   Example to post to JIRA:
 
 ```toml
@@ -314,19 +339,14 @@ body = '{"body": "Released on ::version::"}'
 auth_env = "JIRA_AUTH"
 headers."content-type" = "application/json"
 ```
-  This assumes an environment variable `JIRA_AUTH` with the content `user@domain.com:{api_key}`.
-  See
+
+  This assumes an environment variable `JIRA_AUTH` with the content
+  `user@domain.com:{api_key}`.  See
   [manage-api-tokens-for-your-atlassian-account](https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/)
   to generate a key.
 
-  Also partially available as `--post-process-url` and `--post-process-auth-env` (e.g. `changelog generate --post-process-url 'http://my-api-url.domain/comment/::issue_ref::' --post-process-auth-env MY_API_AUTH`)
-
-## Pre-release flows
-
-If your versioning uses prerelease version parts, after a major/minor/patch update creates e.g. `v0.0.1rc0`, use
-`--version-part=<part>` to trigger release flows, based on your configuration.
-
-```bash
-$ changelog generate --version-part build
-... v0.0.1rc1
-```
+  For simpler testing of post process flows, the url and auth env can be
+  provided on the command line as `--post-process-url` and
+  `--post-process-auth-env` (e.g. `changelog generate --post-process-url
+  'http://my-api-url.domain/comment/::issue_ref::' --post-process-auth-env
+  MY_API_AUTH`)
