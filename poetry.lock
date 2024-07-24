@@ -11,6 +11,9 @@ files = [
     {file = "annotated_types-0.7.0.tar.gz", hash = "sha256:aff07c09a53a08bc8cfccb9c85b05f1aa9a2a6f23728d790723543408344ce89"},
 ]
 
+[package.dependencies]
+typing-extensions = {version = ">=4.0.0", markers = "python_version < \"3.9\""}
+
 [[package]]
 name = "anyio"
 version = "4.4.0"
@@ -46,13 +49,13 @@ files = [
 
 [[package]]
 name = "bump-my-version"
-version = "0.24.2"
+version = "0.24.3"
 description = "Version bump your Python project"
 optional = true
 python-versions = ">=3.8"
 files = [
-    {file = "bump_my_version-0.24.2-py3-none-any.whl", hash = "sha256:b7264acd237fad34712db1ee61aac29576ad1791a5c31b9fa0b55b34ba18e91f"},
-    {file = "bump_my_version-0.24.2.tar.gz", hash = "sha256:38581935e821266df24f292bbfe73f1a4ded368b62e52b44218f31aeea2be13c"},
+    {file = "bump_my_version-0.24.3-py3-none-any.whl", hash = "sha256:cdd86e158430dd5e5e25fc61703c140a1107579fdd8d74f8f3a5f991daa07168"},
+    {file = "bump_my_version-0.24.3.tar.gz", hash = "sha256:9b8ac82458a703a968a9a438b460175494cc0e0c6bd5f316019945a6b66eb81f"},
 ]
 
 [package.dependencies]
@@ -527,13 +530,13 @@ testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
 name = "pre-commit"
-version = "3.7.1"
+version = "3.5.0"
 description = "A framework for managing and maintaining multi-language pre-commit hooks."
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.8"
 files = [
-    {file = "pre_commit-3.7.1-py2.py3-none-any.whl", hash = "sha256:fae36fd1d7ad7d6a5a1c0b0d5adb2ed1a3bda5a21bf6c3e5372073d7a11cd4c5"},
-    {file = "pre_commit-3.7.1.tar.gz", hash = "sha256:8ca3ad567bc78a4972a3f1a477e94a79d4597e8140a6e0b651c5e33899c3654a"},
+    {file = "pre_commit-3.5.0-py2.py3-none-any.whl", hash = "sha256:841dc9aef25daba9a0238cd27984041fa0467b4199fc4852e27950664919f660"},
+    {file = "pre_commit-3.5.0.tar.gz", hash = "sha256:5804465c675b659b0862f07907f96295d490822a450c4c40e747d0b1c6ebcb32"},
 ]
 
 [package.dependencies]
@@ -940,6 +943,7 @@ files = [
 [package.dependencies]
 markdown-it-py = ">=2.2.0"
 pygments = ">=2.13.0,<3.0.0"
+typing-extensions = {version = ">=4.0.0,<5.0", markers = "python_version < \"3.9\""}
 
 [package.extras]
 jupyter = ["ipywidgets (>=7.5.1,<9)"]
@@ -1212,5 +1216,5 @@ test = ["bump-my-version", "httpx"]
 
 [metadata]
 lock-version = "2.0"
-python-versions = "^3.9"
-content-hash = "1670e50969fe9381efe90277a0f3bcc9a000fff758a3baccdd89cae5a6a8d6e2"
+python-versions = "^3.8"
+content-hash = "ce9cc08073e6aceb088803f3d2abd94abd8a8a36f434099664b19774784893ba"

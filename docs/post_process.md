@@ -38,7 +38,8 @@ For bearer auth, the environment variable should be in the format `{api_key}`.
 ## Installation
 
 To use post_process functionality, there are some optional dependencies that
-need to be installed.
+need to be installed. Due to the implementation using httpx, post_process is
+not supported on python3.8.
 
 ```sh
 pip install changelog-gen[post-process]

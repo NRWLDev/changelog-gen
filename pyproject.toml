@@ -24,6 +24,7 @@ classifiers = [
     "Topic :: System :: Software Distribution",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -32,10 +33,10 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.8"
 
 typer-slim = "^0"
-httpx = { version = "^0", optional = true }
+httpx = { version = "^0", optional = true, python = ">3.9"}
 rtoml = ">=0.9"
 gitpython = "^3.1.43"
 bump-my-version = { version = "^0", optional = true }
@@ -54,7 +55,7 @@ freezegun = "^1.2.1"
 pytest = "~8.2.0"
 pytest-cov = "^5.0.0"
 pytest-random-order = "^1.1.0"
-pytest-httpx = "^0.30.0"
+pytest-httpx = { version = "^0.30.0", python = ">3.9"}
 pytest-git = "^1.7.0"
 coverage = "7.4.3"  # something breaks >7.4.4 and require passing `--cov-config=pyproject.toml` everywhere
 
