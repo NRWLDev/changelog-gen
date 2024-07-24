@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.11.10 - 2024-07-24
+
+### Bug fixes
+
+- Fix toml rendering for config subcommand. [[45614f4](https://github.com/NRWLDev/changelog-gen/commit/45614f4aa4ac4879ff1412b3fefa4f95a59a4017)]
+
 ## v0.11.9 - 2024-07-24
 
 ### Bug fixes
