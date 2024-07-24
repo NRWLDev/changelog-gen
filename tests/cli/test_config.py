@@ -21,8 +21,6 @@ serialisers = ['{major}.{minor}.{patch}']
 allowed_branches = []
 
 [parts]
-
-[files]
 [commit_types.feat]
 header = 'Features and Improvements'
 semver = 'minor'
@@ -65,7 +63,9 @@ semver = 'patch'
 
 [commit_types.test]
 header = 'Miscellaneous'
-semver = 'patch'"""
+semver = 'patch'
+
+[files]"""
     )
 
 
@@ -79,4 +79,6 @@ def test_post_process_config_displayed(cli_runner, config_factory):
 url = 'http://localhost'
 verb = 'POST'
 body = '{"body": "Released on ::version::"}'
-auth_type = 'basic'""")
+auth_type = 'basic'
+
+[files]""")

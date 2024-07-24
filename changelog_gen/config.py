@@ -167,8 +167,10 @@ class Config:
         """Convert a Config object to a dictionary of key value pairs."""
         data = dataclasses.asdict(self)
         data["parser"] = data["parser"].pattern
+        ret = {k: v for k, v in data.items() if k != "files"}
+        ret["files"] = data.get("files")
 
-        return data
+        return ret
 
 
 @timer
