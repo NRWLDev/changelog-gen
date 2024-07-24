@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.11.9 - 2024-07-24
+
+### Bug fixes
+
+- Support python3.8 in standard flows. [[f83df35](https://github.com/NRWLDev/changelog-gen/commit/f83df3596aca5ac02aa7c80208e31d17b0048dff)]
+
 ## v0.11.8 - 2024-07-15
 
 ### Features and Improvements
