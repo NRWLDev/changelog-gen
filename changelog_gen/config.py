@@ -118,10 +118,12 @@ class Config:
         """Process parser and validate if strict check enabled."""
         self.parser = re.compile(self.parser)
         if self.commit_types != SUPPORTED_TYPES:
+            commit_types = {}
             for k, v in self.commit_types.items():
                 value = json.loads(v) if isinstance(v, str) else v
                 ct = CommitType(**value) if isinstance(value, dict) else value
-                self.commit_types[k] = ct
+                commit_types[k.lower()] = ct
+            self.commit_types = commit_types
 
         if self.strict:
             parts = {component: self.parts.get(component, [0])[0] for component in self.parser.groupindex}

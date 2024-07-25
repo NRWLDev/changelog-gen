@@ -105,7 +105,7 @@ feat.header = "Features and Improvements"
 feat.semver = "minor"
 feature.header = "Features and Improvements"
 feature.semver = "minor"
-fix.header = "Bug fixes"
+Fix.header = "Bug fixes"
 misc.header = "Miscellaneous"
 test.header = "Bug fixes"
 """,
