@@ -35,7 +35,7 @@ def conventional_commits(multiversion_repo):
     f = multiversion_repo.workspace / "hello.txt"
     hashes = []
     for msg in [
-        """fix(config): Detail about 4
+        """Fix(config): Detail about 4
 
 Refs: #4
 """,
