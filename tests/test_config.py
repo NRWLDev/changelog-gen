@@ -500,7 +500,10 @@ def test_strict_validation_incomplete_serialiser():
     ],
 )
 def test_strict_validation_bad_serialiser(serialiser):
-    with pytest.raises(errors.UnsupportedSerialiserError, match=f"{serialiser} generates non RFC-2119 version string."):
+    with pytest.raises(
+        errors.UnsupportedSerialiserError,
+        match=f"{serialiser} generates non SemVer 2.0.0 version string.",
+    ):
         config.Config(
             strict=True,
             parser="""(?x)

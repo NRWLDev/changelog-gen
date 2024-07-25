@@ -301,7 +301,7 @@ pre_l = ["dev", "rc"]
   _**[optional]**_<br />
   **default**: False
 
-  Enforce strict rules based on RFC-2119 and error if non conforming parser or
+  Enforce strict rules based on SemVer 2.0.0 and error if non conforming parser or
   serialisers are configured.
 
 ## Post processing

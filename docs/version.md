@@ -1,9 +1,7 @@
 # Semantic Versioning
 
 At the core of `changelog-gen` is the version detection and generation logic,
-check [here](https://semver.org) for details on semantic versioning, and
-[here](https://datatracker.ietf.org/doc/html/rfc2119) for a more detailed look
-at the underlying RFC.
+check [here](https://semver.org) for details on semantic versioning.
 
 ## Version generation
 
@@ -84,7 +82,7 @@ command line.
 
 ## Strict validation
 
-By default, parsers and serialisers that do not strictly adhere to RFC-2119 are
+By default, parsers and serialisers that do not strictly adhere to SemVer 2.0.0 are
 supported, but if you wish, strict validation can be enforced. If
 [enabled](https://nrwldev.github.io/changelog-gen/configuration/#strict)
 the tool will error if an incorrect parser, serialiser or component

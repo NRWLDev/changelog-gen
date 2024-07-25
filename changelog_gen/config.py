@@ -142,10 +142,10 @@ class Config:
 
             for serialiser in self.serialisers:
                 version = serialiser.format(**parts)
-                # validate that version string fits RFC2119
+                # validate that version string fits SemVer 2.0.0
                 m = STRICT_VALIDATOR.match(version)
                 if m is None:
-                    msg = f"{serialiser} generates non RFC-2119 version string."
+                    msg = f"{serialiser} generates non SemVer 2.0.0 version string."
                     raise errors.UnsupportedSerialiserError(msg)
                 serialised_keys.update([i[1] for i in string.Formatter().parse(serialiser)])
 
