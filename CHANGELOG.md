@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.11.11 - 2024-07-25
+
+### Bug fixes
+
+- Normalise commit types when matching to commit logs [[#22](https://github.com/NRWLDev/changelog-gen/issues/22)] [[a021c93](https://github.com/NRWLDev/changelog-gen/commit/a021c93a7cf2b78f220ba3149175222a0d0f3637)]
+
 ## v0.11.10 - 2024-07-24
 
 ### Bug fixes
