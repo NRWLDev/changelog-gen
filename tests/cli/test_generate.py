@@ -540,12 +540,13 @@ def test_generate_handles_valid_hooks(
     cli_runner,
     monkeypatch,
     config_factory,
+    mock_git,
 ):
     config_factory(hooks=["tests.cli.test_generate:hook"])
     monkeypatch.setattr(typer, "confirm", mock.MagicMock(return_value=True))
     result = cli_runner.invoke(["generate", "--version-tag", "0.3.2", "--no-release"])
 
-    assert result.exit_code == 1
+    assert result.exit_code == 0
     assert mock_git.commit.call_args == mock.call("0.0.0", "0.3.2", "v0.3.2", ["CHANGELOG.md", "test_path"])
 
 
