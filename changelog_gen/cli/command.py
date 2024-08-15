@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import importlib
 import importlib.metadata
 import platform
 import shlex
@@ -346,6 +347,24 @@ def _gen(  # noqa: PLR0913, C901, PLR0915
         return []
 
     hooks = [release_hook, changelog_hook]
+    for hook in cfg.hooks:
+        try:
+            import_path, hook_func = hook.split(":")
+        except ValueError as e:
+            context.error("Invalid hook format, expected `path.to.module:hook_func`.")
+            raise typer.Exit(code=1) from e
+
+        try:
+            mod = importlib.import_module(import_path)
+        except ModuleNotFoundError as e:
+            context.error("Invalid hook module `%s`, not found.", import_path)
+            raise typer.Exit(code=1) from e
+
+        try:
+            hooks.append(getattr(mod, hook_func))
+        except AttributeError as e:
+            context.error("Invalid hook func `%s`, not found in hook module.", hook_func)
+            raise typer.Exit(code=1) from e
 
     processed = False
     if (

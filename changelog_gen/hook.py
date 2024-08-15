@@ -17,6 +17,8 @@ def hook(current, new) -> list[str]:  # noqa: D103, ANN001, ARG001
         for submod in mod.submodules():
             yield from recursive_mds(submod)
 
+    paths = []
+
     for mod in modules:
         for module in recursive_mds(mod):
             path = re.sub(r"\.html$", ".md", module.url())
@@ -24,6 +26,9 @@ def hook(current, new) -> list[str]:  # noqa: D103, ANN001, ARG001
             out.parent.mkdir(exist_ok=True, parents=True)
             with out.open("w") as f:
                 f.write(module.text())
+            paths.append(str(out))
+
+    return paths
 
 
 if __name__ == "__main__":
