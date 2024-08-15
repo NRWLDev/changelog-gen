@@ -58,6 +58,7 @@ pytest-random-order = "^1.1.0"
 pytest-httpx = { version = "^0.30.0", python = ">3.9"}
 pytest-git = "^1.7.0"
 coverage = "7.4.3"  # something breaks >7.4.4 and require passing `--cov-config=pyproject.toml` everywhere
+pdoc3 = { version = "^0.11", python = ">3.9"}
 
 # Style
 ruff = "^0.4.0"
@@ -70,7 +71,7 @@ commit = true
 tag = true
 reject_empty = true
 allowed_branches = [
-    "main",
+    "main", "feat/24",
 ]
 date_format = "- %Y-%m-%d"
 issue_link = "https://github.com/NRWLDev/changelog-gen/issues/::issue_ref::"

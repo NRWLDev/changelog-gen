@@ -25,7 +25,7 @@ from changelog_gen.cli import util
 from changelog_gen.context import Context
 from changelog_gen.util import timer
 from changelog_gen.vcs import Git
-from changelog_gen.version import BumpVersion
+from changelog_gen.version import BumpVersion, Version
 
 try:
     from changelog_gen.post_processor import per_issue_post_process
@@ -275,7 +275,7 @@ def create_with_editor(context: Context, content: str, extension: writer.Extensi
 
 
 @timer
-def _gen(  # noqa: PLR0913
+def _gen(  # noqa: PLR0913, C901, PLR0915
     context: Context,
     version_part: str | None = None,
     new_version: str | None = None,
@@ -336,6 +336,17 @@ def _gen(  # noqa: PLR0913
     context.error(changes) if not yes else context.warning(changes)
     w.content = changes.split("\n")[2:-2]
 
+    def changelog_hook(_current_version: Version, _new_version: Version) -> list[str]:
+        changelog_path = w.write()
+        return [changelog_path]
+
+    def release_hook(current_version: Version, new_version: Version) -> list[str]:
+        if cfg.release:
+            return bv.replace(current_version, new_version)
+        return []
+
+    hooks = [release_hook, changelog_hook]
+
     processed = False
     if (
         dry_run
@@ -345,12 +356,9 @@ def _gen(  # noqa: PLR0913
         )
     ):
         paths = []
-        if cfg.release:
-            paths = bv.replace(current, new)
-
-        w.write()
-
-        paths.append(f"CHANGELOG.{extension.value}")
+        for hook in hooks:
+            hook_paths = hook(current, new)
+            paths.extend(hook_paths)
 
         git.commit(str(current), str(new), version_tag, paths)
         processed = True
