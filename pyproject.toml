@@ -71,10 +71,7 @@ commit = true
 tag = true
 reject_empty = true
 allowed_branches = [
-    "main", "feat/24",
-]
-hooks = [
-    "changelog_gen.hook:hooks",
+    "main",
 ]
 date_format = "- %Y-%m-%d"
 issue_link = "https://github.com/NRWLDev/changelog-gen/issues/::issue_ref::"
