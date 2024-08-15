@@ -509,6 +509,48 @@ def test_generate_uses_supplied_version_tag(
 
 
 @pytest.mark.usefixtures("_conventional_commits", "changelog")
+@pytest.mark.parametrize(
+    "hook",
+    [
+        "invalid_format",
+        "invalid_module:func",
+        "tests.cli.test_generate:invalid_func",
+    ],
+)
+def test_generate_handles_invalid_hooks(
+    cli_runner,
+    monkeypatch,
+    config_factory,
+    hook,
+):
+    config_factory(hooks=[hook])
+    monkeypatch.setattr(typer, "confirm", mock.MagicMock(return_value=True))
+    result = cli_runner.invoke(["generate", "--version-tag", "0.3.2", "--no-release"])
+
+    assert result.exit_code == 1
+    assert "Invalid hook" in result.output
+
+
+def hook(_current, _new):
+    return ["test_path"]
+
+
+@pytest.mark.usefixtures("_conventional_commits", "changelog")
+def test_generate_handles_valid_hooks(
+    cli_runner,
+    monkeypatch,
+    config_factory,
+    mock_git,
+):
+    config_factory(hooks=["tests.cli.test_generate:hook"])
+    monkeypatch.setattr(typer, "confirm", mock.MagicMock(return_value=True))
+    result = cli_runner.invoke(["generate", "--version-tag", "0.3.2", "--no-release"])
+
+    assert result.exit_code == 0
+    assert mock_git.commit.call_args == mock.call("0.0.0", "0.3.2", "v0.3.2", ["CHANGELOG.md", "test_path"])
+
+
+@pytest.mark.usefixtures("_conventional_commits", "changelog")
 def test_generate_uses_supplied_version_part(
     cli_runner,
     monkeypatch,

@@ -19,6 +19,7 @@ reject_empty = false
 pre_release = false
 serialisers = ['{major}.{minor}.{patch}']
 allowed_branches = []
+hooks = []
 
 [parts]
 [commit_types.feat]

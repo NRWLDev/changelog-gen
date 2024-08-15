@@ -9,6 +9,7 @@ nav:
   - commits.md
   - version.md
   - post_process.md
+  - hooks.md
   - configuration.md
 theme:
   name: material

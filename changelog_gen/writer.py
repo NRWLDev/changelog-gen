@@ -104,10 +104,12 @@ class BaseWriter:
         return f"\n\n{content}\n\n"
 
     @timer
-    def write(self: t.Self) -> None:
+    def write(self: t.Self) -> str:
         """Write file contents to destination."""
         self.content = [self.file_header, *self.content, *self.existing]
         self._write(self.content)
+
+        return str(self.changelog)
 
     @timer
     def _write(self: t.Self, content: list[str]) -> None:
@@ -206,10 +208,11 @@ class RstWriter(BaseWriter):
         self.content.extend([line, ""])
 
     @timer
-    def write(self: t.Self) -> None:
+    def write(self: t.Self) -> str:
         """Write contents to destination."""
         self.content = [self.file_header, *self.content, *self.existing, *self.links]
         self._write(self.content)
+        return str(self.changelog)
 
 
 @timer
