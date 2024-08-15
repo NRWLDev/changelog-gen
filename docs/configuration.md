@@ -171,6 +171,23 @@ fix.header = "Bugfixes"
 
     See `changelog config` for the existing configuration.
 
+### `hooks`
+  _**[optional]**_<br />
+  **default**: None
+
+  Run additional hooks when generating a release, this allows regenerating
+  automated documentation during release process, for example.
+
+  Example:
+
+```toml
+[tool.changelog_gen]
+hooks = [
+  "path.to.module:hook_function",
+]
+```
+
+
 ## Versioning
 
 Versioning configuration is very similar to
