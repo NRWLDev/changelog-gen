@@ -22,7 +22,7 @@ def my_hook(current: Version, new: Version) -> list[str]:
 
 See
 [hooks](https://nrwldev.github.io/changelog-gen/configuration/#hooks)
-for details on configurating custom hooks.
+for details on configuring custom hooks.
 
 
 ## Example
