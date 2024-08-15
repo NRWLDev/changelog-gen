@@ -20,6 +20,11 @@ def my_hook(current: Version, new: Version) -> list[str]:
     return ["/path/to/file1", "/path/to/file2"]
 ```
 
+See
+[hooks](https://nrwldev.github.io/changelog-gen/configuration/#hooks)
+for details on configurating custom hooks.
+
+
 ## Example
 
 Here is a full example used in another project to generate `.md` files from
