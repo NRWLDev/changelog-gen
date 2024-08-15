@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "changelog_gen"
-version = "0.11.11"
+version = "0.11.12"
 description = "Changelog generation tool"
 authors = [
     "Daniel Edgecombe <daniel@nrwl.co>"
@@ -64,7 +64,7 @@ ruff = "^0.4.0"
 pre-commit = "^3.0.2"
 
 [tool.changelog_gen]
-current_version = "0.11.11"
+current_version = "0.11.12"
 release = true
 commit = true
 tag = true

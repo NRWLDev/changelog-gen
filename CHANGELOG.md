@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.11.12 - 2024-08-15
+
+### Features and Improvements
+
+- Support release hooks to perform actions when a release is made. [[#24](https://github.com/NRWLDev/changelog-gen/issues/24)] [[a99e669](https://github.com/NRWLDev/changelog-gen/commit/a99e6697890b63f0e32add1fceb1b3f062f9a3dc)]
+
 ## v0.11.11 - 2024-07-25
 
 ### Bug fixes
