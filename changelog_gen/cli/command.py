@@ -337,11 +337,11 @@ def _gen(  # noqa: PLR0913, C901, PLR0915
     context.error(changes) if not yes else context.warning(changes)
     w.content = changes.split("\n")[2:-2]
 
-    def changelog_hook(_current_version: Version, _new_version: Version) -> list[str]:
+    def changelog_hook(_context: Context, _current_version: Version, _new_version: Version) -> list[str]:
         changelog_path = w.write()
         return [changelog_path]
 
-    def release_hook(current_version: Version, new_version: Version) -> list[str]:
+    def release_hook(_context: Context, current_version: Version, new_version: Version) -> list[str]:
         if cfg.release:
             return bv.replace(current_version, new_version)
         return []
@@ -376,7 +376,7 @@ def _gen(  # noqa: PLR0913, C901, PLR0915
     ):
         paths = []
         for hook in hooks:
-            hook_paths = hook(current, new)
+            hook_paths = hook(context, current, new)
             paths.extend(hook_paths)
 
         git.commit(str(current), str(new), version_tag, paths)

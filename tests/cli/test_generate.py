@@ -531,7 +531,7 @@ def test_generate_handles_invalid_hooks(
     assert "Invalid hook" in result.output
 
 
-def hook(_current, _new):
+def hook(_ctx, _current, _new):
     return ["test_path"]
 
 
