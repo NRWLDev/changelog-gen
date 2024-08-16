@@ -22,6 +22,10 @@ def my_hook(context: Context, current: Version, new: Version) -> list[str]:
     context.error("Display something to the user.")
     return ["/path/to/file1", "/path/to/file2"]
 ```
+See
+[hooks](https://nrwldev.github.io/changelog-gen/configuration/#hooks)
+for details on configuring custom hooks.
+
 
 ## Context
 
