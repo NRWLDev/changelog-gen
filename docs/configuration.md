@@ -187,6 +187,20 @@ hooks = [
 ]
 ```
 
+### `custom`
+  _**[optional]**_<br />
+  **default**: None
+
+  Arbitrary configuration that can be used in hooks.
+
+  Example:
+
+```toml
+[tool.changelog_gen.custom]
+key = "value"
+a_list = ["key", "key2"]
+```
+
 
 ## Versioning
 
