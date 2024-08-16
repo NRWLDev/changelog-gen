@@ -54,7 +54,7 @@ Refs: #1
         "update readme",
         """feat: Detail about 2
 
-Refs: #2
+closes #2
 """,
     ]:
         f.write_text(msg)
