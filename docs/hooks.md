@@ -40,6 +40,13 @@ based on current verbosity settings.
 
 The above methods accept a % format string, and `*args`. i.e. `context.error("Hello, %s", "world")`.
 
+### Configuration
+
+Custom configuration can be accessed  with `context.config.custom`. This is a
+dictionary containing all values defined in `[tool.changelog_gen.custom]`.  See
+[custom](https://nrwldev.github.io/changelog-gen/configuration/#custom) for
+details on providing custom configuration.
+
 ## Example
 
 Here is a full example used in another project to generate `.md` files from

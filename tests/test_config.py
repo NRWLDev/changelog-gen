@@ -95,6 +95,23 @@ allowed_branches = [
         c = config.read()
         assert c.allowed_branches == ["main", "feature/11"]
 
+    def test_read_picks_custom_config(self, config_factory):
+        config_factory(
+            """
+[tool.changelog_gen.custom]
+key = "value"
+key2 = "value2"
+custom_list = ["one", "two"]
+""",
+        )
+
+        c = config.read()
+        assert c.custom == {
+            "key": "value",
+            "key2": "value2",
+            "custom_list": ["one", "two"],
+        }
+
     def test_read_picks_up_commit_types(self, config_factory):
         config_factory(
             """

@@ -66,6 +66,8 @@ semver = 'patch'
 header = 'Miscellaneous'
 semver = 'patch'
 
+[custom]
+
 [files]"""
     )
 
@@ -81,5 +83,7 @@ url = 'http://localhost'
 verb = 'POST'
 body = '{"body": "Released on ::version::"}'
 auth_type = 'basic'
+
+[custom]
 
 [files]""")

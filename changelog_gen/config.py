@@ -116,6 +116,8 @@ class Config:
 
     post_process: PostProcessConfig | None = None
 
+    custom: dict = dataclasses.field(default_factory=dict)
+
     def __post_init__(self: t.Self) -> None:
         """Process parser and validate if strict check enabled."""
         self.parser = re.compile(self.parser)
