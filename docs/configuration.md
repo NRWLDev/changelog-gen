@@ -86,6 +86,20 @@ filename = "README.md"
 issue_link = "http://github.com/NRWLDev/changelog-gen/issues/::issue_ref::"
 ```
 
+### `pull_link`
+  _**[optional]**_<br />
+  **default**: None
+
+  Create links in the CHANGELOG to the solving pull request. A url that contains
+  a `pull_ref` placeholder for replacement.
+
+  Example:
+
+```toml
+[tool.changelog_gen]
+pull_link = "http://github.com/NRWLDev/changelog-gen/pulls/::pull_ref::"
+```
+
 ### `commit_link`
   _**[optional]**_<br />
   **default**: None

@@ -46,6 +46,7 @@ class BaseWriter:
         self.dry_run = dry_run
         self.issue_link = context.config.issue_link
         self.commit_link = context.config.commit_link
+        self.pull_link = context.config.pull_link
 
     @timer
     def add_version(self: t.Self, version: str) -> None:
@@ -150,7 +151,11 @@ class MdWriter(BaseWriter):
         if self.commit_link and change.commit_hash:
             line = f"{line} [[{change.short_hash}]({self.commit_link})]"
 
+        if self.pull_link and change.pull_ref:
+            line = f"{line} [[{change.pull_ref}]({self.pull_link})]"
+
         line = line.replace("::issue_ref::", change.issue_ref)
+        line = line.replace("::pull_ref::", change.pull_ref)
         line = line.replace("::commit_hash::", change.commit_hash)
 
         self.content.append(line)
@@ -204,6 +209,10 @@ class RstWriter(BaseWriter):
         if self.commit_link and change.commit_hash:
             line = f"{line} [`{change.short_hash}`_]"
             self._links[f"{change.short_hash}"] = self.commit_link.replace("::commit_hash::", change.commit_hash)
+
+        if self.pull_link and change.pull_ref:
+            line = f"{line} [`{change.pull_ref}`_]"
+            self._links[f"{change.pull_ref}"] = self.pull_link.replace("::pull_ref::", change.pull_ref)
 
         self.content.extend([line, ""])
 

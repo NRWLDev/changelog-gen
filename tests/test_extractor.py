@@ -315,6 +315,7 @@ Refs: #1
                 short_hash=hashes[0][:7],
                 commit_hash=hashes[0],
                 commit_type="fix",
+                pull_ref="20",
             ),
         },
     }
