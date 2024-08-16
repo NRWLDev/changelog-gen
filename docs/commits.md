@@ -37,6 +37,11 @@ Optional footers that are parsed by `changelog-gen` are:
 * `BREAKING CHANGE:[ details]`
 * `Refs: [#]<issue_ref>`
 * `Authors: (<author>, ...)`
+* `closes #<issue_ref>`
+
+Note: The `closes #<issue_ref>` footed is included as a convenience for anyone
+using github and using PR title/description for the commit message to remove
+the need to also add a `Refs:` footer.
 
 ## Breaking changes
 

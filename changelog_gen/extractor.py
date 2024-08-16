@@ -107,6 +107,7 @@ class ChangeExtractor:
                 for line in details.split("\n"):
                     for target, pattern in [
                         ("issue_ref", r"Refs: #?([\w-]+)"),
+                        ("issue_ref", r"closes #([\w-]+)"),  # support github closes footer
                         ("authors", r"Authors: (.*)"),
                     ]:
                         m = re.match(pattern, line)
