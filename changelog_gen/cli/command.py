@@ -298,21 +298,15 @@ def _gen(  # noqa: PLR0913, C901, PLR0915
 
     process_info(git.get_current_info(), context, dry_run=dry_run)
 
-    current = cfg.current_version
-    if current == "":
-        # Fetch from bumpversion until deprecated
-        version_info_ = bv.get_version_info("patch")
-        current = str(version_info_["current"])
-
     e = extractor.ChangeExtractor(context=context, git=git, dry_run=dry_run, include_all=include_all)
-    sections = e.extract(current)
+    sections = e.extract()
 
     unique_issues = e.unique_issues(sections)
     if not unique_issues and cfg.reject_empty:
         context.error("No changes present and reject_empty configured.")
         raise typer.Exit(code=0)
 
-    semver = extractor.extract_semver(sections, context, current)
+    semver = extractor.extract_semver(sections, context)
     semver = version_part or semver
 
     version_info_ = bv.get_version_info(semver)
@@ -341,9 +335,9 @@ def _gen(  # noqa: PLR0913, C901, PLR0915
         changelog_path = w.write()
         return [changelog_path]
 
-    def release_hook(_context: Context, current_version: Version, new_version: Version) -> list[str]:
+    def release_hook(_context: Context, _current_version: Version, new_version: Version) -> list[str]:
         if cfg.release:
-            return bv.replace(current_version, new_version)
+            return bv.replace(new_version)
         return []
 
     hooks = [release_hook, changelog_hook]
@@ -379,7 +373,7 @@ def _gen(  # noqa: PLR0913, C901, PLR0915
             hook_paths = hook(context, current, new)
             paths.extend(hook_paths)
 
-        git.commit(str(current), str(new), version_tag, paths)
+        git.commit(context.config.current_version, str(new), version_tag, paths)
         processed = True
 
     post_process = cfg.post_process

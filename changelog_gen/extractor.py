@@ -136,11 +136,11 @@ class ChangeExtractor:
                 self.context.debug("  Skipping commit log (not conventional): %s", log.strip())
 
     @timer
-    def extract(self: t.Self, current_version: str) -> SectionDict:
+    def extract(self: t.Self) -> SectionDict:
         """Iterate over release note files extracting sections and issues."""
         sections = defaultdict(dict)
 
-        self._extract_commit_logs(sections, current_version)
+        self._extract_commit_logs(sections, self.context.config.current_version)
 
         return sections
 
@@ -161,7 +161,6 @@ class ChangeExtractor:
 def extract_semver(
     sections: SectionDict,
     context: Context,
-    current: str,
 ) -> str:
     """Extract detected semver from commit logs.
 
@@ -185,7 +184,7 @@ def extract_semver(
                 semver = "major"
                 context.info("'%s' change detected from breaking issue '%s'", semver, issue.commit_type)
 
-    if current.startswith("0.") and semver != "patch":
+    if context.config.current_version.startswith("0.") and semver != "patch":
         # If currently on 0.X releases, downgrade semver by one, major -> minor etc.
         idx = semvers.index(semver)
         new_ = semvers[max(idx - 1, 0)]

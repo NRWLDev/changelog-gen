@@ -439,25 +439,7 @@ def test_generate_creates_release(
 
     assert result.exit_code == 0
     assert mock_git.commit.call_args == mock.call("0.0.0", "0.0.1", "v0.0.1", ["pyproject.toml", "CHANGELOG.md"])
-    assert mock_bump.replace.call_args == mock.call(versions["current"], versions["new"])
-
-
-@pytest.mark.usefixtures("changelog", "_conventional_commits")
-def test_generate_creates_release_bump_version(
-    cli_runner,
-    monkeypatch,
-    mock_git,
-    mock_bump,
-    versions,
-    config_factory,
-):
-    config_factory(use_bump=True)
-    monkeypatch.setattr(typer, "confirm", mock.MagicMock(return_value=True))
-    result = cli_runner.invoke(["generate", "--commit", "--release"])
-
-    assert result.exit_code == 0
-    assert mock_git.commit.call_args == mock.call("0.0.0", "0.0.1", "v0.0.1", ["pyproject.toml", "CHANGELOG.md"])
-    assert mock_bump.replace.call_args == mock.call(versions["current"], versions["new"])
+    assert mock_bump.replace.call_args == mock.call(versions["new"])
 
 
 @pytest.mark.usefixtures("changelog", "_conventional_commits")

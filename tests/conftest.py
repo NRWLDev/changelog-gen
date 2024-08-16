@@ -33,10 +33,9 @@ def git_repo(git_repo):
 
 @pytest.fixture()
 def config_factory(cwd):
-    def factory(*, use_bump=False, **config):
+    def factory(**config):
         p = cwd / "pyproject.toml"
-        if not use_bump:
-            config["current_version"] = "0.0.0"
+        config["current_version"] = "0.0.0"
 
         data = {
             "tool": {
