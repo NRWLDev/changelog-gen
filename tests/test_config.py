@@ -35,12 +35,14 @@ def _empty_config(config_factory):
 def test_read_handles_missing_file(cwd):
     p = cwd / "pyproject.toml"
     p.unlink()
-    assert config.read() == config.Config()
+    with pytest.raises(errors.ChangelogException):
+        config.read()
 
 
 @pytest.mark.usefixtures("_empty_config")
 def test_read_handles_empty_file():
-    assert config.read() == config.Config()
+    with pytest.raises(errors.ChangelogException):
+        config.read()
 
 
 class TestPyprojectToml:
@@ -63,6 +65,7 @@ class TestPyprojectToml:
         config_factory(
             f"""
 [tool.changelog_gen]
+current_version = "0.0.0"
 {value}
 """,
         )
@@ -74,6 +77,7 @@ class TestPyprojectToml:
         config_factory(
             """
 [tool.changelog_gen]
+current_version = "0.0.0"
 issue_link = "https://github.com/NRWLDev/changelog-gen/issues/::issue_ref::"
 """,
         )
@@ -85,6 +89,7 @@ issue_link = "https://github.com/NRWLDev/changelog-gen/issues/::issue_ref::"
         config_factory(
             """
 [tool.changelog_gen]
+current_version = "0.0.0"
 allowed_branches = [
     "main",
     "feature/11",
@@ -98,6 +103,8 @@ allowed_branches = [
     def test_read_picks_custom_config(self, config_factory):
         config_factory(
             """
+[tool.changelog_gen]
+current_version = "0.0.0"
 [tool.changelog_gen.custom]
 key = "value"
 key2 = "value2"
@@ -115,6 +122,8 @@ custom_list = ["one", "two"]
     def test_read_picks_up_commit_types(self, config_factory):
         config_factory(
             """
+[tool.changelog_gen]
+current_version = "0.0.0"
 [tool.changelog_gen.commit_types]
 bug.header = "Bug fixes"
 docs.header = "Documentation"
@@ -167,6 +176,7 @@ class TestPostProcessConfig:
         config_factory(
             """
 [tool.changelog_gen]
+current_version = "0.0.0"
 release = true
         """,
         )
@@ -178,6 +188,7 @@ release = true
         config_factory(
             """
 [tool.changelog_gen]
+current_version = "0.0.0"
 issue_link = "https://fake_rest_api/::issue_ref::"
 """,
         )
@@ -189,6 +200,7 @@ issue_link = "https://fake_rest_api/::issue_ref::"
         config_factory(
             """
 [tool.changelog_gen]
+current_version = "0.0.0"
 commit_link = "https://fake_rest_api/::commit_hash::"
 """,
         )
@@ -199,6 +211,8 @@ commit_link = "https://fake_rest_api/::commit_hash::"
     def test_read_picks_up_post_process_config_pyproject(self, config_factory):
         config_factory(
             """
+[tool.changelog_gen]
+current_version = "0.0.0"
 [tool.changelog_gen.post_process]
 url = "https://fake_rest_api/::commit_hash::"
 verb = "PUT"
@@ -230,6 +244,7 @@ headers."content-type" = "application/json"
         config_factory(
             f"""
 [tool.changelog_gen]
+current_version = "0.0.0"
 {config_value}
         """,
         )
@@ -242,6 +257,8 @@ headers."content-type" = "application/json"
     def test_read_picks_up_post_process_override(self, config_factory):
         config_factory(
             """
+[tool.changelog_gen]
+current_version = "0.0.0"
 [tool.changelog_gen.post_process]
 url = "https://initial/::issue_ref::"
 auth_env = "INITIAL"
@@ -261,6 +278,7 @@ auth_env = "INITIAL"
         config_factory(
             """
 [tool.changelog_gen]
+current_version = "0.0.0"
 release = true
 """,
         )
@@ -278,6 +296,8 @@ release = true
     def test_read_ignores_empty_post_process_override(self, config_factory, url, auth_env):
         config_factory(
             """
+[tool.changelog_gen]
+current_version = "0.0.0"
 [tool.changelog_gen.post_process]
 url = "https://initial/::issue_ref::"
 auth_env = "INITIAL"
@@ -296,6 +316,8 @@ auth_env = "INITIAL"
     def test_read_rejects_unknown_fields(self, config_factory):
         config_factory(
             """
+[tool.changelog_gen]
+current_version = "0.0.0"
 [tool.changelog_gen.post_process]
 enabled = false
 """,
@@ -317,8 +339,8 @@ enabled = false
 def test_read_overrides(config_factory, key, value):
     config_factory(
         """
-[bumpversion]
-commit=true
+[tool.changelog_gen]
+current_version = "0.0.0"
 """,
     )
 
@@ -337,7 +359,12 @@ commit=true
     ],
 )
 def test_read_overrides_pyproject(config_factory, key, value):
-    config_factory("")
+    config_factory(
+        """
+[tool.changelog_gen]
+current_version = "0.0.0"
+""",
+    )
 
     c = config.read(**{key: value})
     assert getattr(c, key) == value
@@ -358,7 +385,7 @@ def test_process_overrides_extracts_post_process_values():
 
 
 def test_config_defaults():
-    c = config.Config()
+    c = config.Config(current_version="0.0.0")
     assert c.verbose == 0
     assert c.version_string == "v{new_version}"
     assert c.allowed_branches == []
@@ -440,6 +467,7 @@ def test_commit_type():
 
 def test_strict_validation():
     config.Config(
+        current_version="0.0.0",
         strict=True,
         parser="""(?x)
 (?P<major>0|[1-9]\\d*)\\.
@@ -462,6 +490,7 @@ def test_strict_validation():
 def test_strict_validation_bad_parser():
     with pytest.raises(errors.UnsupportedParserError, match="major.minor.patch, pattern required at minimum."):
         config.Config(
+            current_version="0.0.0",
             strict=True,
             parser="""(?x)
     (?P<major>0|[1-9]\\d*)\\.
@@ -473,6 +502,7 @@ def test_strict_validation_bad_parser():
 def test_strict_validation_bad_parser_order():
     with pytest.raises(errors.UnsupportedParserError, match="major.minor.patch, pattern order required."):
         config.Config(
+            current_version="0.0.0",
             strict=True,
             parser="""(?x)
     (?P<major>0|[1-9]\\d*)\\.
@@ -488,6 +518,7 @@ def test_strict_validation_incomplete_serialiser():
         match="Not all parsed components handled by a serialiser, missing {'build'}.",
     ):
         config.Config(
+            current_version="0.0.0",
             strict=True,
             parser="""(?x)
     (?P<major>0|[1-9]\\d*)\\.
@@ -522,6 +553,7 @@ def test_strict_validation_bad_serialiser(serialiser):
         match=f"{serialiser} generates non SemVer 2.0.0 version string.",
     ):
         config.Config(
+            current_version="0.0.0",
             strict=True,
             parser="""(?x)
     (?P<major>0|[1-9]\\d*)\\.

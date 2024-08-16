@@ -26,7 +26,7 @@ from changelog_gen.cli import util
 from changelog_gen.context import Context
 from changelog_gen.util import timer
 from changelog_gen.vcs import Git
-from changelog_gen.version import BumpVersion, Version
+from changelog_gen.version import BumpVersion
 
 try:
     from changelog_gen.post_processor import per_issue_post_process
@@ -111,7 +111,7 @@ def init(
 
     Detect and raise if a CHANGELOG already exists, if not create a new file.
     """
-    context = Context(config.Config(), verbose)
+    context = Context(config.Config(current_version="0.0.0"), verbose)
     extension = util.detect_extension()
     if extension is not None:
         context.error("CHANGELOG.%s detected.", extension.value)
@@ -298,21 +298,15 @@ def _gen(  # noqa: PLR0913, C901, PLR0915
 
     process_info(git.get_current_info(), context, dry_run=dry_run)
 
-    current = cfg.current_version
-    if current == "":
-        # Fetch from bumpversion until deprecated
-        version_info_ = bv.get_version_info("patch")
-        current = str(version_info_["current"])
-
     e = extractor.ChangeExtractor(context=context, git=git, dry_run=dry_run, include_all=include_all)
-    sections = e.extract(current)
+    sections = e.extract()
 
     unique_issues = e.unique_issues(sections)
     if not unique_issues and cfg.reject_empty:
         context.error("No changes present and reject_empty configured.")
         raise typer.Exit(code=0)
 
-    semver = extractor.extract_semver(sections, context, current)
+    semver = extractor.extract_semver(sections, context)
     semver = version_part or semver
 
     version_info_ = bv.get_version_info(semver)
@@ -337,13 +331,13 @@ def _gen(  # noqa: PLR0913, C901, PLR0915
     context.error(changes) if not yes else context.warning(changes)
     w.content = changes.split("\n")[2:-2]
 
-    def changelog_hook(_context: Context, _current_version: Version, _new_version: Version) -> list[str]:
+    def changelog_hook(_context: Context, _new_version: str) -> list[str]:
         changelog_path = w.write()
         return [changelog_path]
 
-    def release_hook(_context: Context, current_version: Version, new_version: Version) -> list[str]:
+    def release_hook(_context: Context, new_version: str) -> list[str]:
         if cfg.release:
-            return bv.replace(current_version, new_version)
+            return bv.replace(new_version)
         return []
 
     hooks = [release_hook, changelog_hook]
@@ -376,10 +370,10 @@ def _gen(  # noqa: PLR0913, C901, PLR0915
     ):
         paths = []
         for hook in hooks:
-            hook_paths = hook(context, current, new)
+            hook_paths = hook(context, new)
             paths.extend(hook_paths)
 
-        git.commit(str(current), str(new), version_tag, paths)
+        git.commit(current, new, version_tag, paths)
         processed = True
 
     post_process = cfg.post_process

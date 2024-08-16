@@ -84,7 +84,7 @@ STRICT_VALIDATOR = re.compile(
 class Config:
     """Changelog configuration options."""
 
-    current_version: str = ""
+    current_version: str
     parser: t.Pattern = r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"
     serialisers: list[str] = dataclasses.field(default_factory=lambda: ["{major}.{minor}.{patch}"])
     parts: dict[str, list[str]] = dataclasses.field(default_factory=dict)
@@ -223,7 +223,7 @@ def check_deprecations(cfg: dict) -> None:  # noqa: ARG001
 
 
 @timer
-def read(path: str = "pyproject.toml", **kwargs) -> Config:
+def read(path: str = "pyproject.toml", **kwargs) -> Config:  # noqa: C901
     """Read configuration from local environment.
 
     Supported configuration locations (checked in order):
@@ -234,9 +234,12 @@ def read(path: str = "pyproject.toml", **kwargs) -> Config:
 
     pyproject = Path(path)
 
-    if pyproject.exists():
-        # parse pyproject
-        cfg = _process_pyproject(pyproject)
+    if not pyproject.exists():
+        msg = "pyproject.toml configuration missing."
+        raise errors.ChangelogException(msg)
+
+    # parse pyproject
+    cfg = _process_pyproject(pyproject)
 
     if "post_process" not in cfg and post_process:
         cfg["post_process"] = {
@@ -279,4 +282,8 @@ def read(path: str = "pyproject.toml", **kwargs) -> Config:
             msg = f"Failed to create post_process: {e!s}"
             raise RuntimeError(msg) from e
 
-    return Config(**cfg)
+    try:
+        return Config(**cfg)
+    except TypeError as e:
+        msg = "Invalid configuration."
+        raise errors.ChangelogException(msg) from e

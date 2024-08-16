@@ -15,7 +15,6 @@ from changelog_gen import errors
 from changelog_gen.cli import command
 from changelog_gen.config import PostProcessConfig
 from changelog_gen.context import Context
-from changelog_gen.version import Version
 
 
 @pytest.fixture(autouse=True)
@@ -43,8 +42,8 @@ def mock_git(monkeypatch):
 @pytest.fixture()
 def versions():
     return {
-        "current": Version("0.0.0", mock.Mock()),
-        "new": Version("0.0.1", mock.Mock()),
+        "current": "0.0.0",
+        "new": "0.0.1",
     }
 
 
@@ -439,25 +438,7 @@ def test_generate_creates_release(
 
     assert result.exit_code == 0
     assert mock_git.commit.call_args == mock.call("0.0.0", "0.0.1", "v0.0.1", ["pyproject.toml", "CHANGELOG.md"])
-    assert mock_bump.replace.call_args == mock.call(versions["current"], versions["new"])
-
-
-@pytest.mark.usefixtures("changelog", "_conventional_commits")
-def test_generate_creates_release_bump_version(
-    cli_runner,
-    monkeypatch,
-    mock_git,
-    mock_bump,
-    versions,
-    config_factory,
-):
-    config_factory(use_bump=True)
-    monkeypatch.setattr(typer, "confirm", mock.MagicMock(return_value=True))
-    result = cli_runner.invoke(["generate", "--commit", "--release"])
-
-    assert result.exit_code == 0
-    assert mock_git.commit.call_args == mock.call("0.0.0", "0.0.1", "v0.0.1", ["pyproject.toml", "CHANGELOG.md"])
-    assert mock_bump.replace.call_args == mock.call(versions["current"], versions["new"])
+    assert mock_bump.replace.call_args == mock.call(versions["new"])
 
 
 @pytest.mark.usefixtures("changelog", "_conventional_commits")
@@ -531,7 +512,7 @@ def test_generate_handles_invalid_hooks(
     assert "Invalid hook" in result.output
 
 
-def hook(_ctx, _current, _new):
+def hook(_ctx, _new):
     return ["test_path"]
 
 

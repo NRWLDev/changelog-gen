@@ -7,8 +7,8 @@ release. A good example of this could be regenerating automated docstring
 documentation.
 
 The hook function format is relatively simple, it takes in the current context,
-as well as the current and new version objects, and must return a list of the
-files, if any, that were modified. The version objects are provided to allow
+as well as the new version string, and must return a list of the
+files, if any, that were modified. The new version is provided to allow
 using the values as parameters if required. The context object provides
 messaging ability as well as access to the current config object.
 
@@ -16,7 +16,7 @@ messaging ability as well as access to the current config object.
 from changelog_gen.context import Context
 from changelog_gen.version import Version
 
-def my_hook(context: Context, current: Version, new: Version) -> list[str]:
+def my_hook(context: Context, new: str) -> list[str]:
     # Perform desired operation
 
     context.error("Display something to the user.")
@@ -38,7 +38,9 @@ based on current verbosity settings.
 * info: Display for -vv verbosity or higher
 * debug: Display for -vvv verbosity or higher
 
-The above methods accept a % format string, and `*args`. i.e. `context.error("Hello, %s", "world")`.
+The above methods accept a % format string, and `*args`. i.e.
+`context.error("Hello, %s", "world")`.  To access the current version, extract
+it from `context.config.current_version`.
 
 ### Configuration
 
@@ -63,7 +65,7 @@ from changelog_gen.context import Context
 from changelog_gen.version import Version
 
 
-def hook(context: Context, _current: Version, _new: Version) -> list[str]:
+def hook(context: Context, _new: str) -> list[str]:
     output_dir = Path("./docs")
     modules = ["module_name"]
     context = pdoc.Context()

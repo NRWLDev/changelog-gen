@@ -11,7 +11,7 @@ from changelog_gen.vcs import Git
 
 @pytest.fixture()
 def context():
-    return Context(Config())
+    return Context(Config(current_version="0.0.0"))
 
 
 @pytest.fixture()
