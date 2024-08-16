@@ -94,6 +94,7 @@ class Config:
     verbose: int = 0
 
     issue_link: str | None = None
+    pull_link: str | None = None
     commit_link: str | None = None
     date_format: str | None = None
     version_string: str = "v{new_version}"
@@ -257,6 +258,7 @@ def read(path: str = "pyproject.toml", **kwargs) -> Config:  # noqa: C901
 
     for replace_key_path in [
         ("issue_link",),
+        ("pull_link",),
         ("commit_link",),
         ("post_process", "url"),
         ("post_process", "body"),
@@ -268,7 +270,7 @@ def read(path: str = "pyproject.toml", **kwargs) -> Config:  # noqa: C901
                 data = data[key]
 
         # check for non supported replace keys
-        supported = {"::issue_ref::", "::version::", "::commit_hash::"}
+        supported = {"::issue_ref::", "::version::", "::commit_hash::", "::pull_ref::"}
         unsupported = sorted(set(re.findall(r"(::.*?::)", str(value)) or []) - supported)
         if unsupported:
             msg = f"""Replace string(s) ('{"', '".join(unsupported)}') not supported."""

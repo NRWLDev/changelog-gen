@@ -20,6 +20,7 @@ class Change:  # noqa: D101
 
     short_hash: str = ""
     commit_hash: str = ""
+    pull_ref: str = ""
     authors: str = ""
     scope: str = ""
     breaking: bool = False
@@ -77,8 +78,12 @@ class ChangeExtractor:
                 scope = (m[2] or "").replace("(", "(`").replace(")", "`)")
                 breaking = m[3] is not None
                 description = m[4].strip()
-                # Strip githubs additional link information from description.
-                description = re.sub(r" \(#\d+\)$", "", description)
+                prm = re.search(r"\(#\d+\)$", description)
+                pull_ref = ""
+                if prm is not None:
+                    # Strip githubs additional link information from description.
+                    description = re.sub(r" \(#\d+\)$", "", description)
+                    pull_ref = prm.group()[2:-1]
                 details = m[5] or ""
 
                 # Handle missing refs in commit message, skip link generation in writer
@@ -102,6 +107,7 @@ class ChangeExtractor:
                     short_hash=short_hash,
                     commit_hash=commit_hash,
                     commit_type=commit_type,
+                    pull_ref=pull_ref,
                 )
 
                 for line in details.split("\n"):
@@ -109,6 +115,7 @@ class ChangeExtractor:
                         ("issue_ref", r"Refs: #?([\w-]+)"),
                         ("issue_ref", r"closes #([\w-]+)"),  # support github closes footer
                         ("authors", r"Authors: (.*)"),
+                        ("pull_ref", r"PR: #?([\w-]+)"),
                     ]:
                         m = re.match(pattern, line)
                         if m:

@@ -270,6 +270,22 @@ class TestMdWriter:
 
         assert w.content == ["- line"]
 
+    def test_add_section_line_with_pull_link(self, changelog_md):
+        ctx = Context(Config(current_version="0.0.0", pull_link="http://url/pulls/::pull_ref::"))
+        w = writer.MdWriter(changelog_md, ctx)
+
+        w._add_section_line("line", Change("__1__", "line", "fix", pull_ref="20"))
+
+        assert w.content == ["- line [[20](http://url/pulls/20)]"]
+
+    def test_add_section_line_with_pull_link_ignores_null_pull_ref(self, changelog_md):
+        ctx = Context(Config(current_version="0.0.0", pull_link="http://url/pulls/::pull_ref::"))
+        w = writer.MdWriter(changelog_md, ctx)
+
+        w._add_section_line("line", Change("__1__", "line", "fix"))
+
+        assert w.content == ["- line"]
+
     def test_write_dry_run_doesnt_write_to_file(self, changelog_md, ctx):
         w = writer.MdWriter(changelog_md, ctx, dry_run=True)
         w.add_version("0.0.1")
@@ -477,6 +493,26 @@ header
 
     def test_add_section_line_with_commit_link_ignores_null_commit_hash(self, changelog_rst):
         ctx = Context(Config(current_version="0.0.0", commit_link="http://url/commit/::commit_hash::"))
+        w = writer.RstWriter(changelog_rst, ctx)
+
+        w._add_section_line("line", Change("__1__", "line", "fix"))
+
+        assert w.content == ["* line", ""]
+        assert w._links == {}
+        assert w.links == []
+
+    def test_add_section_line_with_pull_link(self, changelog_rst):
+        ctx = Context(Config(current_version="0.0.0", pull_link="http://url/pulls/::pull_ref::"))
+        w = writer.RstWriter(changelog_rst, ctx)
+
+        w._add_section_line("line", Change("__1__", "line", "fix", pull_ref="20"))
+
+        assert w.content == ["* line [`20`_]", ""]
+        assert w._links == {"20": "http://url/pulls/20"}
+        assert w.links == [".. _`20`: http://url/pulls/20"]
+
+    def test_add_section_line_with_pull_link_ignores_null_pull_ref(self, changelog_rst):
+        ctx = Context(Config(current_version="0.0.0", pull_link="http://url/pulls/::pull_ref::"))
         w = writer.RstWriter(changelog_rst, ctx)
 
         w._add_section_line("line", Change("__1__", "line", "fix"))

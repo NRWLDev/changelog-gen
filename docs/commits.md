@@ -36,12 +36,16 @@ Optional footers that are parsed by `changelog-gen` are:
 
 * `BREAKING CHANGE:[ details]`
 * `Refs: [#]<issue_ref>`
+* `PR: [#]<pull_ref>`
 * `Authors: (<author>, ...)`
-* `closes #<issue_ref>`
 
-Note: The `closes #<issue_ref>` footed is included as a convenience for anyone
-using github and using PR title/description for the commit message to remove
-the need to also add a `Refs:` footer.
+### Github support
+
+Github makes use of `closes #<issue_ref>` to close an issue when merged, this
+is supported as a footer to extract the `issue_ref`. Github also inserts
+`(#<pull_ref)` into merge request titles, if you make use of the
+title/description when merging, this format will also be used to extract the
+`pull_ref` so there is no need to use the `PR: <pull_ref>` footer.
 
 ## Breaking changes
 
