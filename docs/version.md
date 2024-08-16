@@ -41,6 +41,7 @@ serialisers, and any custom components (non incrementing integers).
 
 ```toml
 [tool.changelog_gen]
+current_version = "0.0.0"
 pre_release = true
 parser = '''(?x)
     (?P<major>0|[1-9]\d*)\.
