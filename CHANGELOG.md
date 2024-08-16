@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.11.13 - 2024-08-16
+
+### Bug fixes
+
+- Pass context object to hooks to expose output methods and configuration. [[bc37854](https://github.com/NRWLDev/changelog-gen/commit/bc37854c9fb4c81b8042ab5b8e0f1d7c4ff5bb26)]
+
 ## v0.11.12 - 2024-08-15
 
 ### Features and Improvements
