@@ -321,7 +321,9 @@ Refs: #1
 
 
 def test_unique_issues():
-    ctx = Context(Config(commit_types={"bug": CommitType("BugFix"), "feat": CommitType("Features")}))
+    ctx = Context(
+        Config(current_version="0.0.0", commit_types={"bug": CommitType("BugFix"), "feat": CommitType("Features")}),
+    )
     git = mock.Mock()
 
     e = ChangeExtractor(ctx, git)

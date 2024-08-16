@@ -218,8 +218,6 @@ version strings.
   The minimum required configuration to manage versions is the current version,
   which can be moved directly from `[tool.bumpversion]`
 
-  If not provided, `bumpversion` will be used to generate releases.
-
 ```toml
 [tool.changelog_gen]
 current_version = "1.2.3"

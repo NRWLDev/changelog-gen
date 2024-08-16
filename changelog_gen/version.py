@@ -9,13 +9,6 @@ from changelog_gen import errors, parse
 from changelog_gen.util import timer
 
 if t.TYPE_CHECKING:
-    try:
-        from bumpversion.versioning.models import Version as BVVersion
-    except ImportError:  # pragma: no cover
-
-        class BVVersion:
-            """Type check placeholder."""
-
     from changelog_gen.config import Config
 
 logger = logging.getLogger(__name__)
@@ -65,18 +58,6 @@ class ModifyFile:
         return (self.path, backup)
 
 
-@dataclass
-class Version:
-    """Version string container."""
-
-    raw: str
-    tag: BVVersion
-
-    def __str__(self: t.Self) -> str:
-        """Convert version wrapper to string."""
-        return self.raw
-
-
 class BumpVersion:  # noqa: D101
     @timer
     def __init__(self: T, cfg: Config, new: str = "", *, allow_dirty: bool = False, dry_run: bool = False) -> None:
@@ -86,7 +67,7 @@ class BumpVersion:  # noqa: D101
         self.new = new
 
     @timer
-    def get_version_info(self: T, semver: str) -> dict[str, str | Version]:
+    def get_version_info(self: T, semver: str) -> dict[str, str]:
         """Get version info for a semver release."""
         current_version = parse.parse(self.config.parser, self.config.current_version)
         next_version = (
@@ -101,12 +82,12 @@ class BumpVersion:  # noqa: D101
             )
         )
         return {
-            "current": Version(self.config.current_version, None),
-            "new": Version(parse.serialise(self.config.serialisers, next_version), None),
+            "current": self.config.current_version,
+            "new": parse.serialise(self.config.serialisers, next_version),
         }
 
     @timer
-    def replace(self: T, version: Version) -> list[str]:  # noqa: D102
+    def replace(self: T, version: str) -> list[str]:  # noqa: D102
         cwd = Path.cwd()
         files_to_modify = {
             "pyproject.toml": ModifyFile("pyproject.toml", cwd / "pyproject.toml", ['current_version = "{version}"']),
@@ -119,7 +100,7 @@ class BumpVersion:  # noqa: D101
         modified_files = []
         for file in files_to_modify.values():
             try:
-                modified_files.append(file.update(self.config.current_version, version.raw, dry_run=self.dry_run))
+                modified_files.append(file.update(self.config.current_version, version, dry_run=self.dry_run))
             except Exception:  # noqa: PERF203
                 if not self.dry_run:
                     for _original, backup in modified_files:

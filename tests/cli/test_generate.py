@@ -15,7 +15,6 @@ from changelog_gen import errors
 from changelog_gen.cli import command
 from changelog_gen.config import PostProcessConfig
 from changelog_gen.context import Context
-from changelog_gen.version import Version
 
 
 @pytest.fixture(autouse=True)
@@ -43,8 +42,8 @@ def mock_git(monkeypatch):
 @pytest.fixture()
 def versions():
     return {
-        "current": Version("0.0.0", mock.Mock()),
-        "new": Version("0.0.1", mock.Mock()),
+        "current": "0.0.0",
+        "new": "0.0.1",
     }
 
 
@@ -513,7 +512,7 @@ def test_generate_handles_invalid_hooks(
     assert "Invalid hook" in result.output
 
 
-def hook(_ctx, _current, _new):
+def hook(_ctx, _new):
     return ["test_path"]
 
 

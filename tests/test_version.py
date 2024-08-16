@@ -5,13 +5,10 @@ from changelog_gen.config import Config, read
 
 
 @pytest.fixture()
-def cfg():
-    return Config()
-
-
-@pytest.fixture()
 def config_factory():
     def factory(**kwargs):
+        if "current_version" not in kwargs:
+            kwargs["current_version"] = "0.0.0"
         return Config(**kwargs)
 
     return factory
@@ -72,8 +69,8 @@ class TestInHouse:
         cfg = config_factory(current_version="0.0.0")
 
         assert version.BumpVersion(cfg, new="1.2.3").get_version_info("patch") == {
-            "current": version.Version("0.0.0", None),
-            "new": version.Version("1.2.3", None),
+            "current": "0.0.0",
+            "new": "1.2.3",
         }
 
     @pytest.mark.parametrize(
@@ -90,8 +87,8 @@ class TestInHouse:
         cfg = config_factory(current_version=current_version)
 
         assert version.BumpVersion(cfg).get_version_info(semver) == {
-            "current": version.Version(current_version, None),
-            "new": version.Version(new_version, None),
+            "current": current_version,
+            "new": new_version,
         }
 
     @pytest.mark.parametrize(
@@ -130,8 +127,8 @@ class TestInHouse:
         )
 
         assert version.BumpVersion(cfg).get_version_info(semver) == {
-            "current": version.Version(current_version, None),
-            "new": version.Version(new_version, None),
+            "current": current_version,
+            "new": new_version,
         }
 
     def test_replace(self, cwd):
@@ -151,7 +148,7 @@ pattern = 'version = "{version}"'
         )
         cfg = read(str(p))
 
-        new = version.Version("1.2.3", None)
+        new = "1.2.3"
         version.BumpVersion(cfg).replace(new)
         with p.open() as f:
             assert (
@@ -184,7 +181,7 @@ pattern = 'version = "{version}"'
         p.write_text(content)
         cfg = read(str(p))
 
-        new = version.Version("1.2.3", None)
+        new = "1.2.3"
         version.BumpVersion(cfg, dry_run=True).replace(new)
         with p.open() as f:
             assert f.read() == content
@@ -211,7 +208,7 @@ pattern = 'version = "{version}"'
         p.write_text(content)
         cfg = read(str(p))
 
-        new = version.Version("1.2.3", None)
+        new = "1.2.3"
         with pytest.raises(errors.VersionError):
             version.BumpVersion(cfg).replace(new)
 
@@ -241,7 +238,7 @@ pattern = 'version = "{version}"'
         p.write_text(content)
         cfg = read(str(p))
 
-        new = version.Version("1.2.3", None)
+        new = "1.2.3"
         with pytest.raises(errors.VersionError):
             version.BumpVersion(cfg, dry_run=True).replace(new)
 
@@ -275,6 +272,6 @@ filename = "nested/README.md"
         r = p / "README.md"
         r.write_text("Hello 0.0.0")
 
-        new = version.Version("1.2.3", None)
+        new = "1.2.3"
         files = version.BumpVersion(cfg).replace(new)
         assert files == ["nested/README.md", "pyproject.toml"]
