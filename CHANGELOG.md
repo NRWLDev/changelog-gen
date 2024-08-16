@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.11.14 - 2024-08-16
+
+### Features and Improvements
+
+- Add support for github `closes #X` footer in commit messages to extract issue_ref. [[#27](https://github.com/NRWLDev/changelog-gen/issues/27)] [[cd577a5](https://github.com/NRWLDev/changelog-gen/commit/cd577a5b57e43af68a5ef5f73e0a33e7f5366f05)]
+- Add support for arbitrary user configuration for hooks [[#29](https://github.com/NRWLDev/changelog-gen/issues/29)] [[d5f2987](https://github.com/NRWLDev/changelog-gen/commit/d5f2987fa58c04f8b5d837515c77d3c9897c0a86)]
+
 ## v0.11.13 - 2024-08-16
 
 ### Bug fixes
