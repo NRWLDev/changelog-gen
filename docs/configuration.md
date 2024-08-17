@@ -167,20 +167,37 @@ allowed_branches = [
   _**[optional]**_<br />
   **default**: None
 
-  Provide new commit types and which headers and semver component in the
-  changelog they should map to, default semver is `patch`. Partial overrides to
-  the built in commit types can also be provided.
+  Provide new commit types to support, along with the header to group them under
+  All custom types will default to `patch` semver as well, to configure
+  additional types to be treated as `minor` see
+  [minor_regex](https://nrwldev.github.io/changelog-gen/configuration/#minor_regex)
 
   Example:
 
 ```toml
-[tool.changelog_gen.commit_types]
-feat.header = "New Features"
-feat.semver = "minor"
-change.header = "Changes"
-remove.header = "Removals"
-remove.semver = "minor"
-fix.header = "Bugfixes"
+[tool.changelog_gen]
+commit_types = [
+    {"type" = "feat", "header" = "New Features"},
+    {"type" = "change", "header" = "Changes"},
+    {"type" = "remove", "header" = "Removals"},
+    {"type" = "fix", "header" = "Bugfixes"},
+]
+```
+
+    Run `changelog config` to see the existing configuration.
+
+### `minor_regex`
+  _**[optional]**_<br />
+  **default**: None
+
+  Provide a new type match regex for which types should be treated as features
+  and trigger a minor bump.
+
+  Example:
+
+```toml
+[tool.changelog_gen]
+minor_regex = "feat|remove"
 ```
 
     See `changelog config` for the existing configuration.
