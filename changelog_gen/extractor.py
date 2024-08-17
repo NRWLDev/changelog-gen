@@ -3,7 +3,6 @@ from __future__ import annotations
 import dataclasses
 import re
 import typing as t
-from collections import defaultdict
 
 from changelog_gen.util import timer
 
@@ -13,22 +12,44 @@ if t.TYPE_CHECKING:
 
 
 @dataclasses.dataclass
+class Footer:  # noqa: D101
+    footer: str
+    separator: str
+    value: str
+
+
+@dataclasses.dataclass
 class Change:  # noqa: D101
-    issue_ref: str
+    header: str
     description: str
     commit_type: str
 
     short_hash: str = ""
     commit_hash: str = ""
-    pull_ref: str = ""
-    authors: str = ""
     scope: str = ""
     breaking: bool = False
+    footers: list[Footer] = dataclasses.field(default_factory=list)
 
     def __lt__(self: t.Self, other: Change) -> bool:  # noqa: D105
         s = (not self.breaking, self.scope.lower() if self.scope else "zzz", self.issue_ref.lower())
         o = (not other.breaking, other.scope.lower() if other.scope else "zzz", other.issue_ref.lower())
         return s < o
+
+    @property
+    def issue_ref(self: t.Self) -> str:
+        """Extract issue ref from footers."""
+        for footer in self.footers:
+            if footer.footer in ("Refs", "closes"):
+                return footer.value
+        return ""
+
+    @property
+    def authors(self: t.Self) -> str:
+        """Extract authors from footers."""
+        for footer in self.footers:
+            if footer.footer == "Authors":
+                return footer.value
+        return ""
 
 
 SectionDict = dict[str, dict[str, Change]]
@@ -55,11 +76,9 @@ class ChangeExtractor:
         self.context = context
 
     @timer
-    def _extract_commit_logs(
-        self: t.Self,
-        sections: dict[str, dict],
-        current_version: str,
-    ) -> None:
+    def extract(self: t.Self) -> list[Change]:
+        """Iterate over release note files extracting sections and issues."""
+        current_version = self.context.config.current_version
         # find tag from current version
         tag = self.git.find_tag(current_version)
         logs = self.git.get_logs(tag)
@@ -70,24 +89,25 @@ class ChangeExtractor:
         reg = re.compile(rf"^({types})(\([\w\-\.]+\))?(!)?: (.*)([\s\S]*)", re.IGNORECASE)
         self.context.warning("Extracting commit log changes.")
 
-        for i, (short_hash, commit_hash, log) in enumerate(logs):
+        changes = []
+        for short_hash, commit_hash, log in logs:
             m = reg.match(log)
             if m:
                 self.context.debug("  Parsing commit log: %s", log.strip())
+                footers = []
+
                 commit_type = m[1].lower()
                 scope = (m[2] or "").replace("(", "(`").replace(")", "`)")
                 breaking = m[3] is not None
                 description = m[4].strip()
                 prm = re.search(r"\(#\d+\)$", description)
-                pull_ref = ""
                 if prm is not None:
                     # Strip githubs additional link information from description.
                     description = re.sub(r" \(#\d+\)$", "", description)
-                    pull_ref = prm.group()[2:-1]
+                    footers.append(Footer("PR", ": ", prm.group()[1:-1]))
                 details = m[5] or ""
 
                 # Handle missing refs in commit message, skip link generation in writer
-                issue_ref = f"__{i}__"
                 breaking = breaking or "BREAKING CHANGE" in details
 
                 self.context.info("  commit_type: '%s'", commit_type)
@@ -99,74 +119,53 @@ class ChangeExtractor:
                 if breaking:
                     self.context.info("  Breaking change detected:\n    %s: %s", commit_type, description)
 
+                footer_parsers = [
+                    r"(Refs)(: )(#?[\w-]+)",
+                    r"(closes)( )(#[\w-]+)",
+                    r"(Authors)(: )(.*)",
+                ]
+                for line in details.split("\n"):
+                    for parser in footer_parsers:
+                        m = re.match(parser, line)
+                        if m is not None:
+                            self.context.info("  '%s' footer extracted '%s%s%s'", parser, m[1], m[2], m[3])
+                            footers.append(Footer(m[1], m[2], m[3]))
+
+                header = self.type_headers.get(commit_type, commit_type)
                 change = Change(
+                    header=header,
                     description=description,
-                    issue_ref=issue_ref,
                     breaking=breaking,
                     scope=scope,
                     short_hash=short_hash,
                     commit_hash=commit_hash,
                     commit_type=commit_type,
-                    pull_ref=pull_ref,
+                    footers=footers,
                 )
 
-                for line in details.split("\n"):
-                    for target, pattern in [
-                        ("issue_ref", r"Refs: #?([\w-]+)"),
-                        ("issue_ref", r"closes #([\w-]+)"),  # support github closes footer
-                        ("authors", r"Authors: (.*)"),
-                        ("pull_ref", r"PR: #?([\w-]+)"),
-                    ]:
-                        m = re.match(pattern, line)
-                        if m:
-                            self.context.info("  '%s' footer extracted '%s'", target, m[1])
-                            setattr(change, target, m[1])
-
-                header = self.type_headers.get(commit_type, commit_type)
-                sections[header][change.issue_ref] = change
+                changes.append(change)
             elif self.include_all:
                 self.context.debug("  Including non-conventional commit log (include-all): %s", log.strip())
-                issue_ref = f"__{i}__"
+                header = self.type_headers.get("_misc", "_misc")
                 change = Change(
+                    header=header,
                     description=log.strip().split("\n")[0],
-                    issue_ref=issue_ref,
                     breaking=False,
                     scope="",
                     short_hash=short_hash,
                     commit_hash=commit_hash,
                     commit_type="_misc",
                 )
-                header = self.type_headers.get(change.commit_type, change.commit_type)
-                sections[header][change.issue_ref] = change
+                changes.append(change)
 
             else:
                 self.context.debug("  Skipping commit log (not conventional): %s", log.strip())
-
-    @timer
-    def extract(self: t.Self) -> SectionDict:
-        """Iterate over release note files extracting sections and issues."""
-        sections = defaultdict(dict)
-
-        self._extract_commit_logs(sections, self.context.config.current_version)
-
-        return sections
-
-    @timer
-    def unique_issues(self: t.Self, sections: SectionDict) -> list[str]:
-        """Generate unique list of issue references."""
-        issue_refs = set()
-        issue_refs = {
-            issue.issue_ref
-            for issues in sections.values()
-            for issue in issues.values()
-            if issue.commit_type in self.type_headers
-        }
-        return sorted(issue_refs)
+        return changes
 
 
 @timer
 def extract_semver(
-    sections: SectionDict,
+    changes: list[Change],
     context: Context,
 ) -> str:
     """Extract detected semver from commit logs.
@@ -182,14 +181,13 @@ def extract_semver(
     context.indent()
     semvers = ["patch", "minor", "major"]
     semver = "patch"
-    for section_issues in sections.values():
-        for issue in section_issues.values():
-            if semvers.index(semver) < semvers.index(semver_mapping.get(issue.commit_type, "patch")):
-                semver = semver_mapping.get(issue.commit_type, "patch")
-                context.info("'%s' change detected from commit_type '%s'", semver, issue.commit_type)
-            if issue.breaking and semver != "major":
-                semver = "major"
-                context.info("'%s' change detected from breaking issue '%s'", semver, issue.commit_type)
+    for change in changes:
+        if semvers.index(semver) < semvers.index(semver_mapping.get(change.commit_type, "patch")):
+            semver = semver_mapping.get(change.commit_type, "patch")
+            context.info("'%s' change detected from commit_type '%s'", semver, change.commit_type)
+        if change.breaking and semver != "major":
+            semver = "major"
+            context.info("'%s' change detected from breaking change '%s'", semver, change.commit_type)
 
     if context.config.current_version.startswith("0.") and semver != "patch":
         # If currently on 0.X releases, downgrade semver by one, major -> minor etc.
