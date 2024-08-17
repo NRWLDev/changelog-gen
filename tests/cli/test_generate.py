@@ -329,7 +329,10 @@ Write CHANGELOG for suggested version 0.0.1 [y/N]:
 
 @pytest.mark.usefixtures("changelog", "_conventional_commits")
 def test_generate_with_headers(cli_runner, config_factory):
-    config_factory(allow_dirty=True, commit_types={"feat": {"header": "My Features"}, "fix": {"header": "My Fixes"}})
+    config_factory(
+        allow_dirty=True,
+        commit_types=[{"type": "feat", "header": "My Features"}, {"type": "fix", "header": "My Fixes"}],
+    )
     result = cli_runner.invoke(["generate"])
 
     assert result.exit_code == 0

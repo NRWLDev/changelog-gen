@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import dataclasses
-import json
 import re
 import string
 import typing as t
@@ -12,50 +11,18 @@ import rtoml
 from changelog_gen import errors
 from changelog_gen.util import timer
 
-
-@dataclasses.dataclass
-class CommitType:
-    """Represent a supported commit_type."""
-
-    header: str
-    semver: str = "patch"
-
-
 SUPPORTED_TYPES = {
-    "feat": CommitType(
-        header="Features and Improvements",
-        semver="minor",
-    ),
-    "fix": CommitType(
-        header="Bug fixes",
-    ),
-    "bug": CommitType(
-        header="Bug fixes",
-    ),
-    "docs": CommitType(
-        header="Documentation",
-    ),
-    "chore": CommitType(
-        header="Miscellaneous",
-    ),
-    "ci": CommitType(
-        header="Miscellaneous",
-    ),
-    "perf": CommitType(
-        header="Miscellaneous",
-    ),
-    "refactor": CommitType(
-        header="Miscellaneous",
-    ),
-    "revert": CommitType(
-        header="Miscellaneous",
-    ),
-    "style": CommitType(
-        header="Miscellaneous",
-    ),
-    "test": CommitType(
-        header="Miscellaneous",
-    ),
+    "feat": "Features and Improvements",
+    "fix": "Bug fixes",
+    "bug": "Bug fixes",
+    "docs": "Documentation",
+    "chore": "Miscellaneous",
+    "ci": "Miscellaneous",
+    "perf": "Miscellaneous",
+    "refactor": "Miscellaneous",
+    "revert": "Miscellaneous",
+    "style": "Miscellaneous",
+    "test": "Miscellaneous",
 }
 
 
@@ -85,25 +52,13 @@ class Config:
     """Changelog configuration options."""
 
     current_version: str
-    parser: t.Pattern = r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"
-    serialisers: list[str] = dataclasses.field(default_factory=lambda: ["{major}.{minor}.{patch}"])
-    parts: dict[str, list[str]] = dataclasses.field(default_factory=dict)
-    files: dict = dataclasses.field(default_factory=dict)
-    strict: bool = False
-
-    verbose: int = 0
-
-    issue_link: str | None = None
-    pull_link: str | None = None
-    commit_link: str | None = None
-    date_format: str | None = None
-    version_string: str = "v{new_version}"
 
     allowed_branches: list[str] = dataclasses.field(default_factory=list)
-    commit_types: dict[str, CommitType] = dataclasses.field(default_factory=lambda: SUPPORTED_TYPES)
+    commit_types: list[str] = dataclasses.field(default_factory=lambda: list(SUPPORTED_TYPES.keys()))
+    type_headers: dict[str, str] = dataclasses.field(default_factory=lambda: SUPPORTED_TYPES.copy())
 
-    hooks: list[str] = dataclasses.field(default_factory=list)
-
+    # CLI overrides
+    verbose: int = 0
     interactive: bool = True
     release: bool = True
     commit: bool = True
@@ -112,23 +67,34 @@ class Config:
     allow_missing: bool = False
     reject_empty: bool = False
 
+    # Version parsing
+    minor_regex: str = "feat"
+    parser: t.Pattern = r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"
+    serialisers: list[str] = dataclasses.field(default_factory=lambda: ["{major}.{minor}.{patch}"])
+    parts: dict[str, list[str]] = dataclasses.field(default_factory=dict)
+    strict: bool = False
     pre_release: bool = False
     pre_release_components: list[str] | None = None
 
+    # Version bumping
+    files: dict = dataclasses.field(default_factory=dict)
+
+    # Changelog configuration
+    issue_link: str | None = None
+    pull_link: str | None = None
+    commit_link: str | None = None
+    date_format: str | None = None
+    version_string: str = "v{new_version}"
+
+    # Hooks
     post_process: PostProcessConfig | None = None
+    hooks: list[str] = dataclasses.field(default_factory=list)
 
     custom: dict = dataclasses.field(default_factory=dict)
 
     def __post_init__(self: t.Self) -> None:
         """Process parser and validate if strict check enabled."""
         self.parser = re.compile(self.parser)
-        if self.commit_types != SUPPORTED_TYPES:
-            commit_types = {}
-            for k, v in self.commit_types.items():
-                value = json.loads(v) if isinstance(v, str) else v
-                ct = CommitType(**value) if isinstance(value, dict) else value
-                commit_types[k.lower()] = ct
-            self.commit_types = commit_types
 
         if self.strict:
             parts = {component: self.parts.get(component, [0])[0] for component in self.parser.groupindex}
@@ -160,15 +126,15 @@ class Config:
                 msg = f"Not all parsed components handled by a serialiser, missing {missed_keys}."
                 raise errors.UnsupportedSerialiserError(msg)
 
+    def _type_to_semver(self: t.Self, commit_type: str) -> str:
+        if re.match(self.minor_regex, commit_type):
+            return "minor"
+        return "patch"
+
     @property
     def semver_mappings(self: t.Self) -> dict[str, str]:
         """Generate `type: semver` mapping from commit types."""
-        return {ct: c.semver for ct, c in self.commit_types.items()}
-
-    @property
-    def type_headers(self: t.Self) -> dict[str, str]:
-        """Generate `type: header` mapping from commit types."""
-        return {ct: c.header for ct, c in self.commit_types.items()}
+        return {ct: self._type_to_semver(ct) for ct in self.commit_types}
 
     def to_dict(self: Config) -> dict:
         """Convert a Config object to a dictionary of key value pairs."""
@@ -210,9 +176,13 @@ def _process_pyproject(pyproject: Path) -> dict:
         if "tool" not in data or "changelog_gen" not in data["tool"]:
             return cfg
 
-        commit_types = SUPPORTED_TYPES.copy()
-        commit_types.update(data["tool"]["changelog_gen"].get("commit_types", {}))
+        type_headers = SUPPORTED_TYPES.copy()
+        type_headers_ = data["tool"]["changelog_gen"].get("commit_types", {})
+        type_headers.update({v["type"]: v["header"] for v in type_headers_})
+        commit_types = list(type_headers.keys())
+
         data["tool"]["changelog_gen"]["commit_types"] = commit_types
+        data["tool"]["changelog_gen"]["type_headers"] = type_headers
         return data["tool"]["changelog_gen"]
 
 

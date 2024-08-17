@@ -124,50 +124,59 @@ custom_list = ["one", "two"]
             """
 [tool.changelog_gen]
 current_version = "0.0.0"
-[tool.changelog_gen.commit_types]
-bug.header = "Bug fixes"
-docs.header = "Documentation"
-feat.header = "Features and Improvements"
-feat.semver = "minor"
-feature.header = "Features and Improvements"
-feature.semver = "minor"
-Fix.header = "Bug fixes"
-misc.header = "Miscellaneous"
-test.header = "Bug fixes"
+commit_types = [
+    {"type" = "bug", "header" = "Bug Fixes"},
+    {"type" = "feature", "header" = "Features"},
+    {"type" = "Fix", "header" = "Bug Fixes"},
+]
 """,
         )
 
         c = config.read()
-        assert c.commit_types == {
-            "bug": config.CommitType(
-                header="Bug fixes",
-            ),
-            "chore": config.CommitType(header="Miscellaneous", semver="patch"),
-            "ci": config.CommitType(header="Miscellaneous", semver="patch"),
-            "docs": config.CommitType(
-                header="Documentation",
-            ),
-            "feat": config.CommitType(
-                header="Features and Improvements",
-                semver="minor",
-            ),
-            "feature": config.CommitType(
-                header="Features and Improvements",
-                semver="minor",
-            ),
-            "fix": config.CommitType(
-                header="Bug fixes",
-            ),
-            "misc": config.CommitType(
-                header="Miscellaneous",
-            ),
-            "perf": config.CommitType(header="Miscellaneous", semver="patch"),
-            "refactor": config.CommitType(header="Miscellaneous", semver="patch"),
-            "revert": config.CommitType(header="Miscellaneous", semver="patch"),
-            "style": config.CommitType(header="Miscellaneous", semver="patch"),
-            "test": config.CommitType(
-                header="Bug fixes",
-            ),
+        assert c.commit_types == [
+            "feat",
+            "fix",
+            "bug",
+            "docs",
+            "chore",
+            "ci",
+            "perf",
+            "refactor",
+            "revert",
+            "style",
+            "test",
+            "feature",
+            "Fix",
+        ]
+
+    def test_read_picks_up_type_headers(self, config_factory):
+        config_factory(
+            """
+[tool.changelog_gen]
+current_version = "0.0.0"
+commit_types = [
+    {"type" = "bug", "header" = "Bug Fixes"},
+    {"type" = "feature", "header" = "Features"},
+    {"type" = "Fix", "header" = "Bug Fixes"},
+]
+""",
+        )
+
+        c = config.read()
+        assert c.type_headers == {
+            "Fix": "Bug Fixes",
+            "bug": "Bug Fixes",
+            "chore": "Miscellaneous",
+            "ci": "Miscellaneous",
+            "docs": "Documentation",
+            "feat": "Features and Improvements",
+            "feature": "Features",
+            "fix": "Bug fixes",
+            "perf": "Miscellaneous",
+            "refactor": "Miscellaneous",
+            "revert": "Miscellaneous",
+            "style": "Miscellaneous",
+            "test": "Miscellaneous",
         }
 
 
@@ -389,7 +398,8 @@ def test_config_defaults():
     assert c.verbose == 0
     assert c.version_string == "v{new_version}"
     assert c.allowed_branches == []
-    assert c.commit_types == config.SUPPORTED_TYPES
+    assert c.commit_types == list(config.SUPPORTED_TYPES.keys())
+    assert c.type_headers == config.SUPPORTED_TYPES
     assert c.parser == re.compile(r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)")
     assert c.serialisers == ["{major}.{minor}.{patch}"]
     assert c.parts == {}
@@ -457,12 +467,6 @@ def test_post_process_defaults():
         "auth_env",
     ]:
         assert getattr(pp, attr) is None
-
-
-def test_commit_type():
-    ct = config.CommitType("header", "semver")
-    assert ct.header == "header"
-    assert ct.semver == "semver"
 
 
 def test_strict_validation():

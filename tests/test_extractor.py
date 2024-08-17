@@ -4,7 +4,7 @@ from unittest import mock
 import pytest
 
 from changelog_gen import extractor
-from changelog_gen.config import CommitType, Config
+from changelog_gen.config import Config
 from changelog_gen.context import Context
 from changelog_gen.extractor import Change, ChangeExtractor
 from changelog_gen.vcs import Git
@@ -250,10 +250,15 @@ Refs: #2
 
     ctx = Context(
         Config(
-            commit_types={
-                "custom": CommitType("Bug fixes"),
-                "feat": CommitType("Features and Improvements"),
-                "bug": CommitType("Bug fixes"),
+            commit_types=[
+                "custom",
+                "feat",
+                "bug",
+            ],
+            type_headers={
+                "custom": "Bug fixes",
+                "feat": "Features and Improvements",
+                "bug": "Bug fixes",
             },
             current_version="0.0.2",
         ),
@@ -323,7 +328,7 @@ Refs: #1
 
 def test_unique_issues():
     ctx = Context(
-        Config(current_version="0.0.0", commit_types={"bug": CommitType("BugFix"), "feat": CommitType("Features")}),
+        Config(current_version="0.0.0", commit_types=["bug", "feat"]),
     )
     git = mock.Mock()
 
@@ -347,23 +352,24 @@ def test_unique_issues():
 
 
 @pytest.mark.parametrize(
-    ("sections", "commit_types", "expected_semver"),
+    ("sections", "commit_types", "minor_regex", "expected_semver"),
     [
-        ({"header": {"1": Change("1", "desc", "fix")}}, {"feat": CommitType("h", "minor")}, "patch"),
-        ({"header": {"1": Change("1", "desc", "feat")}}, {"feat": CommitType("h", "minor")}, "patch"),
-        ({"header": {"1": Change("1", "desc", "fix", breaking=True)}}, {"feat": CommitType("h", "minor")}, "minor"),
-        ({"header": {"1": Change("1", "desc", "feat", breaking=True)}}, {"feat": CommitType("h", "minor")}, "minor"),
-        ({"header": {"1": Change("1", "desc", "custom")}}, {"custom": CommitType("h", "patch")}, "patch"),
-        ({"header": {"1": Change("1", "desc", "custom")}}, {"custom": CommitType("h", "minor")}, "patch"),
+        ({"header": {"1": Change("1", "desc", "fix")}}, ["feat"], "feat", "patch"),
+        ({"header": {"1": Change("1", "desc", "feat")}}, ["feat"], "feat", "patch"),
+        ({"header": {"1": Change("1", "desc", "fix", breaking=True)}}, ["feat"], "feat", "minor"),
+        ({"header": {"1": Change("1", "desc", "feat", breaking=True)}}, ["feat"], "feat", "minor"),
+        ({"header": {"1": Change("1", "desc", "custom")}}, ["custom"], "feat", "patch"),
+        ({"header": {"1": Change("1", "desc", "custom")}}, ["custom"], "feat|custom", "patch"),
         (
             {"header": {"1": Change("1", "desc", "custom", breaking=True)}},
-            {"custom": CommitType("h", "minor")},
+            ["custom"],
+            "feat|custom",
             "minor",
         ),
     ],
 )
-def test_extract_semver_version_zero(sections, commit_types, expected_semver):
-    ctx = Context(Config(commit_types=commit_types, current_version="0.0.0"))
+def test_extract_semver_version_zero(sections, commit_types, minor_regex, expected_semver):
+    ctx = Context(Config(commit_types=commit_types, current_version="0.0.0", minor_regex=minor_regex))
 
     semver = extractor.extract_semver(sections, ctx)
 
@@ -371,23 +377,24 @@ def test_extract_semver_version_zero(sections, commit_types, expected_semver):
 
 
 @pytest.mark.parametrize(
-    ("sections", "commit_types", "expected_semver"),
+    ("sections", "commit_types", "minor_regex", "expected_semver"),
     [
-        ({"header": {"1": Change("1", "desc", "fix")}}, {"feat": CommitType("h", "minor")}, "patch"),
-        ({"header": {"1": Change("1", "desc", "feat")}}, {"feat": CommitType("h", "minor")}, "minor"),
-        ({"header": {"1": Change("1", "desc", "fix", breaking=True)}}, {"feat": CommitType("h", "minor")}, "major"),
-        ({"header": {"1": Change("1", "desc", "feat", breaking=True)}}, {"feat": CommitType("h", "minor")}, "major"),
-        ({"header": {"1": Change("1", "desc", "custom")}}, {"custom": CommitType("h", "patch")}, "patch"),
-        ({"header": {"1": Change("1", "desc", "custom")}}, {"custom": CommitType("h", "minor")}, "minor"),
+        ({"header": {"1": Change("1", "desc", "fix")}}, ["feat"], "feat", "patch"),
+        ({"header": {"1": Change("1", "desc", "feat")}}, ["feat"], "feat", "minor"),
+        ({"header": {"1": Change("1", "desc", "fix", breaking=True)}}, ["feat"], "feat", "major"),
+        ({"header": {"1": Change("1", "desc", "feat", breaking=True)}}, ["feat"], "feat", "major"),
+        ({"header": {"1": Change("1", "desc", "custom")}}, ["custom"], "feat", "patch"),
+        ({"header": {"1": Change("1", "desc", "custom")}}, ["custom"], "feat|custom", "minor"),
         (
             {"header": {"1": Change("1", "desc", "custom", breaking=True)}},
-            {"custom": CommitType("h", "minor")},
+            ["custom"],
+            "feat|custom",
             "major",
         ),
     ],
 )
-def test_extract_semver(sections, commit_types, expected_semver):
-    ctx = Context(Config(commit_types=commit_types, current_version="1.0.0"))
+def test_extract_semver(sections, commit_types, minor_regex, expected_semver):
+    ctx = Context(Config(commit_types=commit_types, current_version="1.0.0", minor_regex=minor_regex))
 
     semver = extractor.extract_semver(sections, ctx)
 

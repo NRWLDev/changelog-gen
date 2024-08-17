@@ -40,7 +40,6 @@ def config_factory(cwd):
         data = {
             "tool": {
                 "changelog_gen": config,
-                "bumpversion": {"current_version": "0.0.0"},
             },
         }
         with p.open("w") as f:
