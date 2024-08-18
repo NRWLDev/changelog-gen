@@ -465,7 +465,7 @@ header
         assert w.content == ["* (`config`) **Breaking** line (a, b)", ""]
 
     def test_add_section_line_with_links(self, changelog_rst):
-        ctx = Context(Config(current_version="0.0.0", issue_link="http://url/issues/::issue_ref::"))
+        ctx = Context(Config(current_version="0.0.0"))
         w = writer.RstWriter(changelog_rst, ctx)
 
         w._add_section_line(
@@ -482,7 +482,7 @@ header
         assert w.links == [".. _`#1`: http://url/issues/1", ".. _`1234567`: http://url/commit/commit-hash"]
 
     def test_add_section_line_without_links(self, changelog_rst):
-        ctx = Context(Config(current_version="0.0.0", commit_link="http://url/commit/::commit_hash::"))
+        ctx = Context(Config(current_version="0.0.0"))
         w = writer.RstWriter(changelog_rst, ctx)
 
         w._add_section_line(Change("header", "line", "fix"))
@@ -492,7 +492,7 @@ header
         assert w.links == []
 
     def test_str_with_links(self, changelog_rst):
-        ctx = Context(Config(current_version="0.0.0", issue_link="http://url/issues/::issue_ref::"))
+        ctx = Context(Config(current_version="0.0.0"))
         w = writer.RstWriter(changelog_rst, ctx)
 
         w.add_version("0.0.1")
@@ -602,7 +602,7 @@ header
 """,
         )
 
-        ctx = Context(Config(current_version="0.0.0", issue_link="http://url/issues/::issue_ref::"))
+        ctx = Context(Config(current_version="0.0.0"))
         w = writer.RstWriter(changelog_rst, ctx)
         w.add_version("0.0.2")
         w.add_section(

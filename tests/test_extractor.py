@@ -53,6 +53,7 @@ Refs: #1
         "update readme",
         """feat: Detail about 2
 
+Authors: @tom, @edgy
 closes #2
 """,
     ]:
@@ -97,6 +98,7 @@ def test_git_commit_extraction(conventional_commits):
     hashes = conventional_commits
     link_parsers = [
         {"target": "Refs", "pattern": r"#(\d+)$", "link": "https://github.com/NRWLDev/changelog-gen/issues/{0}"},
+        {"target": "Authors", "pattern": r"@(\w+)[, ]?", "link": "https://github.com/{0}", "text": "@{0}"},
         {
             "target": "__change__",
             "link": "https://github.com/NRWLDev/changelog-gen/commit/{0.commit_hash}",
@@ -118,9 +120,12 @@ def test_git_commit_extraction(conventional_commits):
             commit_hash=hashes[5],
             commit_type="feat",
             footers=[
+                Footer("Authors", ": ", "@tom, @edgy"),
                 Footer("closes", " ", "#2"),
             ],
             links=[
+                Link("@tom", "https://github.com/tom"),
+                Link("@edgy", "https://github.com/edgy"),
                 Link(hashes[5][:7], f"https://github.com/NRWLDev/changelog-gen/commit/{hashes[5]}"),
             ],
         ),
@@ -190,6 +195,7 @@ def test_git_commit_extraction_include_all(conventional_commits):
             commit_hash=hashes[5],
             commit_type="feat",
             footers=[
+                Footer("Authors", ": ", "@tom, @edgy"),
                 Footer("closes", " ", "#2"),
             ],
         ),
@@ -277,6 +283,7 @@ def test_git_commit_extraction_handles_random_tags(conventional_commits, multive
             commit_hash=hashes[5],
             commit_type="feat",
             footers=[
+                Footer("Authors", ": ", "@tom, @edgy"),
                 Footer("closes", " ", "#2"),
             ],
         ),

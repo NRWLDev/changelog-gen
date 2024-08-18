@@ -72,48 +72,6 @@ filename = "README.md"
 
   Also available as `--reject-empty` (e.g. `changelog generate --reject-empty`)
 
-### `issue_link`
-  _**[optional]**_<br />
-  **default**: None
-
-  Create links in the CHANGELOG to the originating issue. A url that contains
-  an `issue_ref` placeholder for replacement.
-
-  Example:
-
-```toml
-[tool.changelog_gen]
-issue_link = "http://github.com/NRWLDev/changelog-gen/issues/::issue_ref::"
-```
-
-### `pull_link`
-  _**[optional]**_<br />
-  **default**: None
-
-  Create links in the CHANGELOG to the solving pull request. A url that contains
-  a `pull_ref` placeholder for replacement.
-
-  Example:
-
-```toml
-[tool.changelog_gen]
-pull_link = "http://github.com/NRWLDev/changelog-gen/pulls/::pull_ref::"
-```
-
-### `commit_link`
-  _**[optional]**_<br />
-  **default**: None
-
-  Create links in the CHANGELOG to the originating commit. A url that contains
-  a `::commit_hash::` placeholder for replacement.
-
-  Example:
-
-```toml
-[tool.changelog_gen]
-commit_link = "http://github.com/NRWLDev/changelog-gen/commit/::commit_hash::"
-```
-
 ### `version_string`
   _**[optional]**_<br />
   **default**: `v{new_version}`
@@ -162,6 +120,36 @@ footer_parsers = [
     r"(closes)( )(#[\w-]+)",
     r"(Authors)(: )(.*)",
 ]
+```
+
+### `link_parsers`
+  _**[optional]**_<br />
+  **default**: None
+
+  Define parsers to extract information from footers (or changelog entry) and
+  generate a link. Define a target footer, provide a regex pattern to extract
+  information from the footer, and define the link format, optionally define
+  the link text format. Link text will default to the extracted information.
+
+  A special target `__change__` is provided to generate links using information
+  directly from the change object (namely commit hashes).
+
+  Where a pattern is matched multiple times, a link for each match will be
+  created. This allows adding links to multiple authors from the Author for for
+  example.
+
+  Example:
+
+```toml
+[[tool.changelog_gen.link_parsers]]
+target = "Refs"
+pattern = "#(\\d+)$"
+link = "https =//github.com/NRWLDev/changelog-gen/issues/{0}"
+
+[[tool.changelog_gen.link_parsers]]
+target = "__change__"
+link = "https =//github.com/NRWLDev/changelog-gen/commit/{0.commit_hash}"
+text = "{0.short_hash}"
 ```
 
 ### `allowed_branches`
