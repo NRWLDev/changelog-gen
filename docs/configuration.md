@@ -146,6 +146,24 @@ version_string = "{new_version}"
 date_format = "on %Y-%m-%d"
 ```
 
+### `footer_parsers`
+  _**[optional]**_<br />
+  **default**: None
+
+  Define new footer parsers, or override builtin footer parsers (Authors,
+  Refs). Footer parsers accepts a list of regexes to parse a footer and return
+  a match with the footer, the separator, and the footer value.
+
+  Example:
+```toml
+[tool.changelog_gen]
+footer_parsers = [
+    r"(Refs)(: )(#?[\w-]+)",
+    r"(closes)( )(#[\w-]+)",
+    r"(Authors)(: )(.*)",
+]
+```
+
 ### `allowed_branches`
   _**[optional]**_<br />
   **default**: None

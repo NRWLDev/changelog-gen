@@ -52,11 +52,8 @@ class Change:  # noqa: D101
         return ""
 
 
-SectionDict = dict[str, dict[str, Change]]
-
-
 class ChangeExtractor:
-    """Parse commit logs and generate section dictionaries."""
+    """Parse commit logs and generate change list."""
 
     @timer
     def __init__(
@@ -77,13 +74,13 @@ class ChangeExtractor:
 
     @timer
     def extract(self: t.Self) -> list[Change]:
-        """Iterate over release note files extracting sections and issues."""
+        """Iterate over commit logs and generate list of changes."""
         current_version = self.context.config.current_version
         # find tag from current version
         tag = self.git.find_tag(current_version)
         logs = self.git.get_logs(tag)
 
-        # Build a conventional commit regex based on configured sections
+        # Build a conventional commit regex based on configured types
         #   ^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test){1}(\([\w\-\.]+\))?(!)?: ([\w ])+([\s\S]*)
         types = "|".join(self.type_headers.keys())
         reg = re.compile(rf"^({types})(\([\w\-\.]+\))?(!)?: (.*)([\s\S]*)", re.IGNORECASE)
@@ -94,7 +91,7 @@ class ChangeExtractor:
             m = reg.match(log)
             if m:
                 self.context.debug("  Parsing commit log: %s", log.strip())
-                footers = []
+                footers = {}
 
                 commit_type = m[1].lower()
                 scope = (m[2] or "").replace("(", "(`").replace(")", "`)")
@@ -104,7 +101,7 @@ class ChangeExtractor:
                 if prm is not None:
                     # Strip githubs additional link information from description.
                     description = re.sub(r" \(#\d+\)$", "", description)
-                    footers.append(Footer("PR", ": ", prm.group()[1:-1]))
+                    footers["PR"] = Footer("PR", ": ", prm.group()[1:-1])
                 details = m[5] or ""
 
                 # Handle missing refs in commit message, skip link generation in writer
@@ -119,17 +116,12 @@ class ChangeExtractor:
                 if breaking:
                     self.context.info("  Breaking change detected:\n    %s: %s", commit_type, description)
 
-                footer_parsers = [
-                    r"(Refs)(: )(#?[\w-]+)",
-                    r"(closes)( )(#[\w-]+)",
-                    r"(Authors)(: )(.*)",
-                ]
                 for line in details.split("\n"):
-                    for parser in footer_parsers:
+                    for parser in self.context.config.footer_parsers:
                         m = re.match(parser, line)
                         if m is not None:
                             self.context.info("  '%s' footer extracted '%s%s%s'", parser, m[1], m[2], m[3])
-                            footers.append(Footer(m[1], m[2], m[3]))
+                            footers[m[1]] = Footer(m[1], m[2], m[3])
 
                 header = self.type_headers.get(commit_type, commit_type)
                 change = Change(
@@ -140,7 +132,7 @@ class ChangeExtractor:
                     short_hash=short_hash,
                     commit_hash=commit_hash,
                     commit_type=commit_type,
-                    footers=footers,
+                    footers=list(footers.values()),
                 )
 
                 changes.append(change)
