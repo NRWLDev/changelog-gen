@@ -36,6 +36,7 @@ class Change:  # noqa: D101
     breaking: bool = False
     footers: list[Footer] = dataclasses.field(default_factory=list)
     links: list[Link] = dataclasses.field(default_factory=list)
+    rendered: str = ""  # This is populated by the writer at run time
 
     def __lt__(self: t.Self, other: Change) -> bool:  # noqa: D105
         s = (not self.breaking, self.scope.lower() if self.scope else "zzz", self.issue_ref.lower())

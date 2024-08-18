@@ -760,7 +760,7 @@ class TestGenerateWithDate:
         r = cli_runner.invoke(["generate"])
 
         assert r.exit_code == 0, r.output
-        assert writer_mock.add_version.call_args == mock.call("v0.0.1 on 2022-04-14")
+        assert writer_mock.consume.call_args[0][0] == "v0.0.1 on 2022-04-14"
 
     @pytest.mark.usefixtures("_conventional_commits", "changelog")
     def test_using_cli(self, cli_runner, monkeypatch):
@@ -771,7 +771,7 @@ class TestGenerateWithDate:
         r = cli_runner.invoke(["generate", "--date-format", "(%Y-%m-%d at %H:%M)"])
 
         assert r.exit_code == 0, r.output
-        assert writer_mock.add_version.call_args == mock.call("v0.0.1 (2022-04-14 at 16:45)")
+        assert writer_mock.consume.call_args[0][0] == "v0.0.1 (2022-04-14 at 16:45)"
 
     @pytest.mark.usefixtures("_conventional_commits", "changelog")
     def test_override_config(self, cli_runner, config_factory, monkeypatch):
@@ -784,7 +784,7 @@ class TestGenerateWithDate:
         r = cli_runner.invoke(["generate", "--date-format", "(%Y-%m-%d at %H:%M)"])
 
         assert r.exit_code == 0, r.output
-        assert writer_mock.add_version.call_args == mock.call("v0.0.1 (2022-04-14 at 16:45)")
+        assert writer_mock.consume.call_args[0][0] == "v0.0.1 (2022-04-14 at 16:45)"
 
     @pytest.mark.usefixtures("_conventional_commits", "changelog")
     def test_override_config_and_disable(self, cli_runner, config_factory, monkeypatch):
@@ -797,7 +797,7 @@ class TestGenerateWithDate:
         r = cli_runner.invoke(["generate", "--date-format", ""])
 
         assert r.exit_code == 0, r.output
-        assert writer_mock.add_version.call_args == mock.call("v0.0.1")
+        assert writer_mock.consume.call_args[0][0] == "v0.0.1"
 
 
 class TestCreateWithEditor:
