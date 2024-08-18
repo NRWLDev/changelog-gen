@@ -5,7 +5,7 @@ import pytest
 from changelog_gen import extractor
 from changelog_gen.config import Config
 from changelog_gen.context import Context
-from changelog_gen.extractor import Change, ChangeExtractor, Footer
+from changelog_gen.extractor import Change, ChangeExtractor, Footer, Link
 from changelog_gen.vcs import Git
 
 
@@ -95,7 +95,15 @@ def test_change_without_issue_ref():
 
 def test_git_commit_extraction(conventional_commits):
     hashes = conventional_commits
-    ctx = Context(Config(current_version="0.0.2"))
+    link_parsers = [
+        {"target": "Refs", "pattern": r"#(\d+)$", "link": "https://github.com/NRWLDev/changelog-gen/issues/{0}"},
+        {
+            "target": "__change__",
+            "link": "https://github.com/NRWLDev/changelog-gen/commit/{0.commit_hash}",
+            "text": "{0.short_hash}",
+        },
+    ]
+    ctx = Context(Config(current_version="0.0.2", link_parsers=link_parsers))
     git = Git(ctx)
 
     e = ChangeExtractor(ctx, git)
@@ -112,6 +120,9 @@ def test_git_commit_extraction(conventional_commits):
             footers=[
                 Footer("closes", " ", "#2"),
             ],
+            links=[
+                Link(hashes[5][:7], f"https://github.com/NRWLDev/changelog-gen/commit/{hashes[5]}"),
+            ],
         ),
         Change(
             "Bug fixes",
@@ -122,6 +133,10 @@ def test_git_commit_extraction(conventional_commits):
             commit_type="fix",
             footers=[
                 Footer("Refs", ": ", "#1"),
+            ],
+            links=[
+                Link("1", "https://github.com/NRWLDev/changelog-gen/issues/1"),
+                Link(hashes[3][:7], f"https://github.com/NRWLDev/changelog-gen/commit/{hashes[3]}"),
             ],
         ),
         Change(
@@ -135,6 +150,10 @@ def test_git_commit_extraction(conventional_commits):
             footers=[
                 Footer("Refs", ": ", "#3"),
             ],
+            links=[
+                Link("3", "https://github.com/NRWLDev/changelog-gen/issues/3"),
+                Link(hashes[2][:7], f"https://github.com/NRWLDev/changelog-gen/commit/{hashes[2]}"),
+            ],
         ),
         Change(
             "Bug fixes",
@@ -145,6 +164,10 @@ def test_git_commit_extraction(conventional_commits):
             commit_type="fix",
             footers=[
                 Footer("Refs", ": ", "#4"),
+            ],
+            links=[
+                Link("4", "https://github.com/NRWLDev/changelog-gen/issues/4"),
+                Link(hashes[0][:7], f"https://github.com/NRWLDev/changelog-gen/commit/{hashes[0]}"),
             ],
         ),
     ]

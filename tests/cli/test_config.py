@@ -38,6 +38,7 @@ footer_parsers = [
     '(closes)( )(#[\w-]+)',
     '(Authors)(: )(.*)',
 ]
+link_parsers = []
 hooks = []
 
 [type_headers]

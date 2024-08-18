@@ -92,6 +92,7 @@ class Config:
     date_format: str | None = None
     version_string: str = "v{new_version}"
     footer_parsers: list[str] = dataclasses.field(default_factory=lambda: FOOTER_PARSERS[::])
+    link_parsers: list[dict[str, str]] = dataclasses.field(default_factory=list)
 
     # Hooks
     post_process: PostProcessConfig | None = None
