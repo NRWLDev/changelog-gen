@@ -25,6 +25,12 @@ SUPPORTED_TYPES = {
     "test": "Miscellaneous",
 }
 
+FOOTER_PARSERS = [
+    r"(Refs)(: )(#?[\w-]+)",
+    r"(closes)( )(#[\w-]+)",
+    r"(Authors)(: )(.*)",
+]
+
 
 @dataclasses.dataclass
 class PostProcessConfig:
@@ -85,6 +91,7 @@ class Config:
     commit_link: str | None = None
     date_format: str | None = None
     version_string: str = "v{new_version}"
+    footer_parsers: list[str] = dataclasses.field(default_factory=lambda: FOOTER_PARSERS[::])
 
     # Hooks
     post_process: PostProcessConfig | None = None
@@ -176,11 +183,15 @@ def _process_pyproject(pyproject: Path) -> dict:
         if "tool" not in data or "changelog_gen" not in data["tool"]:
             return cfg
 
+        footer_parsers = FOOTER_PARSERS[::]
+        footer_parsers.extend(data["tool"]["changelog_gen"].get("footer_parsers", []))
+
         type_headers = SUPPORTED_TYPES.copy()
         type_headers_ = data["tool"]["changelog_gen"].get("commit_types", {})
         type_headers.update({v["type"]: v["header"] for v in type_headers_})
         commit_types = list(type_headers.keys())
 
+        data["tool"]["changelog_gen"]["footer_parsers"] = footer_parsers
         data["tool"]["changelog_gen"]["commit_types"] = commit_types
         data["tool"]["changelog_gen"]["type_headers"] = type_headers
         return data["tool"]["changelog_gen"]

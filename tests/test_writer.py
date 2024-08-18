@@ -6,7 +6,7 @@ import pytest
 from changelog_gen import writer
 from changelog_gen.config import Config
 from changelog_gen.context import Context
-from changelog_gen.extractor import Change
+from changelog_gen.extractor import Change, Footer
 
 
 @pytest.fixture()
@@ -107,7 +107,7 @@ class TestBaseWriter:
             w._add_section_header("header")
 
         with pytest.raises(NotImplementedError):
-            w._add_section_line("description", Change("issue_ref", "description", "fix"))
+            w._add_section_line("description", Change("header", "issue_ref", "description", "fix"))
 
         with pytest.raises(NotImplementedError):
             w._add_version("0.0.0")
@@ -128,18 +128,37 @@ class TestBaseWriter:
 
         w.add_section(
             "header",
-            {
-                "1": Change("1", "line1", "fix", breaking=True),
-                "2": Change("2", "line2", "fix", authors="(a, b)"),
-                "3": Change("3", "line3", "fix", scope="(config)"),
-            },
+            [
+                Change("header", "line1", "fix", breaking=True, footers=[Footer("Refs", ": ", "#1")]),
+                Change(
+                    "header",
+                    "line2",
+                    "fix",
+                    footers=[Footer("Refs", ": ", "#2"), Footer("Authors", ": ", "(a, b)")],
+                ),
+                Change("header", "line3", "fix", scope="(config)", footers=[Footer("Refs", ": ", "#3")]),
+            ],
         )
 
         assert w._add_section_header.call_args == mock.call("header")
         assert w._add_section_line.call_args_list == [
-            mock.call("**Breaking:** line1", Change("1", "line1", "fix", breaking=True)),
-            mock.call("(config) line3", Change("3", "line3", "fix", scope="(config)")),
-            mock.call("line2 (a, b)", Change("2", "line2", "fix", authors="(a, b)")),
+            mock.call(
+                "**Breaking:** line1",
+                Change("header", "line1", "fix", breaking=True, footers=[Footer("Refs", ": ", "#1")]),
+            ),
+            mock.call(
+                "(config) line3",
+                Change("header", "line3", "fix", scope="(config)", footers=[Footer("Refs", ": ", "#3")]),
+            ),
+            mock.call(
+                "line2 (a, b)",
+                Change(
+                    "header",
+                    "line2",
+                    "fix",
+                    footers=[Footer("Refs", ": ", "#2"), Footer("Authors", ": ", "(a, b)")],
+                ),
+            ),
         ]
 
     def test_add_section_sorting(self, monkeypatch, changelog, ctx):
@@ -150,18 +169,37 @@ class TestBaseWriter:
 
         w.add_section(
             "header",
-            {
-                "3": Change("3", "line3", "fix", breaking=True),
-                "2": Change("2", "line2", "fix", authors="(a, b)"),
-                "1": Change("1", "line1", "fix", scope="(config)"),
-            },
+            [
+                Change("header", "line3", "fix", breaking=True, footers=[Footer("Refs", ": ", "#3")]),
+                Change(
+                    "header",
+                    "line2",
+                    "fix",
+                    footers=[Footer("Refs", ": ", "#2"), Footer("Authors", ": ", "(a, b)")],
+                ),
+                Change("header", "line1", "fix", scope="(config)", footers=[Footer("Refs", ": ", "#1")]),
+            ],
         )
 
         assert w._add_section_header.call_args == mock.call("header")
         assert w._add_section_line.call_args_list == [
-            mock.call("**Breaking:** line3", Change("3", "line3", "fix", breaking=True)),
-            mock.call("(config) line1", Change("1", "line1", "fix", scope="(config)")),
-            mock.call("line2 (a, b)", Change("2", "line2", "fix", authors="(a, b)")),
+            mock.call(
+                "**Breaking:** line3",
+                Change("header", "line3", "fix", breaking=True, footers=[Footer("Refs", ": ", "#3")]),
+            ),
+            mock.call(
+                "(config) line1",
+                Change("header", "line1", "fix", scope="(config)", footers=[Footer("Refs", ": ", "#1")]),
+            ),
+            mock.call(
+                "line2 (a, b)",
+                Change(
+                    "header",
+                    "line2",
+                    "fix",
+                    footers=[Footer("Refs", ": ", "#2"), Footer("Authors", ": ", "(a, b)")],
+                ),
+            ),
         ]
 
 
@@ -227,14 +265,14 @@ class TestMdWriter:
     def test_add_section_line(self, changelog_md, ctx):
         w = writer.MdWriter(changelog_md, ctx)
 
-        w._add_section_line("line", Change("1", "line", "fix"))
+        w._add_section_line("line", Change("header", "line", "fix", footers=[Footer("Refs", ": ", "#1")]))
 
         assert w.content == ["- line [#1]"]
 
     def test_add_section_line_ignores_placeholder(self, changelog_md, ctx):
         w = writer.MdWriter(changelog_md, ctx)
 
-        w._add_section_line("line", Change("__1__", "line", "fix"))
+        w._add_section_line("line", Change("header", "line", "fix"))
 
         assert w.content == ["- line"]
 
@@ -242,7 +280,7 @@ class TestMdWriter:
         ctx = Context(Config(current_version="0.0.0", issue_link="http://url/issues/::issue_ref::"))
         w = writer.MdWriter(changelog_md, ctx)
 
-        w._add_section_line("line", Change("1", "line", "fix"))
+        w._add_section_line("line", Change("header", "line", "fix", footers=[Footer("Refs", ": ", "#1")]))
 
         assert w.content == ["- line [[#1](http://url/issues/1)]"]
 
@@ -250,7 +288,7 @@ class TestMdWriter:
         ctx = Context(Config(current_version="0.0.0", issue_link="http://url/issues/::issue_ref::"))
         w = writer.MdWriter(changelog_md, ctx)
 
-        w._add_section_line("line", Change("__1__", "line", "fix"))
+        w._add_section_line("line", Change("header", "line", "fix"))
 
         assert w.content == ["- line"]
 
@@ -258,7 +296,7 @@ class TestMdWriter:
         ctx = Context(Config(current_version="0.0.0", commit_link="http://url/commit/::commit_hash::"))
         w = writer.MdWriter(changelog_md, ctx)
 
-        w._add_section_line("line", Change("__1__", "line", "fix", short_hash="1234567", commit_hash="commit-hash"))
+        w._add_section_line("line", Change("header", "line", "fix", short_hash="1234567", commit_hash="commit-hash"))
 
         assert w.content == ["- line [[1234567](http://url/commit/commit-hash)]"]
 
@@ -266,7 +304,7 @@ class TestMdWriter:
         ctx = Context(Config(current_version="0.0.0", commit_link="http://url/commit/::commit_hash::"))
         w = writer.MdWriter(changelog_md, ctx)
 
-        w._add_section_line("line", Change("__1__", "line", "fix"))
+        w._add_section_line("line", Change("header", "line", "fix"))
 
         assert w.content == ["- line"]
 
@@ -274,7 +312,7 @@ class TestMdWriter:
         ctx = Context(Config(current_version="0.0.0", pull_link="http://url/pulls/::pull_ref::"))
         w = writer.MdWriter(changelog_md, ctx)
 
-        w._add_section_line("line", Change("__1__", "line", "fix", pull_ref="20"))
+        w._add_section_line("line", Change("header", "line", "fix", footers=[Footer("PR", ": ", "20")]))
 
         assert w.content == ["- line [[20](http://url/pulls/20)]"]
 
@@ -282,7 +320,7 @@ class TestMdWriter:
         ctx = Context(Config(current_version="0.0.0", pull_link="http://url/pulls/::pull_ref::"))
         w = writer.MdWriter(changelog_md, ctx)
 
-        w._add_section_line("line", Change("__1__", "line", "fix"))
+        w._add_section_line("line", Change("header", "line", "fix"))
 
         assert w.content == ["- line"]
 
@@ -291,11 +329,11 @@ class TestMdWriter:
         w.add_version("0.0.1")
         w.add_section(
             "header",
-            {
-                "1": Change("1", "line1", "fix"),
-                "2": Change("2", "line2", "fix"),
-                "3": Change("3", "line3", "fix", scope="(config)"),
-            },
+            [
+                Change("header", "line1", "fix", footers=[Footer("Refs", ": ", "#1")]),
+                Change("header", "line2", "fix", footers=[Footer("Refs", ": ", "#2")]),
+                Change("header", "line3", "fix", scope="(config)", footers=[Footer("Refs", ": ", "#3")]),
+            ],
         )
 
         w.write()
@@ -306,11 +344,11 @@ class TestMdWriter:
         w.add_version("0.0.1")
         w.add_section(
             "header",
-            {
-                "1": Change("1", "line1", "fix"),
-                "2": Change("2", "line2", "fix"),
-                "3": Change("3", "line3", "fix", scope="(config)"),
-            },
+            [
+                Change("header", "line1", "fix", footers=[Footer("Refs", ": ", "#1")]),
+                Change("header", "line2", "fix", footers=[Footer("Refs", ": ", "#2")]),
+                Change("header", "line3", "fix", scope="(config)", footers=[Footer("Refs", ": ", "#3")]),
+            ],
         )
 
         w.write()
@@ -346,11 +384,11 @@ class TestMdWriter:
         w.add_version("0.0.2")
         w.add_section(
             "header",
-            {
-                "4": Change("4", "line4", "fix"),
-                "5": Change("5", "line5", "fix"),
-                "6": Change("6", "line6", "fix", scope="(config)"),
-            },
+            [
+                Change("header", "line4", "fix", footers=[Footer("Refs", ": ", "#4")]),
+                Change("header", "line5", "fix", footers=[Footer("Refs", ": ", "#5")]),
+                Change("header", "line6", "fix", scope="(config)", footers=[Footer("Refs", ": ", "#6")]),
+            ],
         )
 
         w.write()
@@ -450,14 +488,14 @@ header
     def test_add_section_line(self, changelog_rst, ctx):
         w = writer.RstWriter(changelog_rst, ctx)
 
-        w._add_section_line("line", Change("1", "line", "fix"))
+        w._add_section_line("line", Change("header", "line", "fix", footers=[Footer("Refs", ": ", "#1")]))
 
         assert w.content == ["* line [#1]", ""]
 
     def test_add_section_line_ignores_placeholder(self, changelog_rst, ctx):
         w = writer.RstWriter(changelog_rst, ctx)
 
-        w._add_section_line("line", Change("__1__", "line", "fix"))
+        w._add_section_line("line", Change("header", "line", "fix"))
 
         assert w.content == ["* line", ""]
 
@@ -465,7 +503,7 @@ header
         ctx = Context(Config(current_version="0.0.0", issue_link="http://url/issues/::issue_ref::"))
         w = writer.RstWriter(changelog_rst, ctx)
 
-        w._add_section_line("line", Change("1", "line", "fix"))
+        w._add_section_line("line", Change("header", "line", "fix", footers=[Footer("Refs", ": ", "#1")]))
 
         assert w.content == ["* line [`#1`_]", ""]
         assert w._links == {"#1": "http://url/issues/1"}
@@ -475,7 +513,7 @@ header
         ctx = Context(Config(current_version="0.0.0", issue_link="http://url/issues/::issue_ref::"))
         w = writer.RstWriter(changelog_rst, ctx)
 
-        w._add_section_line("line", Change("__1__", "line", "fix"))
+        w._add_section_line("line", Change("header", "line", "fix"))
 
         assert w.content == ["* line", ""]
         assert w._links == {}
@@ -485,7 +523,7 @@ header
         ctx = Context(Config(current_version="0.0.0", commit_link="http://url/commit/::commit_hash::"))
         w = writer.RstWriter(changelog_rst, ctx)
 
-        w._add_section_line("line", Change("__1__", "line", "fix", short_hash="1234567", commit_hash="commit-hash"))
+        w._add_section_line("line", Change("header", "line", "fix", short_hash="1234567", commit_hash="commit-hash"))
 
         assert w.content == ["* line [`1234567`_]", ""]
         assert w._links == {"1234567": "http://url/commit/commit-hash"}
@@ -495,7 +533,7 @@ header
         ctx = Context(Config(current_version="0.0.0", commit_link="http://url/commit/::commit_hash::"))
         w = writer.RstWriter(changelog_rst, ctx)
 
-        w._add_section_line("line", Change("__1__", "line", "fix"))
+        w._add_section_line("line", Change("header", "line", "fix"))
 
         assert w.content == ["* line", ""]
         assert w._links == {}
@@ -505,7 +543,7 @@ header
         ctx = Context(Config(current_version="0.0.0", pull_link="http://url/pulls/::pull_ref::"))
         w = writer.RstWriter(changelog_rst, ctx)
 
-        w._add_section_line("line", Change("__1__", "line", "fix", pull_ref="20"))
+        w._add_section_line("line", Change("header", "line", "fix", footers=[Footer("PR", ": ", "20")]))
 
         assert w.content == ["* line [`20`_]", ""]
         assert w._links == {"20": "http://url/pulls/20"}
@@ -515,7 +553,7 @@ header
         ctx = Context(Config(current_version="0.0.0", pull_link="http://url/pulls/::pull_ref::"))
         w = writer.RstWriter(changelog_rst, ctx)
 
-        w._add_section_line("line", Change("__1__", "line", "fix"))
+        w._add_section_line("line", Change("header", "line", "fix"))
 
         assert w.content == ["* line", ""]
         assert w._links == {}
@@ -528,11 +566,11 @@ header
         w.add_version("0.0.1")
         w.add_section(
             "header",
-            {
-                "1": Change("1", "line1", "fix"),
-                "2": Change("2", "line2", "fix"),
-                "3": Change("3", "line3", "fix", scope="(config)"),
-            },
+            [
+                Change("header", "line1", "fix", footers=[Footer("Refs", ": ", "#1")]),
+                Change("header", "line2", "fix", footers=[Footer("Refs", ": ", "#2")]),
+                Change("header", "line3", "fix", scope="(config)", footers=[Footer("Refs", ": ", "#3")]),
+            ],
         )
 
         assert (
@@ -563,11 +601,11 @@ header
         w.add_version("0.0.1")
         w.add_section(
             "header",
-            {
-                "1": Change("1", "line1", "fix"),
-                "2": Change("2", "line2", "fix"),
-                "3": Change("3", "line3", "fix", scope="(config)"),
-            },
+            [
+                Change("header", "line1", "fix", footers=[Footer("Refs", ": ", "#1")]),
+                Change("header", "line2", "fix", footers=[Footer("Refs", ": ", "#2")]),
+                Change("header", "line3", "fix", scope="(config)", footers=[Footer("Refs", ": ", "#3")]),
+            ],
         )
 
         w.write()
@@ -584,11 +622,11 @@ Changelog
         w.add_version("0.0.1")
         w.add_section(
             "header",
-            {
-                "1": Change("1", "line1", "fix"),
-                "2": Change("2", "line2", "fix"),
-                "3": Change("3", "line3", "fix", scope="(config)"),
-            },
+            [
+                Change("header", "line1", "fix", footers=[Footer("Refs", ": ", "#1")]),
+                Change("header", "line2", "fix", footers=[Footer("Refs", ": ", "#2")]),
+                Change("header", "line3", "fix", scope="(config)", footers=[Footer("Refs", ": ", "#3")]),
+            ],
         )
 
         w.write()
@@ -637,11 +675,11 @@ header
         w.add_version("0.0.2")
         w.add_section(
             "header",
-            {
-                "4": Change("4", "line4", "fix"),
-                "5": Change("5", "line5", "fix"),
-                "6": Change("6", "line6", "fix", scope="(config)"),
-            },
+            [
+                Change("header", "line4", "fix", footers=[Footer("Refs", ": ", "#4")]),
+                Change("header", "line5", "fix", footers=[Footer("Refs", ": ", "#5")]),
+                Change("header", "line6", "fix", scope="(config)", footers=[Footer("Refs", ": ", "#6")]),
+            ],
         )
 
         w.write()

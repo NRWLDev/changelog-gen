@@ -299,14 +299,13 @@ def _gen(  # noqa: PLR0913, C901, PLR0915
     process_info(git.get_current_info(), context, dry_run=dry_run)
 
     e = extractor.ChangeExtractor(context=context, git=git, dry_run=dry_run, include_all=include_all)
-    sections = e.extract()
+    changes = e.extract()
 
-    unique_issues = e.unique_issues(sections)
-    if not unique_issues and cfg.reject_empty:
+    if not changes and cfg.reject_empty:
         context.error("No changes present and reject_empty configured.")
         raise typer.Exit(code=0)
 
-    semver = extractor.extract_semver(sections, context)
+    semver = extractor.extract_semver(changes, context)
     semver = version_part or semver
 
     version_info_ = bv.get_version_info(semver)
@@ -323,13 +322,13 @@ def _gen(  # noqa: PLR0913, C901, PLR0915
     w = writer.new_writer(context, extension, dry_run=dry_run)
 
     w.add_version(version_string)
-    w.consume(cfg.type_headers, sections)
+    w.consume(cfg.type_headers, changes)
 
-    changes = create_with_editor(context, str(w), extension) if interactive else str(w)
+    change_lines = create_with_editor(context, str(w), extension) if interactive else str(w)
 
     # If auto accepting don't print to screen unless verbosity set
-    context.error(changes) if not yes else context.warning(changes)
-    w.content = changes.split("\n")[2:-2]
+    context.error(change_lines) if not yes else context.warning(change_lines)
+    w.content = change_lines.split("\n")[2:-2]
 
     def changelog_hook(_context: Context, _new_version: str) -> list[str]:
         changelog_path = w.write()
@@ -383,5 +382,5 @@ def _gen(  # noqa: PLR0913, C901, PLR0915
             context.error("httpx required to execute post process, install with `--extras post-process`.")
             return
 
-        unique_issues = [r for r in unique_issues if not r.startswith("__")]
+        unique_issues = [r.issue_ref.replace("#", "") for r in changes if r.issue_ref]
         per_issue_post_process(context, post_process, sorted(unique_issues), str(new), dry_run=dry_run)

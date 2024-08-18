@@ -33,6 +33,11 @@ commit_types = [
     'test',
 ]
 serialisers = ['{major}.{minor}.{patch}']
+footer_parsers = [
+    '(Refs)(: )(#?[\w-]+)',
+    '(closes)( )(#[\w-]+)',
+    '(Authors)(: )(.*)',
+]
 hooks = []
 
 [type_headers]

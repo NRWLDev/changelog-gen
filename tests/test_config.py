@@ -480,7 +480,7 @@ def test_strict_validation():
 (?:
     (?P<release>[a-zA-Z-]+)       # pre-release label
     (?P<build>0|[1-9]\\d*)        # pre-release version number
-)?                                # pre-release section is optional
+)?                                # pre-release is optional
 """,
         serialisers=[
             "{major}.{minor}.{patch}-{release}{build}",
@@ -531,7 +531,7 @@ def test_strict_validation_incomplete_serialiser():
     (?:
         (?P<release>[a-zA-Z-]+)       # pre-release label
         (?P<build>0|[1-9]\\d*)        # pre-release version number
-    )?                                # pre-release section is optional
+    )?                                # pre-release is optional
     """,
             serialisers=[
                 # No serialiser handles {build} scenario
@@ -566,7 +566,7 @@ def test_strict_validation_bad_serialiser(serialiser):
     (?:
         (?P<release>[a-zA-Z-]+)       # pre-release label
         (?P<build>0|[1-9]\\d*)        # pre-release version number
-    )?                                # pre-release section is optional
+    )?                                # pre-release is optional
     """,
             serialisers=[
                 serialiser,

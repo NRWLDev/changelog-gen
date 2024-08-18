@@ -1,12 +1,11 @@
 import random
-from unittest import mock
 
 import pytest
 
 from changelog_gen import extractor
 from changelog_gen.config import Config
 from changelog_gen.context import Context
-from changelog_gen.extractor import Change, ChangeExtractor
+from changelog_gen.extractor import Change, ChangeExtractor, Footer
 from changelog_gen.vcs import Git
 
 
@@ -64,6 +63,36 @@ closes #2
     return hashes
 
 
+def test_change_with_issue_ref():
+    change = Change(
+        "Features and Improvements",
+        "Detail about 2",
+        short_hash="short-hash",
+        commit_hash="commit-hash",
+        commit_type="feat",
+        footers=[
+            Footer("Refs", ": ", "#2"),
+        ],
+    )
+
+    assert change.issue_ref == "#2"
+
+
+def test_change_without_issue_ref():
+    change = Change(
+        "Features and Improvements",
+        "Detail about 2",
+        short_hash="short-hash",
+        commit_hash="commit-hash",
+        commit_type="feat",
+        footers=[
+            Footer("Authors", ": ", "(edgy)"),
+        ],
+    )
+
+    assert change.issue_ref == ""
+
+
 def test_git_commit_extraction(conventional_commits):
     hashes = conventional_commits
     ctx = Context(Config(current_version="0.0.2"))
@@ -71,40 +100,54 @@ def test_git_commit_extraction(conventional_commits):
 
     e = ChangeExtractor(ctx, git)
 
-    sections = e.extract()
+    changes = e.extract()
 
-    assert sections == {
-        "Features and Improvements": {
-            "2": Change("2", "Detail about 2", short_hash=hashes[5][:7], commit_hash=hashes[5], commit_type="feat"),
-            "3": Change(
-                "3",
-                "Detail about 3",
-                breaking=True,
-                scope="(`docs`)",
-                short_hash=hashes[2][:7],
-                commit_hash=hashes[2],
-                commit_type="feat",
-            ),
-        },
-        "Bug fixes": {
-            "1": Change(
-                "1",
-                "Detail about 1",
-                breaking=True,
-                short_hash=hashes[3][:7],
-                commit_hash=hashes[3],
-                commit_type="fix",
-            ),
-            "4": Change(
-                "4",
-                "Detail about 4",
-                scope="(`config`)",
-                short_hash=hashes[0][:7],
-                commit_hash=hashes[0],
-                commit_type="fix",
-            ),
-        },
-    }
+    assert changes == [
+        Change(
+            "Features and Improvements",
+            "Detail about 2",
+            short_hash=hashes[5][:7],
+            commit_hash=hashes[5],
+            commit_type="feat",
+            footers=[
+                Footer("closes", " ", "#2"),
+            ],
+        ),
+        Change(
+            "Bug fixes",
+            "Detail about 1",
+            breaking=True,
+            short_hash=hashes[3][:7],
+            commit_hash=hashes[3],
+            commit_type="fix",
+            footers=[
+                Footer("Refs", ": ", "#1"),
+            ],
+        ),
+        Change(
+            "Features and Improvements",
+            "Detail about 3",
+            breaking=True,
+            scope="(`docs`)",
+            short_hash=hashes[2][:7],
+            commit_hash=hashes[2],
+            commit_type="feat",
+            footers=[
+                Footer("Refs", ": ", "#3"),
+            ],
+        ),
+        Change(
+            "Bug fixes",
+            "Detail about 4",
+            scope="(`config`)",
+            short_hash=hashes[0][:7],
+            commit_hash=hashes[0],
+            commit_type="fix",
+            footers=[
+                Footer("Refs", ": ", "#4"),
+            ],
+        ),
+    ]
 
 
 def test_git_commit_extraction_include_all(conventional_commits):
@@ -114,57 +157,69 @@ def test_git_commit_extraction_include_all(conventional_commits):
 
     e = ChangeExtractor(ctx, git, include_all=True)
 
-    sections = e.extract()
+    changes = e.extract()
 
-    assert sections == {
-        "Features and Improvements": {
-            "2": Change("2", "Detail about 2", short_hash=hashes[5][:7], commit_hash=hashes[5], commit_type="feat"),
-            "3": Change(
-                "3",
-                "Detail about 3",
-                breaking=True,
-                scope="(`docs`)",
-                short_hash=hashes[2][:7],
-                commit_hash=hashes[2],
-                commit_type="feat",
-            ),
-        },
-        "Bug fixes": {
-            "1": Change(
-                "1",
-                "Detail about 1",
-                breaking=True,
-                short_hash=hashes[3][:7],
-                commit_hash=hashes[3],
-                commit_type="fix",
-            ),
-            "4": Change(
-                "4",
-                "Detail about 4",
-                scope="(`config`)",
-                short_hash=hashes[0][:7],
-                commit_hash=hashes[0],
-                commit_type="fix",
-            ),
-        },
-        "Miscellaneous": {
-            "__1__": Change(
-                "__1__",
-                "update readme",
-                breaking=False,
-                short_hash=hashes[4][:7],
-                commit_hash=hashes[4],
-                commit_type="_misc",
-            ),
-            "__4__": Change(
-                "__4__",
-                "fix typo",
-                short_hash=hashes[1][:7],
-                commit_hash=hashes[1],
-                commit_type="_misc",
-            ),
-        },
-    }
+    assert changes == [
+        Change(
+            "Features and Improvements",
+            "Detail about 2",
+            short_hash=hashes[5][:7],
+            commit_hash=hashes[5],
+            commit_type="feat",
+            footers=[
+                Footer("closes", " ", "#2"),
+            ],
+        ),
+        Change(
+            "Miscellaneous",
+            "update readme",
+            breaking=False,
+            short_hash=hashes[4][:7],
+            commit_hash=hashes[4],
+            commit_type="_misc",
+        ),
+        Change(
+            "Bug fixes",
+            "Detail about 1",
+            breaking=True,
+            short_hash=hashes[3][:7],
+            commit_hash=hashes[3],
+            commit_type="fix",
+            footers=[
+                Footer("Refs", ": ", "#1"),
+            ],
+        ),
+        Change(
+            "Features and Improvements",
+            "Detail about 3",
+            breaking=True,
+            scope="(`docs`)",
+            short_hash=hashes[2][:7],
+            commit_hash=hashes[2],
+            commit_type="feat",
+            footers=[
+                Footer("Refs", ": ", "#3"),
+            ],
+        ),
+        Change(
+            "Miscellaneous",
+            "fix typo",
+            short_hash=hashes[1][:7],
+            commit_hash=hashes[1],
+            commit_type="_misc",
+        ),
+        Change(
+            "Bug fixes",
+            "Detail about 4",
+            scope="(`config`)",
+            short_hash=hashes[0][:7],
+            commit_hash=hashes[0],
+            commit_type="fix",
+            footers=[
+                Footer("Refs", ": ", "#4"),
+            ],
+        ),
+    ]
 
 
 def test_git_commit_extraction_handles_random_tags(conventional_commits, multiversion_repo):
@@ -182,47 +237,61 @@ def test_git_commit_extraction_handles_random_tags(conventional_commits, multive
 
     e = ChangeExtractor(ctx, git)
 
-    sections = e.extract()
+    changes = e.extract()
 
-    assert sections == {
-        "Bug fixes": {
-            "__0__": Change(
-                "__0__",
-                "Detail about 5",
-                short_hash=hashes[6][:7],
-                commit_hash=hashes[6],
-                commit_type="fix",
-            ),
-            "1": Change(
-                "1",
-                "Detail about 1",
-                breaking=True,
-                short_hash=hashes[3][:7],
-                commit_hash=hashes[3],
-                commit_type="fix",
-            ),
-            "4": Change(
-                "4",
-                "Detail about 4",
-                scope="(`config`)",
-                short_hash=hashes[0][:7],
-                commit_hash=hashes[0],
-                commit_type="fix",
-            ),
-        },
-        "Features and Improvements": {
-            "2": Change("2", "Detail about 2", short_hash=hashes[5][:7], commit_hash=hashes[5], commit_type="feat"),
-            "3": Change(
-                "3",
-                "Detail about 3",
-                breaking=True,
-                scope="(`docs`)",
-                short_hash=hashes[2][:7],
-                commit_hash=hashes[2],
-                commit_type="feat",
-            ),
-        },
-    }
+    assert changes == [
+        Change(
+            "Bug fixes",
+            "Detail about 5",
+            short_hash=hashes[6][:7],
+            commit_hash=hashes[6],
+            commit_type="fix",
+        ),
+        Change(
+            "Features and Improvements",
+            "Detail about 2",
+            short_hash=hashes[5][:7],
+            commit_hash=hashes[5],
+            commit_type="feat",
+            footers=[
+                Footer("closes", " ", "#2"),
+            ],
+        ),
+        Change(
+            "Bug fixes",
+            "Detail about 1",
+            breaking=True,
+            short_hash=hashes[3][:7],
+            commit_hash=hashes[3],
+            commit_type="fix",
+            footers=[
+                Footer("Refs", ": ", "#1"),
+            ],
+        ),
+        Change(
+            "Features and Improvements",
+            "Detail about 3",
+            breaking=True,
+            scope="(`docs`)",
+            short_hash=hashes[2][:7],
+            commit_hash=hashes[2],
+            commit_type="feat",
+            footers=[
+                Footer("Refs", ": ", "#3"),
+            ],
+        ),
+        Change(
+            "Bug fixes",
+            "Detail about 4",
+            scope="(`config`)",
+            short_hash=hashes[0][:7],
+            commit_hash=hashes[0],
+            commit_type="fix",
+            footers=[
+                Footer("Refs", ": ", "#4"),
+            ],
+        ),
+    ]
 
 
 def test_git_commit_extraction_picks_up_custom_types(multiversion_repo):
@@ -267,23 +336,31 @@ Refs: #2
 
     e = ChangeExtractor(ctx, git)
 
-    sections = e.extract()
+    changes = e.extract()
 
-    assert sections == {
-        "Features and Improvements": {
-            "2": Change("2", "Detail about 2", short_hash=hashes[2][:7], commit_hash=hashes[2], commit_type="feat"),
-        },
-        "Bug fixes": {
-            "1": Change(
-                "1",
-                "Detail about 1",
-                breaking=True,
-                short_hash=hashes[0][:7],
-                commit_hash=hashes[0],
-                commit_type="custom",
-            ),
-        },
-    }
+    assert changes == [
+        Change(
+            "Features and Improvements",
+            "Detail about 2",
+            short_hash=hashes[2][:7],
+            commit_hash=hashes[2],
+            commit_type="feat",
+            footers=[
+                Footer("Refs", ": ", "#2"),
+            ],
+        ),
+        Change(
+            "Bug fixes",
+            "Detail about 1",
+            breaking=True,
+            short_hash=hashes[0][:7],
+            commit_hash=hashes[0],
+            commit_type="custom",
+            footers=[
+                Footer("Refs", ": ", "#1"),
+            ],
+        ),
+    ]
 
 
 def test_git_commit_extraction_picks_up_additional_allowed_characted(multiversion_repo):
@@ -309,94 +386,70 @@ Refs: #1
 
     e = ChangeExtractor(ctx, git)
 
-    sections = e.extract()
+    changes = e.extract()
 
-    assert sections == {
-        "Bug fixes": {
-            "1": Change(
-                "1",
-                "Ensure one/two chars? are allowed `and` highlighting, but random PR link ignored.",
-                breaking=True,
-                short_hash=hashes[0][:7],
-                commit_hash=hashes[0],
-                commit_type="fix",
-                pull_ref="20",
-            ),
-        },
-    }
-
-
-def test_unique_issues():
-    ctx = Context(
-        Config(current_version="0.0.0", commit_types=["bug", "feat"]),
-    )
-    git = mock.Mock()
-
-    e = ChangeExtractor(ctx, git)
-
-    assert e.unique_issues(
-        {
-            "Unsupported header": {
-                "5": Change("5", "Detail about 5", "unsupported"),
-            },
-            "Feature header": {
-                "2": Change("2", "Detail about 2", "feat"),
-            },
-            "Bug header": {
-                "2": Change("2", "Detail about 2", "bug"),
-                "3": Change("3", "Detail about 3", "bug"),
-                "4": Change("4", "Detail about 4", "bug"),
-            },
-        },
-    ) == ["2", "3", "4"]
+    assert changes == [
+        Change(
+            "Bug fixes",
+            "Ensure one/two chars? are allowed `and` highlighting, but random PR link ignored.",
+            breaking=True,
+            short_hash=hashes[0][:7],
+            commit_hash=hashes[0],
+            commit_type="fix",
+            footers=[
+                Footer("PR", ": ", "#20"),
+                Footer("Refs", ": ", "#1"),
+            ],
+        ),
+    ]
 
 
 @pytest.mark.parametrize(
-    ("sections", "commit_types", "minor_regex", "expected_semver"),
+    ("changes", "commit_types", "minor_regex", "expected_semver"),
     [
-        ({"header": {"1": Change("1", "desc", "fix")}}, ["feat"], "feat", "patch"),
-        ({"header": {"1": Change("1", "desc", "feat")}}, ["feat"], "feat", "patch"),
-        ({"header": {"1": Change("1", "desc", "fix", breaking=True)}}, ["feat"], "feat", "minor"),
-        ({"header": {"1": Change("1", "desc", "feat", breaking=True)}}, ["feat"], "feat", "minor"),
-        ({"header": {"1": Change("1", "desc", "custom")}}, ["custom"], "feat", "patch"),
-        ({"header": {"1": Change("1", "desc", "custom")}}, ["custom"], "feat|custom", "patch"),
+        ([Change("header", "desc", "fix")], ["feat"], "feat", "patch"),
+        ([Change("header", "desc", "feat")], ["feat"], "feat", "patch"),
+        ([Change("header", "desc", "fix", breaking=True)], ["feat"], "feat", "minor"),
+        ([Change("header", "desc", "feat", breaking=True)], ["feat"], "feat", "minor"),
+        ([Change("header", "desc", "custom")], ["custom"], "feat", "patch"),
+        ([Change("header", "desc", "custom")], ["custom"], "feat|custom", "patch"),
         (
-            {"header": {"1": Change("1", "desc", "custom", breaking=True)}},
+            [Change("header", "desc", "custom", breaking=True)],
             ["custom"],
             "feat|custom",
             "minor",
         ),
     ],
 )
-def test_extract_semver_version_zero(sections, commit_types, minor_regex, expected_semver):
+def test_extract_semver_version_zero(changes, commit_types, minor_regex, expected_semver):
     ctx = Context(Config(commit_types=commit_types, current_version="0.0.0", minor_regex=minor_regex))
 
-    semver = extractor.extract_semver(sections, ctx)
+    semver = extractor.extract_semver(changes, ctx)
 
     assert semver == expected_semver
 
 
 @pytest.mark.parametrize(
-    ("sections", "commit_types", "minor_regex", "expected_semver"),
+    ("changes", "commit_types", "minor_regex", "expected_semver"),
     [
-        ({"header": {"1": Change("1", "desc", "fix")}}, ["feat"], "feat", "patch"),
-        ({"header": {"1": Change("1", "desc", "feat")}}, ["feat"], "feat", "minor"),
-        ({"header": {"1": Change("1", "desc", "fix", breaking=True)}}, ["feat"], "feat", "major"),
-        ({"header": {"1": Change("1", "desc", "feat", breaking=True)}}, ["feat"], "feat", "major"),
-        ({"header": {"1": Change("1", "desc", "custom")}}, ["custom"], "feat", "patch"),
-        ({"header": {"1": Change("1", "desc", "custom")}}, ["custom"], "feat|custom", "minor"),
+        ([Change("header", "desc", "fix")], ["feat"], "feat", "patch"),
+        ([Change("header", "desc", "feat")], ["feat"], "feat", "minor"),
+        ([Change("header", "desc", "fix", breaking=True)], ["feat"], "feat", "major"),
+        ([Change("header", "desc", "feat", breaking=True)], ["feat"], "feat", "major"),
+        ([Change("header", "desc", "custom")], ["custom"], "feat", "patch"),
+        ([Change("header", "desc", "custom")], ["custom"], "feat|custom", "minor"),
         (
-            {"header": {"1": Change("1", "desc", "custom", breaking=True)}},
+            [Change("header", "desc", "custom", breaking=True)],
             ["custom"],
             "feat|custom",
             "major",
         ),
     ],
 )
-def test_extract_semver(sections, commit_types, minor_regex, expected_semver):
+def test_extract_semver(changes, commit_types, minor_regex, expected_semver):
     ctx = Context(Config(commit_types=commit_types, current_version="1.0.0", minor_regex=minor_regex))
 
-    semver = extractor.extract_semver(sections, ctx)
+    semver = extractor.extract_semver(changes, ctx)
 
     assert semver == expected_semver
 
@@ -404,103 +457,137 @@ def test_extract_semver(sections, commit_types, minor_regex, expected_semver):
 def test_change_ordering():
     changes = [
         Change(
-            issue_ref="23",
+            header="header",
             description="Small change",
-            authors="(edgy, tom)",
             scope="",
             breaking=False,
             commit_type="fix",
+            footers=[
+                Footer("Refs", ": ", "#23"),
+                Footer("Authors", ": ", "(edgy, tom)"),
+            ],
         ),
         Change(
-            issue_ref="24",
+            header="header",
             description="A description",
-            authors="(edgy)",
             scope="(writer)",
             breaking=True,
             commit_type="misc",
+            footers=[
+                Footer("Refs", ": ", "#24"),
+                Footer("Authors", ": ", "(edgy)"),
+            ],
         ),
         Change(
-            issue_ref="25",
+            header="header",
             description="Another change",
-            authors="(tom)",
             scope="(extractor)",
             breaking=False,
             commit_type="ci",
+            footers=[
+                Footer("Refs", ": ", "#25"),
+                Footer("Authors", ": ", "(tom)"),
+            ],
         ),
         Change(
-            issue_ref="26",
+            header="header",
             description="Bugfix",
-            authors="",
             scope="(extractor)",
             breaking=False,
             commit_type="chore",
+            footers=[
+                Footer("Refs", ": ", "#26"),
+            ],
         ),
         Change(
-            issue_ref="27",
+            header="header",
             description="Upgrade python",
-            authors="(tom)",
             scope="",
             breaking=True,
             commit_type="custom",
+            footers=[
+                Footer("Refs", ": ", "#27"),
+                Footer("Authors", ": ", "(tom)"),
+            ],
         ),
         Change(
-            issue_ref="28",
+            header="header",
             description="Update config",
-            authors="(edgy)",
             scope="(config)",
             breaking=False,
             commit_type="feat",
+            footers=[
+                Footer("Refs", ": ", "#28"),
+                Footer("Authors", ": ", "(edgy)"),
+            ],
         ),
     ]
     random.shuffle(changes)
 
     assert sorted(changes) == [
         Change(
-            issue_ref="24",
+            header="header",
             description="A description",
-            authors="(edgy)",
             scope="(writer)",
             breaking=True,
             commit_type="misc",
+            footers=[
+                Footer("Refs", ": ", "#24"),
+                Footer("Authors", ": ", "(edgy)"),
+            ],
         ),
         Change(
-            issue_ref="27",
+            header="header",
             description="Upgrade python",
-            authors="(tom)",
             scope="",
             breaking=True,
             commit_type="custom",
+            footers=[
+                Footer("Refs", ": ", "#27"),
+                Footer("Authors", ": ", "(tom)"),
+            ],
         ),
         Change(
-            issue_ref="28",
+            header="header",
             description="Update config",
-            authors="(edgy)",
             scope="(config)",
             breaking=False,
             commit_type="feat",
+            footers=[
+                Footer("Refs", ": ", "#28"),
+                Footer("Authors", ": ", "(edgy)"),
+            ],
         ),
         Change(
-            issue_ref="25",
+            header="header",
             description="Another change",
-            authors="(tom)",
             scope="(extractor)",
             breaking=False,
             commit_type="ci",
+            footers=[
+                Footer("Refs", ": ", "#25"),
+                Footer("Authors", ": ", "(tom)"),
+            ],
         ),
         Change(
-            issue_ref="26",
+            header="header",
             description="Bugfix",
-            authors="",
             scope="(extractor)",
             breaking=False,
             commit_type="chore",
+            footers=[
+                Footer("Refs", ": ", "#26"),
+            ],
         ),
         Change(
-            issue_ref="23",
+            header="header",
             description="Small change",
-            authors="(edgy, tom)",
             scope="",
             breaking=False,
             commit_type="fix",
+            footers=[
+                Footer("Refs", ": ", "#23"),
+                Footer("Authors", ": ", "(edgy, tom)"),
+            ],
         ),
     ]

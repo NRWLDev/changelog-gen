@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import typing as t
+from collections import defaultdict
 from enum import Enum
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -11,7 +12,7 @@ from changelog_gen.util import timer
 
 if t.TYPE_CHECKING:
     from changelog_gen.context import Context
-    from changelog_gen.extractor import Change, SectionDict
+    from changelog_gen.extractor import Change
 
 
 class Extension(Enum):
@@ -58,20 +59,24 @@ class BaseWriter:
         raise NotImplementedError
 
     @timer
-    def consume(self: t.Self, type_headers: dict[str, str], sections: SectionDict) -> None:
+    def consume(self: t.Self, type_headers: dict[str, str], changes: list[Change]) -> None:
         """Process sections and generate changelog file entries."""
+        grouped_changes = defaultdict(list)
+        for change in changes:
+            grouped_changes[change.header].append(change)
+
         for header in type_headers.values():
-            if header not in sections:
+            if header not in grouped_changes:
                 continue
             # Remove processed headers to prevent rendering duplicate type -> header mappings
-            changes = sections.pop(header)
-            self.add_section(header, changes)
+            changes_ = grouped_changes.pop(header)
+            self.add_section(header, changes_)
 
     @timer
-    def add_section(self: t.Self, header: str, changes: dict[str, Change]) -> None:
+    def add_section(self: t.Self, header: str, changes: list[Change]) -> None:
         """Add a section to changelog file."""
         self._add_section_header(header)
-        for change in sorted(changes.values()):
+        for change in sorted(changes):
             description = f"{change.scope} {change.description}" if change.scope else change.description
             description = f"{self.bold_string('Breaking:')} {description}" if change.breaking else description
             description = f"{description} {change.authors}" if change.authors else description
@@ -140,22 +145,28 @@ class MdWriter(BaseWriter):
 
     @timer
     def _add_section_line(self: t.Self, description: str, change: Change) -> None:
-        # Skip __{i}__ placeholder refs
-        if change.issue_ref.startswith("__"):
-            line = f"- {description}"
-        elif self.issue_link:
-            line = f"- {description} [[#::issue_ref::]({self.issue_link})]"
-        else:
-            line = f"- {description} [#::issue_ref::]"
+        issue_ref, pull_ref = "", ""
+        for footer in change.footers:
+            if footer.footer in ("Refs", "closes"):
+                issue_ref = footer.value
+            if footer.footer == "PR":
+                pull_ref = footer.value
+
+        line = f"- {description}"
+
+        if self.issue_link and issue_ref:
+            line = f"- {description} [[{issue_ref}]({self.issue_link})]"
+        elif issue_ref:
+            line = f"- {description} [{issue_ref}]"
 
         if self.commit_link and change.commit_hash:
             line = f"{line} [[{change.short_hash}]({self.commit_link})]"
 
-        if self.pull_link and change.pull_ref:
-            line = f"{line} [[{change.pull_ref}]({self.pull_link})]"
+        if self.pull_link and pull_ref:
+            line = f"{line} [[{pull_ref}]({self.pull_link})]"
 
-        line = line.replace("::issue_ref::", change.issue_ref)
-        line = line.replace("::pull_ref::", change.pull_ref)
+        line = line.replace("::issue_ref::", issue_ref.replace("#", ""))
+        line = line.replace("::pull_ref::", pull_ref)
         line = line.replace("::commit_hash::", change.commit_hash)
 
         self.content.append(line)
@@ -197,22 +208,28 @@ class RstWriter(BaseWriter):
 
     @timer
     def _add_section_line(self: t.Self, description: str, change: Change) -> None:
-        # Skip __{i}__ placeholder refs
-        if change.issue_ref.startswith("__"):
-            line = f"* {description}"
-        elif self.issue_link:
-            line = f"* {description} [`#{change.issue_ref}`_]"
-            self._links[f"#{change.issue_ref}"] = self.issue_link.replace("::issue_ref::", change.issue_ref)
-        else:
-            line = f"* {description} [#{change.issue_ref}]"
+        issue_ref, pull_ref = "", ""
+        for footer in change.footers:
+            if footer.footer in ("Refs", "closes"):
+                issue_ref = footer.value
+            if footer.footer == "PR":
+                pull_ref = footer.value
+
+        line = f"* {description}"
+
+        if self.issue_link and issue_ref:
+            line = f"* {description} [`{issue_ref}`_]"
+            self._links[f"{issue_ref}"] = self.issue_link.replace("::issue_ref::", issue_ref.replace("#", ""))
+        elif issue_ref:
+            line = f"* {description} [{issue_ref}]"
 
         if self.commit_link and change.commit_hash:
             line = f"{line} [`{change.short_hash}`_]"
             self._links[f"{change.short_hash}"] = self.commit_link.replace("::commit_hash::", change.commit_hash)
 
-        if self.pull_link and change.pull_ref:
-            line = f"{line} [`{change.pull_ref}`_]"
-            self._links[f"{change.pull_ref}"] = self.pull_link.replace("::pull_ref::", change.pull_ref)
+        if self.pull_link and pull_ref:
+            line = f"{line} [`{pull_ref}`_]"
+            self._links[f"{pull_ref}"] = self.pull_link.replace("::pull_ref::", pull_ref)
 
         self.content.extend([line, ""])
 
