@@ -50,14 +50,6 @@ class Change:  # noqa: D101
                 return footer.value
         return ""
 
-    @property
-    def authors(self: t.Self) -> str:
-        """Extract authors from footers."""
-        for footer in self.footers:
-            if footer.footer == "Authors":
-                return footer.value
-        return ""
-
 
 class ChangeExtractor:
     """Parse commit logs and generate change list."""
@@ -101,7 +93,7 @@ class ChangeExtractor:
                 footers = {}
 
                 commit_type = m[1].lower()
-                scope = (m[2] or "").replace("(", "(`").replace(")", "`)")
+                scope = (m[2] or "").replace("(", "").replace(")", "")
                 breaking = m[3] is not None
                 description = m[4].strip()
                 prm = re.search(r"\(#\d+\)$", description)
