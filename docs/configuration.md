@@ -238,6 +238,30 @@ key = "value"
 a_list = ["key", "key2"]
 ```
 
+### `change_template`
+  _**[optional]**_<br />
+  **default**: None
+
+  Customise how changelog entries are formatted, uses
+  [Jinja2](https://jinja.palletsprojects.com/en/3.1.x/) formatting.
+
+  The template will provided with the change object and can render all
+  extracted information as desired. For readability the template can be split
+  over multiple lines, it will be flattened before it is rendered to generate a
+  single line entry.
+
+  Example:
+
+```toml
+[tool.changelog_gen]
+change_template = """
+-{% if change.scope %} (`{{change.scope}}`){% endif %}
+{% if change.breaking %} **Breaking**{% endif %}
+ {{ change.description }}
+{% for footer in change.footers %}{% if footer.footer == "Authors"%} {{footer.value}}{% endif %}{% endfor %}
+{% for link in change.links %} [[{{ link.text }}]({{ link.link }})]{% endfor %}
+"""
+```
 
 ## Versioning
 
