@@ -134,6 +134,10 @@ footer_parsers = [
   A special target `__change__` is provided to generate links using information
   directly from the change object (namely commit hashes).
 
+  Where a pattern is matched multiple times, a link for each match will be
+  created. This allows adding links to multiple authors from the Author for for
+  example.
+
   Example:
 
 ```toml
