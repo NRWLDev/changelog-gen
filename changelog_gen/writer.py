@@ -45,9 +45,6 @@ class BaseWriter:
             self.existing = lines[self.file_header_line_count + 1 :]
         self.content = []
         self.dry_run = dry_run
-        self.issue_link = context.config.issue_link
-        self.commit_link = context.config.commit_link
-        self.pull_link = context.config.pull_link
 
     @timer
     def add_version(self: t.Self, version: str) -> None:
@@ -145,29 +142,10 @@ class MdWriter(BaseWriter):
 
     @timer
     def _add_section_line(self: t.Self, description: str, change: Change) -> None:
-        issue_ref, pull_ref = "", ""
-        for footer in change.footers:
-            if footer.footer in ("Refs", "closes"):
-                issue_ref = footer.value
-            if footer.footer == "PR":
-                pull_ref = footer.value
-
         line = f"- {description}"
 
-        if self.issue_link and issue_ref:
-            line = f"- {description} [[{issue_ref}]({self.issue_link})]"
-        elif issue_ref:
-            line = f"- {description} [{issue_ref}]"
-
-        if self.commit_link and change.commit_hash:
-            line = f"{line} [[{change.short_hash}]({self.commit_link})]"
-
-        if self.pull_link and pull_ref:
-            line = f"{line} [[{pull_ref}]({self.pull_link})]"
-
-        line = line.replace("::issue_ref::", issue_ref.replace("#", ""))
-        line = line.replace("::pull_ref::", pull_ref)
-        line = line.replace("::commit_hash::", change.commit_hash)
+        for link in change.links:
+            line = f"{line} [[{link.text}]({link.link})]"
 
         self.content.append(line)
 
@@ -208,28 +186,11 @@ class RstWriter(BaseWriter):
 
     @timer
     def _add_section_line(self: t.Self, description: str, change: Change) -> None:
-        issue_ref, pull_ref = "", ""
-        for footer in change.footers:
-            if footer.footer in ("Refs", "closes"):
-                issue_ref = footer.value
-            if footer.footer == "PR":
-                pull_ref = footer.value
-
         line = f"* {description}"
 
-        if self.issue_link and issue_ref:
-            line = f"* {description} [`{issue_ref}`_]"
-            self._links[f"{issue_ref}"] = self.issue_link.replace("::issue_ref::", issue_ref.replace("#", ""))
-        elif issue_ref:
-            line = f"* {description} [{issue_ref}]"
-
-        if self.commit_link and change.commit_hash:
-            line = f"{line} [`{change.short_hash}`_]"
-            self._links[f"{change.short_hash}"] = self.commit_link.replace("::commit_hash::", change.commit_hash)
-
-        if self.pull_link and pull_ref:
-            line = f"{line} [`{pull_ref}`_]"
-            self._links[f"{pull_ref}"] = self.pull_link.replace("::pull_ref::", pull_ref)
+        for link in change.links:
+            line = f"{line} [`{link.text}`_]"
+            self._links[link.text] = link.link
 
         self.content.extend([line, ""])
 

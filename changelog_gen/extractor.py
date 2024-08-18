@@ -19,6 +19,12 @@ class Footer:  # noqa: D101
 
 
 @dataclasses.dataclass
+class Link:  # noqa: D101
+    text: str
+    link: str
+
+
+@dataclasses.dataclass
 class Change:  # noqa: D101
     header: str
     description: str
@@ -29,6 +35,7 @@ class Change:  # noqa: D101
     scope: str = ""
     breaking: bool = False
     footers: list[Footer] = dataclasses.field(default_factory=list)
+    links: list[Link] = dataclasses.field(default_factory=list)
 
     def __lt__(self: t.Self, other: Change) -> bool:  # noqa: D105
         s = (not self.breaking, self.scope.lower() if self.scope else "zzz", self.issue_ref.lower())
@@ -73,7 +80,7 @@ class ChangeExtractor:
         self.context = context
 
     @timer
-    def extract(self: t.Self) -> list[Change]:
+    def extract(self: t.Self) -> list[Change]:  # noqa: C901, PLR0912, PLR0915
         """Iterate over commit logs and generate list of changes."""
         current_version = self.context.config.current_version
         # find tag from current version
@@ -135,6 +142,25 @@ class ChangeExtractor:
                     footers=list(footers.values()),
                 )
 
+                links = []
+
+                for parser in self.context.config.link_parsers:
+                    if parser["target"] == "__change__":
+                        text_template = parser.get("text", "{0}")
+                        link_template = parser["link"]
+                        links.append(Link(text_template.format(change), link_template.format(change)))
+                    else:
+                        footer = footers.get(parser["target"])
+                        if footer is None:
+                            continue
+                        text_template = parser.get("text", "{0}")
+                        link_template = parser["link"]
+                        matches = re.findall(parser["pattern"], footer.value)
+                        links.extend([
+                            Link(text_template.format(match), link_template.format(match)) for match in matches
+                        ])
+
+                change.links = links
                 changes.append(change)
             elif self.include_all:
                 self.context.debug("  Including non-conventional commit log (include-all): %s", log.strip())

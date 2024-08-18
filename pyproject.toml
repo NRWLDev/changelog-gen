@@ -69,8 +69,16 @@ allowed_branches = [
     "main",
 ]
 date_format = "- %Y-%m-%d"
-issue_link = "https://github.com/NRWLDev/changelog-gen/issues/::issue_ref::"
-commit_link = "https://github.com/NRWLDev/changelog-gen/commit/::commit_hash::"
+
+[[tool.changelog_gen.link_parsers]]
+target = "Refs"
+pattern = "#(\\d+)$"
+link = "https =//github.com/NRWLDev/changelog-gen/issues/{0}"
+
+[[tool.changelog_gen.link_parsers]]
+target = "__change__"
+text = "{0.short_hash}"
+link = "https =//github.com/NRWLDev/changelog-gen/commit/{0.commit_hash}"
 
 [[tool.changelog_gen.files]]
 filename = "README.md"

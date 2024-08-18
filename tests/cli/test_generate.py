@@ -312,13 +312,13 @@ def test_generate_confirms_suggested_changes(cli_runner):
 
 ### Features and Improvements
 
-- Detail about 2 [#2]
-- Detail about 3 [#3]
+- Detail about 2
+- Detail about 3
 
 ### Bug fixes
 
-- Detail about 1 [#1]
-- Detail about 4 [#4]
+- Detail about 1
+- Detail about 4
 
 
 
@@ -344,13 +344,13 @@ def test_generate_with_headers(cli_runner, config_factory):
 
 ### My Features
 
-- Detail about 2 [#2]
-- Detail about 3 [#3]
+- Detail about 2
+- Detail about 3
 
 ### My Fixes
 
-- Detail about 1 [#1]
-- Detail about 4 [#4]
+- Detail about 1
+- Detail about 4
 
 
 
@@ -379,13 +379,13 @@ def test_generate_writes_to_file(
 
 ### Features and Improvements
 
-- Detail about 2 [#2]
-- Detail about 3 [#3]
+- Detail about 2
+- Detail about 3
 
 ### Bug fixes
 
-- Detail about 1 [#1]
-- Detail about 4 [#4]
+- Detail about 1
+- Detail about 4
 """.lstrip()
     )
 
@@ -410,13 +410,13 @@ def test_generate_writes_to_file_include_all(
 
 ### Features and Improvements
 
-- Detail about 2 [#2]
-- Detail about 3 [#3]
+- Detail about 2
+- Detail about 3
 
 ### Bug fixes
 
-- Detail about 1 [#1]
-- Detail about 4 [#4]
+- Detail about 1
+- Detail about 4
 
 ### Miscellaneous
 
@@ -480,13 +480,13 @@ def test_generate_uses_supplied_version_tag(
 
 ### Features and Improvements
 
-- Detail about 2 [#2]
-- Detail about 3 [#3]
+- Detail about 2
+- Detail about 3
 
 ### Bug fixes
 
-- Detail about 1 [#1]
-- Detail about 4 [#4]
+- Detail about 1
+- Detail about 4
 """.lstrip()
     )
     assert mock_git.commit.call_args == mock.call("0.0.0", "0.3.2", "v0.3.2", ["CHANGELOG.md"])

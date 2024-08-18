@@ -6,7 +6,7 @@ import pytest
 from changelog_gen import writer
 from changelog_gen.config import Config
 from changelog_gen.context import Context
-from changelog_gen.extractor import Change, Footer
+from changelog_gen.extractor import Change, Footer, Link
 
 
 @pytest.fixture()
@@ -267,7 +267,7 @@ class TestMdWriter:
 
         w._add_section_line("line", Change("header", "line", "fix", footers=[Footer("Refs", ": ", "#1")]))
 
-        assert w.content == ["- line [#1]"]
+        assert w.content == ["- line"]
 
     def test_add_section_line_ignores_placeholder(self, changelog_md, ctx):
         w = writer.MdWriter(changelog_md, ctx)
@@ -276,53 +276,21 @@ class TestMdWriter:
 
         assert w.content == ["- line"]
 
-    def test_add_section_line_with_issue_link(self, changelog_md):
-        ctx = Context(Config(current_version="0.0.0", issue_link="http://url/issues/::issue_ref::"))
+    def test_add_section_line_with_links(self, changelog_md):
+        ctx = Context(Config(current_version="0.0.0"))
         w = writer.MdWriter(changelog_md, ctx)
 
-        w._add_section_line("line", Change("header", "line", "fix", footers=[Footer("Refs", ": ", "#1")]))
+        w._add_section_line(
+            "line",
+            Change(
+                "header",
+                "line",
+                "fix",
+                links=[Link("#1", "http://url/issues/1"), Link("1234567", "http://url/commit/commit-hash")],
+            ),
+        )
 
-        assert w.content == ["- line [[#1](http://url/issues/1)]"]
-
-    def test_add_section_line_with_issue_link_ignores_placeholder(self, changelog_md):
-        ctx = Context(Config(current_version="0.0.0", issue_link="http://url/issues/::issue_ref::"))
-        w = writer.MdWriter(changelog_md, ctx)
-
-        w._add_section_line("line", Change("header", "line", "fix"))
-
-        assert w.content == ["- line"]
-
-    def test_add_section_line_with_commit_link(self, changelog_md):
-        ctx = Context(Config(current_version="0.0.0", commit_link="http://url/commit/::commit_hash::"))
-        w = writer.MdWriter(changelog_md, ctx)
-
-        w._add_section_line("line", Change("header", "line", "fix", short_hash="1234567", commit_hash="commit-hash"))
-
-        assert w.content == ["- line [[1234567](http://url/commit/commit-hash)]"]
-
-    def test_add_section_line_with_commit_link_ignores_null_commit_hash(self, changelog_md):
-        ctx = Context(Config(current_version="0.0.0", commit_link="http://url/commit/::commit_hash::"))
-        w = writer.MdWriter(changelog_md, ctx)
-
-        w._add_section_line("line", Change("header", "line", "fix"))
-
-        assert w.content == ["- line"]
-
-    def test_add_section_line_with_pull_link(self, changelog_md):
-        ctx = Context(Config(current_version="0.0.0", pull_link="http://url/pulls/::pull_ref::"))
-        w = writer.MdWriter(changelog_md, ctx)
-
-        w._add_section_line("line", Change("header", "line", "fix", footers=[Footer("PR", ": ", "20")]))
-
-        assert w.content == ["- line [[20](http://url/pulls/20)]"]
-
-    def test_add_section_line_with_pull_link_ignores_null_pull_ref(self, changelog_md):
-        ctx = Context(Config(current_version="0.0.0", pull_link="http://url/pulls/::pull_ref::"))
-        w = writer.MdWriter(changelog_md, ctx)
-
-        w._add_section_line("line", Change("header", "line", "fix"))
-
-        assert w.content == ["- line"]
+        assert w.content == ["- line [[#1](http://url/issues/1)] [[1234567](http://url/commit/commit-hash)]"]
 
     def test_write_dry_run_doesnt_write_to_file(self, changelog_md, ctx):
         w = writer.MdWriter(changelog_md, ctx, dry_run=True)
@@ -360,9 +328,9 @@ class TestMdWriter:
 
 ### header
 
-- (config) line3 [#3]
-- line1 [#1]
-- line2 [#2]
+- (config) line3
+- line1
+- line2
 """
         )
 
@@ -401,9 +369,9 @@ class TestMdWriter:
 
 ### header
 
-- (config) line6 [#6]
-- line4 [#4]
-- line5 [#5]
+- (config) line6
+- line4
+- line5
 
 ## 0.0.1
 
@@ -490,7 +458,7 @@ header
 
         w._add_section_line("line", Change("header", "line", "fix", footers=[Footer("Refs", ": ", "#1")]))
 
-        assert w.content == ["* line [#1]", ""]
+        assert w.content == ["* line", ""]
 
     def test_add_section_line_ignores_placeholder(self, changelog_rst, ctx):
         w = writer.RstWriter(changelog_rst, ctx)
@@ -499,58 +467,26 @@ header
 
         assert w.content == ["* line", ""]
 
-    def test_add_section_line_with_issue_link(self, changelog_rst):
-        ctx = Context(Config(current_version="0.0.0", issue_link="http://url/issues/::issue_ref::"))
+    def test_add_section_line_with_links(self, changelog_rst):
+        ctx = Context(Config(current_version="0.0.0"))
         w = writer.RstWriter(changelog_rst, ctx)
 
-        w._add_section_line("line", Change("header", "line", "fix", footers=[Footer("Refs", ": ", "#1")]))
+        w._add_section_line(
+            "line",
+            Change(
+                "header",
+                "line",
+                "fix",
+                links=[Link("#1", "http://url/issues/1"), Link("1234567", "http://url/commit/commit-hash")],
+            ),
+        )
 
-        assert w.content == ["* line [`#1`_]", ""]
-        assert w._links == {"#1": "http://url/issues/1"}
-        assert w.links == [".. _`#1`: http://url/issues/1"]
+        assert w.content == ["* line [`#1`_] [`1234567`_]", ""]
+        assert w._links == {"#1": "http://url/issues/1", "1234567": "http://url/commit/commit-hash"}
+        assert w.links == [".. _`#1`: http://url/issues/1", ".. _`1234567`: http://url/commit/commit-hash"]
 
-    def test_add_section_line_with_issue_link_skips_placeholder(self, changelog_rst):
-        ctx = Context(Config(current_version="0.0.0", issue_link="http://url/issues/::issue_ref::"))
-        w = writer.RstWriter(changelog_rst, ctx)
-
-        w._add_section_line("line", Change("header", "line", "fix"))
-
-        assert w.content == ["* line", ""]
-        assert w._links == {}
-        assert w.links == []
-
-    def test_add_section_line_with_commit_link(self, changelog_rst):
-        ctx = Context(Config(current_version="0.0.0", commit_link="http://url/commit/::commit_hash::"))
-        w = writer.RstWriter(changelog_rst, ctx)
-
-        w._add_section_line("line", Change("header", "line", "fix", short_hash="1234567", commit_hash="commit-hash"))
-
-        assert w.content == ["* line [`1234567`_]", ""]
-        assert w._links == {"1234567": "http://url/commit/commit-hash"}
-        assert w.links == [".. _`1234567`: http://url/commit/commit-hash"]
-
-    def test_add_section_line_with_commit_link_ignores_null_commit_hash(self, changelog_rst):
-        ctx = Context(Config(current_version="0.0.0", commit_link="http://url/commit/::commit_hash::"))
-        w = writer.RstWriter(changelog_rst, ctx)
-
-        w._add_section_line("line", Change("header", "line", "fix"))
-
-        assert w.content == ["* line", ""]
-        assert w._links == {}
-        assert w.links == []
-
-    def test_add_section_line_with_pull_link(self, changelog_rst):
-        ctx = Context(Config(current_version="0.0.0", pull_link="http://url/pulls/::pull_ref::"))
-        w = writer.RstWriter(changelog_rst, ctx)
-
-        w._add_section_line("line", Change("header", "line", "fix", footers=[Footer("PR", ": ", "20")]))
-
-        assert w.content == ["* line [`20`_]", ""]
-        assert w._links == {"20": "http://url/pulls/20"}
-        assert w.links == [".. _`20`: http://url/pulls/20"]
-
-    def test_add_section_line_with_pull_link_ignores_null_pull_ref(self, changelog_rst):
-        ctx = Context(Config(current_version="0.0.0", pull_link="http://url/pulls/::pull_ref::"))
+    def test_add_section_line_without_links(self, changelog_rst):
+        ctx = Context(Config(current_version="0.0.0"))
         w = writer.RstWriter(changelog_rst, ctx)
 
         w._add_section_line("line", Change("header", "line", "fix"))
@@ -560,16 +496,16 @@ header
         assert w.links == []
 
     def test_str_with_links(self, changelog_rst):
-        ctx = Context(Config(current_version="0.0.0", issue_link="http://url/issues/::issue_ref::"))
+        ctx = Context(Config(current_version="0.0.0"))
         w = writer.RstWriter(changelog_rst, ctx)
 
         w.add_version("0.0.1")
         w.add_section(
             "header",
             [
-                Change("header", "line1", "fix", footers=[Footer("Refs", ": ", "#1")]),
-                Change("header", "line2", "fix", footers=[Footer("Refs", ": ", "#2")]),
-                Change("header", "line3", "fix", scope="(config)", footers=[Footer("Refs", ": ", "#3")]),
+                Change("header", "line1", "fix", links=[Link("#1", "http://url/issues/1")]),
+                Change("header", "line2", "fix", links=[Link("#2", "http://url/issues/2")]),
+                Change("header", "line3", "fix", scope="(config)", links=[Link("#3", "http://url/issues/3")]),
             ],
         )
 
@@ -642,11 +578,11 @@ Changelog
 header
 ------
 
-* (config) line3 [#3]
+* (config) line3
 
-* line1 [#1]
+* line1
 
-* line2 [#2]
+* line2
 """
         )
 
@@ -670,7 +606,7 @@ header
 """,
         )
 
-        ctx = Context(Config(current_version="0.0.0", issue_link="http://url/issues/::issue_ref::"))
+        ctx = Context(Config(current_version="0.0.0"))
         w = writer.RstWriter(changelog_rst, ctx)
         w.add_version("0.0.2")
         w.add_section(
@@ -696,11 +632,11 @@ Changelog
 header
 ------
 
-* (config) line6 [`#6`_]
+* (config) line6
 
-* line4 [`#4`_]
+* line4
 
-* line5 [`#5`_]
+* line5
 
 0.0.1
 =====
@@ -713,10 +649,7 @@ header
 * line2
 
 * line3
-
-.. _`#4`: http://url/issues/4
-.. _`#5`: http://url/issues/5
-.. _`#6`: http://url/issues/6"""
+"""
         )
 
 
