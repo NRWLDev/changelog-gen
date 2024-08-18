@@ -45,9 +45,6 @@ class BaseWriter:
             self.existing = lines[self.file_header_line_count + 1 :]
         self.content = []
         self.dry_run = dry_run
-        self.issue_link = context.config.issue_link
-        self.commit_link = context.config.commit_link
-        self.pull_link = context.config.pull_link
 
     @timer
     def add_version(self: t.Self, version: str) -> None:

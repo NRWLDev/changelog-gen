@@ -78,12 +78,12 @@ current_version = "0.0.0"
             """
 [tool.changelog_gen]
 current_version = "0.0.0"
-issue_link = "https://github.com/NRWLDev/changelog-gen/issues/::issue_ref::"
+minor_regex = "feat|feature"
 """,
         )
 
         c = config.read()
-        assert c.issue_link == "https://github.com/NRWLDev/changelog-gen/issues/::issue_ref::"
+        assert c.minor_regex == "feat|feature"
 
     def test_read_picks_up_list_values(self, config_factory):
         config_factory(
@@ -193,30 +193,6 @@ release = true
         c = config.read()
         assert c.post_process is None
 
-    def test_read_picks_up_issue_link(self, config_factory):
-        config_factory(
-            """
-[tool.changelog_gen]
-current_version = "0.0.0"
-issue_link = "https://fake_rest_api/::issue_ref::"
-""",
-        )
-
-        c = config.read()
-        assert c.issue_link == "https://fake_rest_api/::issue_ref::"
-
-    def test_read_picks_up_commit_link(self, config_factory):
-        config_factory(
-            """
-[tool.changelog_gen]
-current_version = "0.0.0"
-commit_link = "https://fake_rest_api/::commit_hash::"
-""",
-        )
-
-        c = config.read()
-        assert c.commit_link == "https://fake_rest_api/::commit_hash::"
-
     def test_read_picks_up_post_process_config_pyproject(self, config_factory):
         config_factory(
             """
@@ -243,8 +219,6 @@ headers."content-type" = "application/json"
     @pytest.mark.parametrize(
         "config_value",
         [
-            'issue_link = "::unexpected:: ::also-unexpected::"',
-            'commit_link = "::unexpected:: ::also-unexpected::"',
             'post_process.body = "::unexpected:: ::also-unexpected::"',
             'post_process.url = "::unexpected:: ::also-unexpected::"',
         ],
@@ -406,8 +380,6 @@ def test_config_defaults():
     assert c.files == {}
 
     for attr in [
-        "issue_link",
-        "commit_link",
         "date_format",
         "post_process",
     ]:

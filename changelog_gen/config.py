@@ -86,9 +86,6 @@ class Config:
     files: dict = dataclasses.field(default_factory=dict)
 
     # Changelog configuration
-    issue_link: str | None = None
-    pull_link: str | None = None
-    commit_link: str | None = None
     date_format: str | None = None
     version_string: str = "v{new_version}"
     footer_parsers: list[str] = dataclasses.field(default_factory=lambda: FOOTER_PARSERS[::])
@@ -239,9 +236,6 @@ def read(path: str = "pyproject.toml", **kwargs) -> Config:  # noqa: C901
     check_deprecations(cfg)  # pragma: no mutate
 
     for replace_key_path in [
-        ("issue_link",),
-        ("pull_link",),
-        ("commit_link",),
         ("post_process", "url"),
         ("post_process", "body"),
     ]:
