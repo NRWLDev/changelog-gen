@@ -319,7 +319,7 @@ def _gen(  # noqa: PLR0913, C901, PLR0915
     if date_fmt:
         version_string += f" {datetime.now(timezone.utc).strftime(date_fmt)}"
 
-    w = writer.new_writer(context, extension, dry_run=dry_run)
+    w = writer.new_writer(context, extension, dry_run=dry_run, change_template=cfg.change_template)
 
     w.add_version(version_string)
     w.consume(cfg.type_headers, changes)

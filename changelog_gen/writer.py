@@ -8,6 +8,8 @@ from enum import Enum
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
+from jinja2 import BaseLoader, Environment
+
 from changelog_gen.util import timer
 
 if t.TYPE_CHECKING:
@@ -34,6 +36,7 @@ class BaseWriter:
         self: t.Self,
         changelog: Path,
         context: Context,
+        change_template: str | None = None,
         *,
         dry_run: bool = False,
     ) -> None:
@@ -45,9 +48,7 @@ class BaseWriter:
             self.existing = lines[self.file_header_line_count + 1 :]
         self.content = []
         self.dry_run = dry_run
-        self.issue_link = context.config.issue_link
-        self.commit_link = context.config.commit_link
-        self.pull_link = context.config.pull_link
+        self._change_template = change_template
 
     @timer
     def add_version(self: t.Self, version: str) -> None:
@@ -77,27 +78,15 @@ class BaseWriter:
         """Add a section to changelog file."""
         self._add_section_header(header)
         for change in sorted(changes):
-            description = f"{change.scope} {change.description}" if change.scope else change.description
-            description = f"{self.bold_string('Breaking:')} {description}" if change.breaking else description
-            description = f"{description} {change.authors}" if change.authors else description
-
-            self._add_section_line(
-                description,
-                change,
-            )
+            self._add_section_line(change)
         self._post_section()
-
-    @timer
-    def bold_string(self: t.Self, string: str) -> str:
-        """Render a string as bold."""
-        return f"**{string.strip()}**"
 
     @timer
     def _add_section_header(self: t.Self, header: str) -> None:
         raise NotImplementedError
 
     @timer
-    def _add_section_line(self: t.Self, description: str, change: Change) -> None:
+    def _add_section_line(self: t.Self, change: Change) -> None:
         raise NotImplementedError
 
     @timer
@@ -136,6 +125,20 @@ class MdWriter(BaseWriter):
     extension = Extension.MD
 
     @timer
+    def __init__(self: t.Self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._change_template = (
+            self._change_template
+            or """
+-{% if change.scope %} (`{{change.scope}}`){% endif %}
+{% if change.breaking %} **Breaking**{% endif %}
+ {{ change.description }}
+{% for footer in change.footers %}{% if footer.footer == "Authors"%} {{footer.value}}{% endif %}{% endfor %}
+{% for link in change.links %} [[{{ link.text }}]({{ link.link }})]{% endfor %}
+"""
+        )
+
+    @timer
     def _add_version(self: t.Self, version: str) -> None:
         self.content.extend([f"## {version}", ""])
 
@@ -144,11 +147,10 @@ class MdWriter(BaseWriter):
         self.content.extend([f"### {header}", ""])
 
     @timer
-    def _add_section_line(self: t.Self, description: str, change: Change) -> None:
-        line = f"- {description}"
+    def _add_section_line(self: t.Self, change: Change) -> None:
+        rtemplate = Environment(loader=BaseLoader()).from_string(self._change_template.replace("\n", ""))  # noqa: S701
 
-        for link in change.links:
-            line = f"{line} [[{link.text}]({link.link})]"
+        line = rtemplate.render(change=change)
 
         self.content.append(line)
 
@@ -167,6 +169,16 @@ class RstWriter(BaseWriter):
     @timer
     def __init__(self: t.Self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+        self._change_template = (
+            self._change_template
+            or """
+*{% if change.scope %} (`{{change.scope}}`){% endif %}
+{% if change.breaking %} **Breaking**{% endif %}
+ {{ change.description }}
+{% for footer in change.footers %}{% if footer.footer == "Authors"%} {{footer.value}}{% endif %}{% endfor %}
+{% for link in change.links %} [`{{ link.text }}`_]{% endfor %}
+"""
+        )
         self._links = {}
 
     @timer
@@ -188,14 +200,16 @@ class RstWriter(BaseWriter):
         self.content.extend([header, "-" * len(header), ""])
 
     @timer
-    def _add_section_line(self: t.Self, description: str, change: Change) -> None:
-        line = f"* {description}"
+    def _add_section_line(self: t.Self, change: Change) -> None:
+        rtemplate = Environment(loader=BaseLoader()).from_string(self._change_template.replace("\n", ""))  # noqa: S701
+
+        line = rtemplate.render(change=change)
+
+        self.content.extend([line, ""])
 
         for link in change.links:
             line = f"{line} [`{link.text}`_]"
             self._links[link.text] = link.link
-
-        self.content.extend([line, ""])
 
     @timer
     def write(self: t.Self) -> str:
@@ -209,6 +223,7 @@ class RstWriter(BaseWriter):
 def new_writer(
     context: Context,
     extension: Extension,
+    change_template: str | None = None,
     *,
     dry_run: bool = False,
 ) -> BaseWriter:
@@ -216,9 +231,9 @@ def new_writer(
     changelog = Path(f"CHANGELOG.{extension.value}")
 
     if extension == Extension.MD:
-        return MdWriter(changelog, context, dry_run=dry_run)
+        return MdWriter(changelog, context, dry_run=dry_run, change_template=change_template)
     if extension == Extension.RST:
-        return RstWriter(changelog, context, dry_run=dry_run)
+        return RstWriter(changelog, context, dry_run=dry_run, change_template=change_template)
 
     msg = f'Changelog extension "{extension.value}" not supported.'
     raise ValueError(msg)
