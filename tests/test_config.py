@@ -195,15 +195,15 @@ release = true
 
     def test_read_picks_up_post_process_config_pyproject(self, config_factory):
         config_factory(
-            """
+            r"""
 [tool.changelog_gen]
 current_version = "0.0.0"
 [tool.changelog_gen.post_process]
 link_parser."target" = "Refs"
-link_parser."pattern" = "#(\\d+)$"
-link_parser."link" = "https://fake_rest_api/{0}"}
+link_parser."pattern" = '#(\d+)$'
+link_parser."link" = "https://fake_rest_api/{0}"
 verb = "PUT"
-body = '{"issue": "{{ link.text }}", "comment": "Released in {{ version }}"}'
+body_template = '{"issue": "{{ link.text }}", "comment": "Released in {{ version }}"}'
 auth_env = "MY_API_AUTH"
 headers."content-type" = "application/json"
 """,
@@ -211,10 +211,9 @@ headers."content-type" = "application/json"
 
         c = config.read()
         assert c.post_process == config.PostProcessConfig(
-            url="https://fake_rest_api/::commit_hash::",
-            link_parsers={"target": "Refs", "pattern": r"#(\d+)$", "link": "https://fake_rest_api/{0}"},
+            link_parser={"target": "Refs", "pattern": r"#(\d+)$", "link": "https://fake_rest_api/{0}"},
             verb="PUT",
-            body='{"issue": "{{ link.text }}", "comment": "Released in {{ version }}"}',
+            body_template='{"issue": "{{ link.text }}", "comment": "Released in {{ version }}"}',
             auth_env="MY_API_AUTH",
             headers={"content-type": "application/json"},
         )
@@ -274,20 +273,6 @@ current_version = "0.0.0"
 
     c = config.read(**{key: value})
     assert getattr(c, key) == value
-
-
-def test_process_overrides_no_post_process_values():
-    _, post_process = config._process_overrides({})
-    assert post_process is None
-
-
-def test_process_overrides_extracts_post_process_values():
-    overrides, post_process = config._process_overrides(
-        {"key": "value", "post_process_url": "url", "post_process_auth_env": "auth"},
-    )
-    assert overrides == {"key": "value"}
-    assert post_process.url == "url"
-    assert post_process.auth_env == "auth"
 
 
 def test_config_defaults():
@@ -354,10 +339,10 @@ def test_config_defaults():
 def test_post_process_defaults():
     pp = config.PostProcessConfig()
     assert pp.verb == "POST"
-    assert pp.body == '{"body": "Released on ::version::"}'
+    assert pp.body_template == '{"body": "Released on {{ version }}"}'
     assert pp.auth_type == "basic"
     for attr in [
-        "url",
+        "link_parser",
         "headers",
         "auth_env",
     ]:

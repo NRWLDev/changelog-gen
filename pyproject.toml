@@ -73,13 +73,18 @@ date_format = "- %Y-%m-%d"
 
 [[tool.changelog_gen.link_parsers]]
 target = "closes"
-pattern = "#(\\d+)$"
+pattern = '#(\d+)$'
+link = "https =//github.com/NRWLDev/changelog-gen/issues/{0}"
+
+[[tool.changelog_gen.link_parsers]]
+target = "fixes"
+pattern = '#(\d+)$'
 link = "https =//github.com/NRWLDev/changelog-gen/issues/{0}"
 
 # Fall back in case a PR does not close an issue
 [[tool.changelog_gen.link_parsers]]
 target = "Refs"
-pattern = "#(\\d+)$"
+pattern = '#(\d+)$'
 link = "https =//github.com/NRWLDev/changelog-gen/issues/{0}"
 
 [[tool.changelog_gen.link_parsers]]

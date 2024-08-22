@@ -15,6 +15,7 @@ from changelog_gen import errors
 from changelog_gen.cli import command
 from changelog_gen.config import PostProcessConfig
 from changelog_gen.context import Context
+from changelog_gen.extractor import Change, Footer
 
 
 @pytest.fixture(autouse=True)
@@ -140,11 +141,13 @@ Refs: #1
 def post_process_pyproject(cwd):
     p = cwd / "pyproject.toml"
     p.write_text(
-        """
+        r"""
 [tool.changelog_gen]
 current_version = "0.0.0"
 commit = true
-post_process.url = "https://my-api/::issue_ref::/release"
+post_process.link_parser."target" = "Refs"
+post_process.link_parser."pattern" = '#(\d+)$'
+post_process.link_parser."link" = "https://my-api/{0}/release"
 post_process.auth_env = "MY_API_AUTH"
 """,
     )
@@ -619,15 +622,65 @@ class TestDelegatesToPerIssuePostProcess:
 
         result = cli_runner.invoke(["generate"])
 
+        changes = [
+            Change(
+                header="Bug fixes",
+                description="Detail about 4",
+                commit_type="fix",
+                short_hash="short0",
+                commit_hash="commit-hash0",
+                scope="",
+                breaking=False,
+                footers=[Footer(footer="Refs", separator=": ", value="#4")],
+                links=[],
+                rendered="- Detail about 4",
+            ),
+            Change(
+                header="Features and Improvements",
+                description="Detail about 3",
+                commit_type="feat",
+                short_hash="short1",
+                commit_hash="commit-hash1",
+                scope="",
+                breaking=False,
+                footers=[Footer(footer="Refs", separator=": ", value="#3")],
+                links=[],
+                rendered="- Detail about 3",
+            ),
+            Change(
+                header="Features and Improvements",
+                description="Detail about 2",
+                commit_type="feat",
+                short_hash="short4",
+                commit_hash="commit-hash4",
+                scope="",
+                breaking=False,
+                footers=[Footer(footer="Refs", separator=": ", value="#2")],
+                links=[],
+                rendered="- Detail about 2",
+            ),
+            Change(
+                header="Bug fixes",
+                description="Detail about 1",
+                commit_type="fix",
+                short_hash="short5",
+                commit_hash="commit-hash5",
+                scope="",
+                breaking=False,
+                footers=[Footer(footer="Refs", separator=": ", value="#1")],
+                links=[],
+                rendered="- Detail about 1",
+            ),
+        ]
         assert result.exit_code == 0
         assert post_process_mock.call_args_list == [
             mock.call(
                 FakeContext(),
                 PostProcessConfig(
-                    url="https://my-api/::issue_ref::/release",
+                    link_parser={"target": "Refs", "pattern": r"#(\d+)$", "link": "https://my-api/{0}/release"},
                     auth_env="MY_API_AUTH",
                 ),
-                ["1", "2", "3", "4"],
+                changes,
                 "0.0.1",
                 dry_run=False,
             ),
@@ -653,59 +706,6 @@ class TestDelegatesToPerIssuePostProcess:
         assert result.exit_code == 0
 
     @pytest.mark.usefixtures("_conventional_commits", "changelog", "post_process_pyproject")
-    def test_generate_post_process_url(
-        self,
-        cli_runner,
-        monkeypatch,
-    ):
-        monkeypatch.setattr(typer, "confirm", mock.MagicMock(return_value=True))
-        post_process_mock = mock.MagicMock()
-        monkeypatch.setattr(command, "per_issue_post_process", post_process_mock)
-
-        api_url = "https://my-api/::issue_ref::/comment"
-        result = cli_runner.invoke(["generate", "--post-process-url", api_url])
-
-        assert result.exit_code == 0
-        assert post_process_mock.call_args_list == [
-            mock.call(
-                FakeContext(),
-                PostProcessConfig(
-                    url=api_url,
-                    auth_env="MY_API_AUTH",
-                ),
-                ["1", "2", "3", "4"],
-                "0.0.1",
-                dry_run=False,
-            ),
-        ]
-
-    @pytest.mark.usefixtures("_conventional_commits", "changelog", "post_process_pyproject")
-    def test_generate_post_process_auth_env(
-        self,
-        cli_runner,
-        monkeypatch,
-    ):
-        monkeypatch.setattr(typer, "confirm", mock.MagicMock(return_value=True))
-        post_process_mock = mock.MagicMock()
-        monkeypatch.setattr(command, "per_issue_post_process", post_process_mock)
-
-        result = cli_runner.invoke(["generate", "--post-process-auth-env", "OTHER_API_AUTH"])
-
-        assert result.exit_code == 0
-        assert post_process_mock.call_args_list == [
-            mock.call(
-                FakeContext(),
-                PostProcessConfig(
-                    url="https://my-api/::issue_ref::/release",
-                    auth_env="OTHER_API_AUTH",
-                ),
-                ["1", "2", "3", "4"],
-                "0.0.1",
-                dry_run=False,
-            ),
-        ]
-
-    @pytest.mark.usefixtures("_conventional_commits", "changelog", "post_process_pyproject")
     def test_generate_dry_run(
         self,
         cli_runner,
@@ -717,15 +717,65 @@ class TestDelegatesToPerIssuePostProcess:
 
         result = cli_runner.invoke(["generate", "--dry-run"])
 
+        changes = [
+            Change(
+                header="Bug fixes",
+                description="Detail about 4",
+                commit_type="fix",
+                short_hash="short0",
+                commit_hash="commit-hash0",
+                scope="",
+                breaking=False,
+                footers=[Footer(footer="Refs", separator=": ", value="#4")],
+                links=[],
+                rendered="- Detail about 4",
+            ),
+            Change(
+                header="Features and Improvements",
+                description="Detail about 3",
+                commit_type="feat",
+                short_hash="short1",
+                commit_hash="commit-hash1",
+                scope="",
+                breaking=False,
+                footers=[Footer(footer="Refs", separator=": ", value="#3")],
+                links=[],
+                rendered="- Detail about 3",
+            ),
+            Change(
+                header="Features and Improvements",
+                description="Detail about 2",
+                commit_type="feat",
+                short_hash="short4",
+                commit_hash="commit-hash4",
+                scope="",
+                breaking=False,
+                footers=[Footer(footer="Refs", separator=": ", value="#2")],
+                links=[],
+                rendered="- Detail about 2",
+            ),
+            Change(
+                header="Bug fixes",
+                description="Detail about 1",
+                commit_type="fix",
+                short_hash="short5",
+                commit_hash="commit-hash5",
+                scope="",
+                breaking=False,
+                footers=[Footer(footer="Refs", separator=": ", value="#1")],
+                links=[],
+                rendered="- Detail about 1",
+            ),
+        ]
         assert result.exit_code == 0
         assert post_process_mock.call_args_list == [
             mock.call(
                 FakeContext(),
                 PostProcessConfig(
-                    url="https://my-api/::issue_ref::/release",
+                    link_parser={"target": "Refs", "pattern": r"#(\d+)$", "link": "https://my-api/{0}/release"},
                     auth_env="MY_API_AUTH",
                 ),
-                ["1", "2", "3", "4"],
+                changes,
                 "0.0.1",
                 dry_run=True,
             ),

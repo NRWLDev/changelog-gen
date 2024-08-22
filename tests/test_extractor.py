@@ -601,7 +601,7 @@ def test_change_ordering():
             ],
         ),
         Change(
-            eader="header",
+            header="header",
             description="Bugfix",
             scope="(extractor)",
             breaking=False,

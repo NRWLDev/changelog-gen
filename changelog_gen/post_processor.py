@@ -60,6 +60,13 @@ def make_client(context: Context, cfg: PostProcessConfig) -> httpx.Client:
     )
 
 
+def _get_footer(change: Change, footer: str) -> str | None:
+    for footer_ in change.footers:
+        if footer_.footer.lower() == footer.lower():
+            return footer_
+    return None
+
+
 @timer
 def per_issue_post_process(
     context: Context,
@@ -70,29 +77,24 @@ def per_issue_post_process(
     dry_run: bool = False,
 ) -> None:
     """Run post process for all provided issue references."""
-    if not cfg.url:
+    link_parser, body_template = cfg.link_parser, cfg.body_template
+    if link_parser is None:
         return
     context.warning("Post processing:")
 
     client = make_client(context, cfg)
 
     for change in changes:
-        link_parser, body_template = cfg.link_parser, cfg.body_template
         link = None
-        if link_parser["target"] == "__change__":
-            text_template = link_parser.get("text", "{0}")
-            link_template = link_parser["link"]
-            link = Link(text_template.format(change), link_template.format(change))
-        else:
-            footer = change.footers.get(link_parser["target"])
-            if footer is None:
-                continue
-            text_template = link_parser.get("text", "{0}")
-            link_template = link_parser["link"]
-            matches = re.findall(link_parser["pattern"], footer.value)
-            link = Link(text_template.format(matches[0]), link_template.format(matches[0]))
-        if link is None:
+
+        footer = _get_footer(change, link_parser["target"])
+        if footer is None:
             continue
+
+        text_template = link_parser.get("text", "{0}")
+        link_template = link_parser["link"]
+        matches = re.findall(link_parser["pattern"], footer.value)
+        link = Link(text_template.format(matches[0]), link_template.format(matches[0]))
 
         rtemplate = Environment(loader=BaseLoader()).from_string(body_template)  # noqa: S701
 
