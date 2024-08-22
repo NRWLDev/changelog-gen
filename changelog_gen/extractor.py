@@ -47,7 +47,7 @@ class Change:  # noqa: D101
     def issue_ref(self: t.Self) -> str:
         """Extract issue ref from footers."""
         for footer in self.footers:
-            if footer.footer in ("Refs", "closes"):
+            if footer.footer.lower() in ("refs", "closes", "fixes"):
                 return footer.value
         return ""
 
@@ -101,7 +101,7 @@ class ChangeExtractor:
                 if prm is not None:
                     # Strip githubs additional link information from description.
                     description = re.sub(r" \(#\d+\)$", "", description)
-                    footers["PR"] = Footer("PR", ": ", prm.group()[1:-1])
+                    footers["pr"] = Footer("PR", ": ", prm.group()[1:-1])
                 details = m[5] or ""
 
                 # Handle missing refs in commit message, skip link generation in writer
@@ -118,10 +118,10 @@ class ChangeExtractor:
 
                 for line in details.split("\n"):
                     for parser in self.context.config.footer_parsers:
-                        m = re.match(parser, line)
+                        m = re.match(parser, line, re.IGNORECASE)
                         if m is not None:
                             self.context.info("  '%s' footer extracted '%s%s%s'", parser, m[1], m[2], m[3])
-                            footers[m[1]] = Footer(m[1], m[2], m[3])
+                            footers[m[1].lower()] = Footer(m[1], m[2], m[3])
 
                 header = self.type_headers.get(commit_type, commit_type)
                 change = Change(
@@ -143,7 +143,7 @@ class ChangeExtractor:
                         link_template = parser["link"]
                         links.append(Link(text_template.format(change), link_template.format(change)))
                     else:
-                        footer = footers.get(parser["target"])
+                        footer = footers.get(parser["target"].lower())
                         if footer is None:
                             continue
                         text_template = parser.get("text", "{0}")

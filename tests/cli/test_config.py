@@ -36,6 +36,7 @@ serialisers = ['{major}.{minor}.{patch}']
 footer_parsers = [
     '(Refs)(: )(#?[\w-]+)',
     '(closes)( )(#[\w-]+)',
+    '(fixes)( )(#[\w-]+)',
     '(Authors)(: )(.*)',
 ]
 link_parsers = []
