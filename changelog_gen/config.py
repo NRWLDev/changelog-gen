@@ -28,6 +28,7 @@ SUPPORTED_TYPES = {
 FOOTER_PARSERS = [
     r"(Refs)(: )(#?[\w-]+)",
     r"(closes)( )(#[\w-]+)",
+    r"(fixes)( )(#[\w-]+)",
     r"(Authors)(: )(.*)",
 ]
 

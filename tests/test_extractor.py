@@ -41,7 +41,7 @@ Refs: #4
         "fix typo",
         """feat(docs)!: Detail about 3
 
-Refs: #3
+Fixes #3
 """,
         """fix: Detail about 1
 
@@ -98,6 +98,7 @@ def test_git_commit_extraction(conventional_commits):
     hashes = conventional_commits
     link_parsers = [
         {"target": "Refs", "pattern": r"#(\d+)$", "link": "https://github.com/NRWLDev/changelog-gen/issues/{0}"},
+        {"target": "fixes", "pattern": r"#(\d+)$", "link": "https://github.com/NRWLDev/changelog-gen/issues/{0}"},
         {"target": "Authors", "pattern": r"@(\w+)[, ]?", "link": "https://github.com/{0}", "text": "@{0}"},
         {
             "target": "__change__",
@@ -153,7 +154,7 @@ def test_git_commit_extraction(conventional_commits):
             commit_hash=hashes[2],
             commit_type="feat",
             footers=[
-                Footer("Refs", ": ", "#3"),
+                Footer("Fixes", " ", "#3"),
             ],
             links=[
                 Link("3", "https://github.com/NRWLDev/changelog-gen/issues/3"),
@@ -227,7 +228,7 @@ def test_git_commit_extraction_include_all(conventional_commits):
             commit_hash=hashes[2],
             commit_type="feat",
             footers=[
-                Footer("Refs", ": ", "#3"),
+                Footer("Fixes", " ", "#3"),
             ],
         ),
         Change(
@@ -307,7 +308,7 @@ def test_git_commit_extraction_handles_random_tags(conventional_commits, multive
             commit_hash=hashes[2],
             commit_type="feat",
             footers=[
-                Footer("Refs", ": ", "#3"),
+                Footer("Fixes", " ", "#3"),
             ],
         ),
         Change(
