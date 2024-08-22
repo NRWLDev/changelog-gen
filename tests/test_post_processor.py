@@ -4,10 +4,11 @@ from unittest import mock
 import pytest
 import typer
 
-httpx = pytest.importorskip("httpx")
+from changelog_gen import post_processor
+from changelog_gen.config import PostProcessConfig
+from changelog_gen.extractor import Change, Footer
 
-from changelog_gen import post_processor  # noqa: E402
-from changelog_gen.config import PostProcessConfig  # noqa: E402
+httpx = pytest.importorskip("httpx")
 
 
 def test_bearer_auth_flow():
@@ -87,13 +88,17 @@ class TestMakeClient:
 class TestPerIssuePostPrequest:
     @pytest.mark.parametrize("cfg_verb", ["POST", "PUT", "GET"])
     @pytest.mark.parametrize(
-        "issue_refs",
+        "changes",
         [
-            ["1", "2", "3"],
+            [
+                Change("header", "line1", "fix", footers=[Footer("Refs", ": ", "#1")]),
+                Change("header", "line1", "fix", footers=[Footer("Refs", ": ", "#2")]),
+                Change("header", "line3", "fix"),
+            ],
             [],
         ],
     )
-    def test_one_client_regardless_of_issue_count(self, monkeypatch, httpx_mock, cfg_verb, issue_refs):
+    def test_one_client_regardless_of_issue_count(self, monkeypatch, httpx_mock, cfg_verb, changes):
         monkeypatch.setattr(
             post_processor,
             "make_client",
@@ -101,17 +106,17 @@ class TestPerIssuePostPrequest:
         )
         cfg = PostProcessConfig(
             verb=cfg_verb,
-            url="https://my-api.github.com/comments/::issue_ref::",
+            link_parser={"target": "Refs", "pattern": r"#(\d+)", "link": "https://my-api.github.com/comments/{0}"},
         )
-        for issue in issue_refs:
+        for change in changes:
             httpx_mock.add_response(
                 method=cfg_verb,
-                url=cfg.url.replace("::issue_ref::", issue),
+                url=f"https://my-api.github.com/comments/{change.issue_ref}",
                 status_code=HTTPStatus.OK,
             )
 
         ctx = mock.Mock()
-        post_processor.per_issue_post_process(ctx, cfg, issue_refs, "1.0.0")
+        post_processor.per_issue_post_process(ctx, cfg, changes, "1.0.0")
 
         assert post_processor.make_client.call_args_list == [
             mock.call(ctx, cfg),
@@ -119,32 +124,32 @@ class TestPerIssuePostPrequest:
 
     def test_handle_http_errors_gracefully(self, httpx_mock):
         ctx = mock.Mock()
-        issue_refs = ["1", "2", "3"]
+        changes = [
+            Change("header", "line1", "fix", footers=[Footer("Refs", ": ", "#1")]),
+            Change("header", "line1", "fix", footers=[Footer("Refs", ": ", "#2")]),
+            Change("header", "line3", "fix"),
+        ]
 
-        cfg = PostProcessConfig(url="https://my-api.github.com/comments/::issue_ref::")
+        cfg = PostProcessConfig(
+            link_parser={"target": "Refs", "pattern": r"#(\d+)", "link": "https://my-api.github.com/comments/{0}"},
+        )
 
-        ep0 = cfg.url.replace("::issue_ref::", issue_refs[0])
+        ep0 = "https://my-api.github.com/comments/1"
         httpx_mock.add_response(
             method="POST",
             url=ep0,
             status_code=HTTPStatus.OK,
         )
-        ep1 = cfg.url.replace("::issue_ref::", issue_refs[1])
-        not_found_txt = f"{issue_refs[1]} NOT FOUND"
+        ep1 = "https://my-api.github.com/comments/2"
+        not_found_txt = "2 NOT FOUND"
         httpx_mock.add_response(
             method="POST",
             url=ep1,
             status_code=HTTPStatus.NOT_FOUND,
             content=bytes(not_found_txt, "utf-8"),
         )
-        ep2 = cfg.url.replace("::issue_ref::", issue_refs[2])
-        httpx_mock.add_response(
-            method="POST",
-            url=ep2,
-            status_code=HTTPStatus.OK,
-        )
 
-        post_processor.per_issue_post_process(ctx, cfg, issue_refs, "1.0.0")
+        post_processor.per_issue_post_process(ctx, cfg, changes, "1.0.0")
 
         assert ctx.error.call_args_list == [
             mock.call("Post process request failed."),
@@ -158,8 +163,6 @@ class TestPerIssuePostPrequest:
             mock.call("Response: %s", "OK"),
             mock.call("Request: %s %s", "POST", ep1),
             mock.call("Response: %s", "NOT_FOUND"),
-            mock.call("Request: %s %s", "POST", ep2),
-            mock.call("Response: %s", "OK"),
         ]
 
     @pytest.mark.parametrize("cfg_verb", ["POST", "PUT", "GET"])

@@ -199,9 +199,11 @@ release = true
 [tool.changelog_gen]
 current_version = "0.0.0"
 [tool.changelog_gen.post_process]
-url = "https://fake_rest_api/::commit_hash::"
+link_parser."target" = "Refs"
+link_parser."pattern" = "#(\\d+)$"
+link_parser."link" = "https://fake_rest_api/{0}"}
 verb = "PUT"
-body = '{"issue": "::issue_ref::", "comment": "Released in ::version::"}'
+body = '{"issue": "{{ link.text }}", "comment": "Released in {{ version }}"}'
 auth_env = "MY_API_AUTH"
 headers."content-type" = "application/json"
 """,
@@ -210,90 +212,11 @@ headers."content-type" = "application/json"
         c = config.read()
         assert c.post_process == config.PostProcessConfig(
             url="https://fake_rest_api/::commit_hash::",
+            link_parsers={"target": "Refs", "pattern": r"#(\d+)$", "link": "https://fake_rest_api/{0}"},
             verb="PUT",
-            body='{"issue": "::issue_ref::", "comment": "Released in ::version::"}',
+            body='{"issue": "{{ link.text }}", "comment": "Released in {{ version }}"}',
             auth_env="MY_API_AUTH",
             headers={"content-type": "application/json"},
-        )
-
-    @pytest.mark.parametrize(
-        "config_value",
-        [
-            'post_process.body = "::unexpected:: ::also-unexpected::"',
-            'post_process.url = "::unexpected:: ::also-unexpected::"',
-        ],
-    )
-    def test_read_picks_up_unexpected_replaces(self, config_factory, config_value):
-        config_factory(
-            f"""
-[tool.changelog_gen]
-current_version = "0.0.0"
-{config_value}
-        """,
-        )
-
-        with pytest.raises(errors.UnsupportedReplaceError) as e:
-            config.read()
-
-        assert str(e.value) == "Replace string(s) ('::also-unexpected::', '::unexpected::') not supported."
-
-    def test_read_picks_up_post_process_override(self, config_factory):
-        config_factory(
-            """
-[tool.changelog_gen]
-current_version = "0.0.0"
-[tool.changelog_gen.post_process]
-url = "https://initial/::issue_ref::"
-auth_env = "INITIAL"
-""",
-        )
-
-        c = config.read(
-            post_process_url="https://fake_rest_api/",
-            post_process_auth_env="MY_API_AUTH",
-        )
-        assert c.post_process == config.PostProcessConfig(
-            url="https://fake_rest_api/",
-            auth_env="MY_API_AUTH",
-        )
-
-    def test_read_picks_up_post_process_override_no_config(self, config_factory):
-        config_factory(
-            """
-[tool.changelog_gen]
-current_version = "0.0.0"
-release = true
-""",
-        )
-
-        c = config.read(
-            post_process_url="https://fake_rest_api/",
-            post_process_auth_env="MY_API_AUTH",
-        )
-        assert c.post_process == config.PostProcessConfig(
-            url="https://fake_rest_api/",
-            auth_env="MY_API_AUTH",
-        )
-
-    @pytest.mark.parametrize(("url", "auth_env"), [("", "AUTH"), ("url", "")])
-    def test_read_ignores_empty_post_process_override(self, config_factory, url, auth_env):
-        config_factory(
-            """
-[tool.changelog_gen]
-current_version = "0.0.0"
-[tool.changelog_gen.post_process]
-url = "https://initial/::issue_ref::"
-auth_env = "INITIAL"
-""",
-        )
-
-        c = config.read(
-            post_process_url=url,
-            post_process_auth_env=auth_env,
-        )
-        assert c.post_process == config.PostProcessConfig(
-            url=url or "https://initial/::issue_ref::",
-            auth_env=auth_env or "INITIAL",
         )
 
     def test_read_rejects_unknown_fields(self, config_factory):

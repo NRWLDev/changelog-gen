@@ -381,5 +381,4 @@ def _gen(  # noqa: PLR0913, C901, PLR0915
             context.error("httpx required to execute post process, install with `--extras post-process`.")
             return
 
-        unique_issues = [r.issue_ref.replace("#", "") for r in changes if r.issue_ref]
-        per_issue_post_process(context, post_process, sorted(unique_issues), str(new), dry_run=dry_run)
+        per_issue_post_process(context, post_process, changes, str(new), dry_run=dry_run)

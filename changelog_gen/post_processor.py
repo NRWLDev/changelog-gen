@@ -1,17 +1,21 @@
 from __future__ import annotations
 
 import os
+import re
 import typing as t
 from http import HTTPStatus
 
 import httpx
 import typer
+from jinja2 import BaseLoader, Environment
 
+from changelog_gen.extractor import Link
 from changelog_gen.util import timer
 
 if t.TYPE_CHECKING:
     from changelog_gen.config import PostProcessConfig
     from changelog_gen.context import Context
+    from changelog_gen.extractor import Change
 
 
 class BearerAuth(httpx.Auth):
@@ -60,7 +64,7 @@ def make_client(context: Context, cfg: PostProcessConfig) -> httpx.Client:
 def per_issue_post_process(
     context: Context,
     cfg: PostProcessConfig,
-    issue_refs: list[str],
+    changes: list[Change],
     version_tag: str,
     *,
     dry_run: bool = False,
@@ -72,23 +76,35 @@ def per_issue_post_process(
 
     client = make_client(context, cfg)
 
-    for issue in issue_refs:
-        url, body = cfg.url, cfg.body
-        for find, replace in [
-            ("::issue_ref::", issue),
-            ("::version::", version_tag),
-        ]:
-            url = url.replace(find, replace)
-            body = body.replace(find, replace)
+    for change in changes:
+        link_parser, body_template = cfg.link_parser, cfg.body_template
+        link = None
+        if link_parser["target"] == "__change__":
+            text_template = link_parser.get("text", "{0}")
+            link_template = link_parser["link"]
+            link = Link(text_template.format(change), link_template.format(change))
+        else:
+            footer = change.footers.get(link_parser["target"])
+            if footer is None:
+                continue
+            text_template = link_parser.get("text", "{0}")
+            link_template = link_parser["link"]
+            matches = re.findall(link_parser["pattern"], footer.value)
+            link = Link(text_template.format(matches[0]), link_template.format(matches[0]))
+        if link is None:
+            continue
 
+        rtemplate = Environment(loader=BaseLoader()).from_string(body_template)  # noqa: S701
+
+        body = rtemplate.render(link=link, change=change, version=version_tag)
         context.indent()
         if dry_run:
-            context.warning("Would request: %s %s %s", cfg.verb, url, body)
+            context.warning("Would request: %s %s %s", cfg.verb, link.link, body)
         else:
-            context.info("Request: %s %s", cfg.verb, url)
+            context.info("Request: %s %s", cfg.verb, link.link)
             r = client.request(
                 method=cfg.verb,
-                url=url,
+                url=link.link,
                 content=body,
             )
             context.indent()

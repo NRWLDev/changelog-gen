@@ -63,17 +63,22 @@ test = 'Miscellaneous'
 
 
 def test_post_process_config_displayed(cli_runner, config_factory):
-    config_factory(post_process={"url": "http://localhost"})
+    config_factory(post_process={"link_parser": {"target": "Refs", "link": "http://localhost"}})
     result = cli_runner.invoke(["config"])
 
     assert result.exit_code == 0
-    assert result.output.strip().endswith("""
+    assert result.output.endswith("""
 [post_process]
-url = 'http://localhost'
 verb = 'POST'
-body = '{"body": "Released on ::version::"}'
+body_template = '{"body": "Released on {{ version }}"}'
 auth_type = 'basic'
+
+[post_process.link_parser]
+target = 'Refs'
+link = 'http://localhost'
 
 [custom]
 
-[files]""")
+[files]
+
+""")

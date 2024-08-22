@@ -36,11 +36,11 @@ FOOTER_PARSERS = [
 class PostProcessConfig:
     """Post Processor configuration options."""
 
-    url: str | None = None
+    link_parser: dict[str, str] | None = None
     verb: str = "POST"
     # The body to send as a post-processing command,
     # can have the entries: ::issue_ref::, ::version::
-    body: str = '{"body": "Released on ::version::"}'
+    body_template: str = '{"body": "Released on {{ version }}"}'
     auth_type: str = "basic"  # future proof config
     headers: dict | None = None
     # Name of an environment variable to use as HTTP Basic Auth parameters.
@@ -153,24 +153,12 @@ class Config:
 
 
 @timer
-def _process_overrides(overrides: dict) -> tuple[dict, PostProcessConfig | None]:
+def _process_overrides(overrides: dict) -> dict:
     """Process provided overrides.
 
     Remove any unsupplied values (None).
     """
-    post_process_url = overrides.pop("post_process_url", "")
-    post_process_auth_env = overrides.pop("post_process_auth_env", None)
-
-    post_process = None
-    if post_process_url or post_process_auth_env:
-        post_process = PostProcessConfig(
-            url=post_process_url,
-            auth_env=post_process_auth_env,
-        )
-
-    overrides = {k: v for k, v in overrides.items() if v is not None}
-
-    return overrides, post_process
+    return {k: v for k, v in overrides.items() if v is not None}
 
 
 @timer
@@ -204,13 +192,13 @@ def check_deprecations(cfg: dict) -> None:  # noqa: ARG001
 
 
 @timer
-def read(path: str = "pyproject.toml", **kwargs) -> Config:  # noqa: C901
+def read(path: str = "pyproject.toml", **kwargs) -> Config:
     """Read configuration from local environment.
 
     Supported configuration locations (checked in order):
     * pyproject.toml
     """
-    overrides, post_process = _process_overrides(kwargs)
+    overrides = _process_overrides(kwargs)
     cfg = {}
 
     pyproject = Path(path)
@@ -222,36 +210,9 @@ def read(path: str = "pyproject.toml", **kwargs) -> Config:  # noqa: C901
     # parse pyproject
     cfg = _process_pyproject(pyproject)
 
-    if "post_process" not in cfg and post_process:
-        cfg["post_process"] = {
-            "url": post_process.url,
-            "auth_env": post_process.auth_env,
-        }
-
-    if "post_process" in cfg and post_process:
-        cfg["post_process"]["url"] = post_process.url or cfg["post_process"].get("url")
-        cfg["post_process"]["auth_env"] = post_process.auth_env or cfg["post_process"].get("auth_env")
-
     cfg.update(overrides)
 
     check_deprecations(cfg)  # pragma: no mutate
-
-    for replace_key_path in [
-        ("post_process", "url"),
-        ("post_process", "body"),
-    ]:
-        data, value = cfg, None
-        for key in replace_key_path:
-            value = data.get(key)
-            if key in data:
-                data = data[key]
-
-        # check for non supported replace keys
-        supported = {"::issue_ref::", "::version::", "::commit_hash::", "::pull_ref::"}
-        unsupported = sorted(set(re.findall(r"(::.*?::)", str(value)) or []) - supported)
-        if unsupported:
-            msg = f"""Replace string(s) ('{"', '".join(unsupported)}') not supported."""
-            raise errors.UnsupportedReplaceError(msg)
 
     if cfg.get("post_process"):
         pp = cfg["post_process"]
