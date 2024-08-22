@@ -42,7 +42,7 @@ Refs: #4
         "fix typo",
         """feat(docs)!: Detail about 3
 
-Refs: #3
+Fixes #3
 """,
         """fix: Detail about 1
 

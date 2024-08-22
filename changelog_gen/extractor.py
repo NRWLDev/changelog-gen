@@ -108,9 +108,10 @@ class ChangeExtractor:
                     for target, pattern in [
                         ("issue_ref", r"Refs: #?([\w-]+)"),
                         ("issue_ref", r"closes #([\w-]+)"),  # support github closes footer
+                        ("issue_ref", r"fixes #([\w-]+)"),  # support github fixes footer
                         ("authors", r"Authors: (.*)"),
                     ]:
-                        m = re.match(pattern, line)
+                        m = re.match(pattern, line, re.IGNORECASE)
                         if m:
                             self.context.info("  '%s' footer extracted '%s'", target, m[1])
                             setattr(change, target, m[1])
