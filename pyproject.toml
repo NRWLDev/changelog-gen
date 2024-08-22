@@ -71,6 +71,7 @@ tag = true
 reject_empty = true
 allowed_branches = [
     "main",
+    "release",
 ]
 date_format = "- %Y-%m-%d"
 issue_link = "https://github.com/NRWLDev/changelog-gen/issues/::issue_ref::"
