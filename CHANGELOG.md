@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.11.15 - 2024-08-22
+
+### Bug fixes
+
+- Add supported for github `fixes` footer [[9b47f12](https://github.com/NRWLDev/changelog-gen/commit/9b47f122fc3b8cf0eb9a90684eabd19bcd6674c9)]
+
 ## v0.11.14 - 2024-08-16
 
 ### Features and Improvements
