@@ -3,7 +3,7 @@ import random
 import pytest
 
 from changelog_gen import extractor
-from changelog_gen.config import Config
+from changelog_gen.config import Config, GithubConfig
 from changelog_gen.context import Context
 from changelog_gen.extractor import Change, ChangeExtractor, Footer, Link
 from changelog_gen.vcs import Git
@@ -51,7 +51,7 @@ BREAKING CHANGE:
 Refs: #1
 """,
         "update readme",
-        """feat: Detail about 2
+        """feat: Detail about 2 (#2)
 
 Authors: @tom, @edgy
 closes #2
@@ -106,13 +106,12 @@ def test_git_commit_extraction(conventional_commits):
     assert changes == [
         Change(
             "Features and Improvements",
-            "Detail about 2",
+            "Detail about 2 (#2)",
             short_hash=hashes[5][:7],
             commit_hash=hashes[5],
             commit_type="feat",
             footers=[
                 Footer("Authors", ": ", "@tom, @edgy"),
-                Footer("closes", " ", "#2"),
             ],
         ),
         Change(
@@ -134,9 +133,7 @@ def test_git_commit_extraction(conventional_commits):
             short_hash=hashes[2][:7],
             commit_hash=hashes[2],
             commit_type="feat",
-            footers=[
-                Footer("Fixes", " ", "#3"),
-            ],
+            footers=[],
         ),
         Change(
             "Bug fixes",
@@ -164,13 +161,12 @@ def test_git_commit_extraction_include_all(conventional_commits):
     assert changes == [
         Change(
             "Features and Improvements",
-            "Detail about 2",
+            "Detail about 2 (#2)",
             short_hash=hashes[5][:7],
             commit_hash=hashes[5],
             commit_type="feat",
             footers=[
                 Footer("Authors", ": ", "@tom, @edgy"),
-                Footer("closes", " ", "#2"),
             ],
         ),
         Change(
@@ -200,9 +196,7 @@ def test_git_commit_extraction_include_all(conventional_commits):
             short_hash=hashes[2][:7],
             commit_hash=hashes[2],
             commit_type="feat",
-            footers=[
-                Footer("Fixes", " ", "#3"),
-            ],
+            footers=[],
         ),
         Change(
             "Miscellaneous",
@@ -241,13 +235,12 @@ def test_git_commit_extraction_extractors(conventional_commits):
     assert changes == [
         Change(
             "Features and Improvements",
-            "Detail about 2",
+            "Detail about 2 (#2)",
             short_hash=hashes[5][:7],
             commit_hash=hashes[5],
             commit_type="feat",
             footers=[
                 Footer("Authors", ": ", "@tom, @edgy"),
-                Footer("closes", " ", "#2"),
             ],
             extractions={"author": ["tom", "edgy"]},
         ),
@@ -271,10 +264,6 @@ def test_git_commit_extraction_extractors(conventional_commits):
             short_hash=hashes[2][:7],
             commit_hash=hashes[2],
             commit_type="feat",
-            footers=[
-                Footer("Fixes", " ", "#3"),
-            ],
-            extractions={"issue_ref": ["3"]},
         ),
         Change(
             "Bug fixes",
@@ -317,13 +306,12 @@ def test_git_commit_extraction_link_generators(conventional_commits):
     assert changes == [
         Change(
             "Features and Improvements",
-            "Detail about 2",
+            "Detail about 2 (#2)",
             short_hash=hashes[5][:7],
             commit_hash=hashes[5],
             commit_type="feat",
             footers=[
                 Footer("Authors", ": ", "@tom, @edgy"),
-                Footer("closes", " ", "#2"),
             ],
             links=[
                 Link("@tom", "https://github.com/tom"),
@@ -356,14 +344,9 @@ def test_git_commit_extraction_link_generators(conventional_commits):
             short_hash=hashes[2][:7],
             commit_hash=hashes[2],
             commit_type="feat",
-            footers=[
-                Footer("Fixes", " ", "#3"),
-            ],
             links=[
-                Link("3", "https://github.com/NRWLDev/changelog-gen/issues/3"),
                 Link(hashes[2][:7], f"https://github.com/NRWLDev/changelog-gen/commit/{hashes[2]}"),
             ],
-            extractions={"issue_ref": ["3"]},
         ),
         Change(
             "Bug fixes",
@@ -378,6 +361,83 @@ def test_git_commit_extraction_link_generators(conventional_commits):
             links=[
                 Link("4", "https://github.com/NRWLDev/changelog-gen/issues/4"),
                 Link(hashes[0][:7], f"https://github.com/NRWLDev/changelog-gen/commit/{hashes[0]}"),
+            ],
+            extractions={"issue_ref": ["4"]},
+        ),
+    ]
+
+
+def test_git_commit_extraction_with_github_optionals(conventional_commits):
+    hashes = conventional_commits
+    extractors = [
+        {"footer": ["Refs", "fixes"], "pattern": r"#(?P<issue_ref>\d+)"},
+        {"footer": "Authors", "pattern": r"@(?P<author>\w+)"},
+    ]
+    ctx = Context(
+        Config(
+            current_version="0.0.2",
+            extractors=extractors,
+            github=GithubConfig(
+                strip_pr_from_description=True,
+                extract_pr_from_description=True,
+                extract_common_footers=True,
+            ),
+        ),
+    )
+    git = Git(ctx)
+
+    e = ChangeExtractor(ctx, git)
+
+    changes = e.extract()
+
+    assert changes == [
+        Change(
+            "Features and Improvements",
+            "Detail about 2",
+            short_hash=hashes[5][:7],
+            commit_hash=hashes[5],
+            commit_type="feat",
+            footers=[
+                Footer("PR", ": ", "#2"),
+                Footer("Authors", ": ", "@tom, @edgy"),
+                Footer("closes", " ", "#2"),
+            ],
+            extractions={"author": ["tom", "edgy"]},
+        ),
+        Change(
+            "Bug fixes",
+            "Detail about 1",
+            breaking=True,
+            short_hash=hashes[3][:7],
+            commit_hash=hashes[3],
+            commit_type="fix",
+            footers=[
+                Footer("Refs", ": ", "#1"),
+            ],
+            extractions={"issue_ref": ["1"]},
+        ),
+        Change(
+            "Features and Improvements",
+            "Detail about 3",
+            breaking=True,
+            scope="docs",
+            short_hash=hashes[2][:7],
+            commit_hash=hashes[2],
+            commit_type="feat",
+            footers=[
+                Footer("Fixes", " ", "#3"),
+            ],
+            extractions={"issue_ref": ["3"]},
+        ),
+        Change(
+            "Bug fixes",
+            "Detail about 4",
+            scope="config",
+            short_hash=hashes[0][:7],
+            commit_hash=hashes[0],
+            commit_type="fix",
+            footers=[
+                Footer("Refs", ": ", "#4"),
             ],
             extractions={"issue_ref": ["4"]},
         ),
@@ -411,13 +471,12 @@ def test_git_commit_extraction_handles_random_tags(conventional_commits, multive
         ),
         Change(
             "Features and Improvements",
-            "Detail about 2",
+            "Detail about 2 (#2)",
             short_hash=hashes[5][:7],
             commit_hash=hashes[5],
             commit_type="feat",
             footers=[
                 Footer("Authors", ": ", "@tom, @edgy"),
-                Footer("closes", " ", "#2"),
             ],
         ),
         Change(
@@ -439,9 +498,7 @@ def test_git_commit_extraction_handles_random_tags(conventional_commits, multive
             short_hash=hashes[2][:7],
             commit_hash=hashes[2],
             commit_type="feat",
-            footers=[
-                Footer("Fixes", " ", "#3"),
-            ],
+            footers=[],
         ),
         Change(
             "Bug fixes",
@@ -544,7 +601,7 @@ Refs: #1
         multiversion_repo.api.index.commit(msg)
         hashes.append(str(multiversion_repo.api.head.commit))
 
-    ctx = Context(Config(current_version="0.0.2"))
+    ctx = Context(Config(current_version="0.0.2", github=GithubConfig(strip_pr_from_description=True)))
     git = Git(ctx)
 
     e = ChangeExtractor(ctx, git)
@@ -560,7 +617,6 @@ Refs: #1
             commit_hash=hashes[0],
             commit_type="fix",
             footers=[
-                Footer("PR", ": ", "#20"),
                 Footer("Refs", ": ", "#1"),
             ],
         ),

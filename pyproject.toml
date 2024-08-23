@@ -71,6 +71,11 @@ allowed_branches = [
 ]
 date_format = "- %Y-%m-%d"
 
+[tool.changelog_gen.github]
+strip_pr_from_description = true
+extract_pr_from_description = true
+extract_common_footers = true
+
 [[tool.changelog_gen.extractors]]
 footer = ["closes", "fixes", "Refs"]
 pattern = '#(?P<issue_ref>\d+)'

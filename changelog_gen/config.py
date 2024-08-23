@@ -27,10 +27,6 @@ SUPPORTED_TYPES = {
 
 FOOTER_PARSERS = [
     r"(Refs)(: )(#?[\w-]+)",
-    # TODO(edgy): Parse github behind a github config
-    # https://github.com/NRWLDev/changelog-gen/issues/50
-    r"(closes)( )(#[\w-]+)",
-    r"(fixes)( )(#[\w-]+)",
     r"(Authors)(: )(.*)",
 ]
 
@@ -49,6 +45,15 @@ class PostProcessConfig:
     # Name of an environment variable to use as HTTP Basic Auth parameters.
     # The variable should contain "{user}:{api_key}"
     auth_env: str | None = None
+
+
+@dataclasses.dataclass
+class GithubConfig:
+    """Github specific helpers."""
+
+    strip_pr_from_description: bool = False
+    extract_pr_from_description: bool = False
+    extract_common_footers: bool = False
 
 
 STRICT_VALIDATOR = re.compile(
@@ -87,6 +92,9 @@ class Config:
 
     # Version bumping
     files: dict = dataclasses.field(default_factory=dict)
+
+    # Github helpers
+    github: GithubConfig | None = None
 
     # Changelog configuration
     date_format: str | None = None
@@ -186,6 +194,7 @@ def _process_pyproject(pyproject: Path) -> dict:
         data["tool"]["changelog_gen"]["footer_parsers"] = footer_parsers
         data["tool"]["changelog_gen"]["commit_types"] = commit_types
         data["tool"]["changelog_gen"]["type_headers"] = type_headers
+
         return data["tool"]["changelog_gen"]
 
 
@@ -226,6 +235,10 @@ def read(path: str = "pyproject.toml", **kwargs) -> Config:
         except Exception as e:
             msg = f"Failed to create post_process: {e!s}"
             raise RuntimeError(msg) from e
+
+    if "github" in cfg:
+        github = GithubConfig(**cfg["github"])
+        cfg["github"] = github
 
     try:
         return Config(**cfg)
