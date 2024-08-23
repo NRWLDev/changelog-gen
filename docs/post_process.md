@@ -7,16 +7,16 @@ released as a part of.
 
 The configured [post
 process](https://nrwldev.github.io/changelog-gen/configuration/#post_process)
-url should contain an `::issue_ref::` place holder, when processing each commit
-issue, the url will be dynamically updated before
-being called.
+link generator can refer to any extracted information, if an extractor matches
+multiple times, the post process will be called for each match for that change.
 
-By default the url will be called using a `POST` request, but the http verb can
-be changed depending on the service being called, and its requirements. The
-request
-[body](https://nrwldev.github.io/changelog-gen/configuration/#post_processbody) can
-also be configured with a `::version::` placeholder to add a comment to an
-existing issue.
+By default the generated link will be called using a `POST` request, but the
+http verb can be changed depending on the service being called, and its
+requirements. The request
+[body](https://nrwldev.github.io/changelog-gen/configuration/#post_processbody_template)
+can also be configured with a jinja template, provided at render time will be
+the `version` string, the `source` from the extracted match, and all extracted
+key values.
 
 Optional
 [headers](https://nrwldev.github.io/changelog-gen/configuration/#post_processheaders)
