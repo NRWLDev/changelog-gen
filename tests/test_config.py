@@ -199,11 +199,11 @@ release = true
 [tool.changelog_gen]
 current_version = "0.0.0"
 [tool.changelog_gen.post_process]
-link_parser."target" = "Refs"
-link_parser."pattern" = '#(\d+)$'
-link_parser."link" = "https://fake_rest_api/{0}"
+link_generator."target" = "Refs"
+link_generator."pattern" = '#(\d+)$'
+link_generator."link" = "https://fake_rest_api/{0}"
 verb = "PUT"
-body_template = '{"issue": "{{ link.text }}", "comment": "Released in {{ version }}"}'
+body_template = '{"issue": "{{ issue_ref }}", "comment": "Released in {{ version }}"}'
 auth_env = "MY_API_AUTH"
 headers."content-type" = "application/json"
 """,
@@ -211,9 +211,9 @@ headers."content-type" = "application/json"
 
         c = config.read()
         assert c.post_process == config.PostProcessConfig(
-            link_parser={"target": "Refs", "pattern": r"#(\d+)$", "link": "https://fake_rest_api/{0}"},
+            link_generator={"target": "Refs", "pattern": r"#(\d+)$", "link": "https://fake_rest_api/{0}"},
             verb="PUT",
-            body_template='{"issue": "{{ link.text }}", "comment": "Released in {{ version }}"}',
+            body_template='{"issue": "{{ issue_ref }}", "comment": "Released in {{ version }}"}',
             auth_env="MY_API_AUTH",
             headers={"content-type": "application/json"},
         )
@@ -342,7 +342,7 @@ def test_post_process_defaults():
     assert pp.body_template == '{"body": "Released on {{ version }}"}'
     assert pp.auth_type == "basic"
     for attr in [
-        "link_parser",
+        "link_generator",
         "headers",
         "auth_env",
     ]:

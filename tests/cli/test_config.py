@@ -39,7 +39,8 @@ footer_parsers = [
     '(fixes)( )(#[\w-]+)',
     '(Authors)(: )(.*)',
 ]
-link_parsers = []
+extractors = []
+link_generators = []
 hooks = []
 
 [type_headers]
@@ -64,7 +65,7 @@ test = 'Miscellaneous'
 
 
 def test_post_process_config_displayed(cli_runner, config_factory):
-    config_factory(post_process={"link_parser": {"target": "Refs", "link": "http://localhost"}})
+    config_factory(post_process={"link_generator": {"target": "Refs", "link": "http://localhost"}})
     result = cli_runner.invoke(["config"])
 
     assert result.exit_code == 0
@@ -74,7 +75,7 @@ verb = 'POST'
 body_template = '{"body": "Released on {{ version }}"}'
 auth_type = 'basic'
 
-[post_process.link_parser]
+[post_process.link_generator]
 target = 'Refs'
 link = 'http://localhost'
 

@@ -96,17 +96,7 @@ def test_change_without_issue_ref():
 
 def test_git_commit_extraction(conventional_commits):
     hashes = conventional_commits
-    link_parsers = [
-        {"target": "Refs", "pattern": r"#(\d+)$", "link": "https://github.com/NRWLDev/changelog-gen/issues/{0}"},
-        {"target": "fixes", "pattern": r"#(\d+)$", "link": "https://github.com/NRWLDev/changelog-gen/issues/{0}"},
-        {"target": "Authors", "pattern": r"@(\w+)[, ]?", "link": "https://github.com/{0}", "text": "@{0}"},
-        {
-            "target": "__change__",
-            "link": "https://github.com/NRWLDev/changelog-gen/commit/{0.commit_hash}",
-            "text": "{0.short_hash}",
-        },
-    ]
-    ctx = Context(Config(current_version="0.0.2", link_parsers=link_parsers))
+    ctx = Context(Config(current_version="0.0.2"))
     git = Git(ctx)
 
     e = ChangeExtractor(ctx, git)
@@ -124,11 +114,6 @@ def test_git_commit_extraction(conventional_commits):
                 Footer("Authors", ": ", "@tom, @edgy"),
                 Footer("closes", " ", "#2"),
             ],
-            links=[
-                Link("@tom", "https://github.com/tom"),
-                Link("@edgy", "https://github.com/edgy"),
-                Link(hashes[5][:7], f"https://github.com/NRWLDev/changelog-gen/commit/{hashes[5]}"),
-            ],
         ),
         Change(
             "Bug fixes",
@@ -139,10 +124,6 @@ def test_git_commit_extraction(conventional_commits):
             commit_type="fix",
             footers=[
                 Footer("Refs", ": ", "#1"),
-            ],
-            links=[
-                Link("1", "https://github.com/NRWLDev/changelog-gen/issues/1"),
-                Link(hashes[3][:7], f"https://github.com/NRWLDev/changelog-gen/commit/{hashes[3]}"),
             ],
         ),
         Change(
@@ -156,10 +137,6 @@ def test_git_commit_extraction(conventional_commits):
             footers=[
                 Footer("Fixes", " ", "#3"),
             ],
-            links=[
-                Link("3", "https://github.com/NRWLDev/changelog-gen/issues/3"),
-                Link(hashes[2][:7], f"https://github.com/NRWLDev/changelog-gen/commit/{hashes[2]}"),
-            ],
         ),
         Change(
             "Bug fixes",
@@ -170,10 +147,6 @@ def test_git_commit_extraction(conventional_commits):
             commit_type="fix",
             footers=[
                 Footer("Refs", ": ", "#4"),
-            ],
-            links=[
-                Link("4", "https://github.com/NRWLDev/changelog-gen/issues/4"),
-                Link(hashes[0][:7], f"https://github.com/NRWLDev/changelog-gen/commit/{hashes[0]}"),
             ],
         ),
     ]
@@ -248,6 +221,166 @@ def test_git_commit_extraction_include_all(conventional_commits):
             footers=[
                 Footer("Refs", ": ", "#4"),
             ],
+        ),
+    ]
+
+
+def test_git_commit_extraction_extractors(conventional_commits):
+    hashes = conventional_commits
+    extractors = [
+        {"footer": "Refs", "pattern": r"#(?P<issue_ref>\d+)"},
+        {"footer": "fixes", "pattern": r"#(?P<issue_ref>\d+)"},
+        {"footer": "Authors", "pattern": r"@(?P<author>\w+)"},
+    ]
+    ctx = Context(Config(current_version="0.0.2", extractors=extractors))
+    git = Git(ctx)
+
+    e = ChangeExtractor(ctx, git)
+
+    changes = e.extract()
+
+    assert changes == [
+        Change(
+            "Features and Improvements",
+            "Detail about 2",
+            short_hash=hashes[5][:7],
+            commit_hash=hashes[5],
+            commit_type="feat",
+            footers=[
+                Footer("Authors", ": ", "@tom, @edgy"),
+                Footer("closes", " ", "#2"),
+            ],
+            extractions={"author": ["tom", "edgy"]},
+        ),
+        Change(
+            "Bug fixes",
+            "Detail about 1",
+            breaking=True,
+            short_hash=hashes[3][:7],
+            commit_hash=hashes[3],
+            commit_type="fix",
+            footers=[
+                Footer("Refs", ": ", "#1"),
+            ],
+            extractions={"issue_ref": ["1"]},
+        ),
+        Change(
+            "Features and Improvements",
+            "Detail about 3",
+            breaking=True,
+            scope="docs",
+            short_hash=hashes[2][:7],
+            commit_hash=hashes[2],
+            commit_type="feat",
+            footers=[
+                Footer("Fixes", " ", "#3"),
+            ],
+            extractions={"issue_ref": ["3"]},
+        ),
+        Change(
+            "Bug fixes",
+            "Detail about 4",
+            scope="config",
+            short_hash=hashes[0][:7],
+            commit_hash=hashes[0],
+            commit_type="fix",
+            footers=[
+                Footer("Refs", ": ", "#4"),
+            ],
+            extractions={"issue_ref": ["4"]},
+        ),
+    ]
+
+
+def test_git_commit_extraction_link_generators(conventional_commits):
+    hashes = conventional_commits
+    extractors = [
+        {"footer": "Refs", "pattern": r"#(?P<issue_ref>\d+)"},
+        {"footer": "fixes", "pattern": r"#(?P<issue_ref>\d+)"},
+        {"footer": "Authors", "pattern": r"@(?P<author>\w+)"},
+    ]
+    link_generators = [
+        {"source": "issue_ref", "link": "https://github.com/NRWLDev/changelog-gen/issues/{0}"},
+        {"source": "author", "link": "https://github.com/{0}", "text": "@{0}"},
+        {
+            "source": "__change__",
+            "link": "https://github.com/NRWLDev/changelog-gen/commit/{0.commit_hash}",
+            "text": "{0.short_hash}",
+        },
+    ]
+    ctx = Context(Config(current_version="0.0.2", link_generators=link_generators, extractors=extractors))
+    git = Git(ctx)
+
+    e = ChangeExtractor(ctx, git)
+
+    changes = e.extract()
+
+    assert changes == [
+        Change(
+            "Features and Improvements",
+            "Detail about 2",
+            short_hash=hashes[5][:7],
+            commit_hash=hashes[5],
+            commit_type="feat",
+            footers=[
+                Footer("Authors", ": ", "@tom, @edgy"),
+                Footer("closes", " ", "#2"),
+            ],
+            links=[
+                Link("@tom", "https://github.com/tom"),
+                Link("@edgy", "https://github.com/edgy"),
+                Link(hashes[5][:7], f"https://github.com/NRWLDev/changelog-gen/commit/{hashes[5]}"),
+            ],
+            extractions={"author": ["tom", "edgy"]},
+        ),
+        Change(
+            "Bug fixes",
+            "Detail about 1",
+            breaking=True,
+            short_hash=hashes[3][:7],
+            commit_hash=hashes[3],
+            commit_type="fix",
+            footers=[
+                Footer("Refs", ": ", "#1"),
+            ],
+            links=[
+                Link("1", "https://github.com/NRWLDev/changelog-gen/issues/1"),
+                Link(hashes[3][:7], f"https://github.com/NRWLDev/changelog-gen/commit/{hashes[3]}"),
+            ],
+            extractions={"issue_ref": ["1"]},
+        ),
+        Change(
+            "Features and Improvements",
+            "Detail about 3",
+            breaking=True,
+            scope="docs",
+            short_hash=hashes[2][:7],
+            commit_hash=hashes[2],
+            commit_type="feat",
+            footers=[
+                Footer("Fixes", " ", "#3"),
+            ],
+            links=[
+                Link("3", "https://github.com/NRWLDev/changelog-gen/issues/3"),
+                Link(hashes[2][:7], f"https://github.com/NRWLDev/changelog-gen/commit/{hashes[2]}"),
+            ],
+            extractions={"issue_ref": ["3"]},
+        ),
+        Change(
+            "Bug fixes",
+            "Detail about 4",
+            scope="config",
+            short_hash=hashes[0][:7],
+            commit_hash=hashes[0],
+            commit_type="fix",
+            footers=[
+                Footer("Refs", ": ", "#4"),
+            ],
+            links=[
+                Link("4", "https://github.com/NRWLDev/changelog-gen/issues/4"),
+                Link(hashes[0][:7], f"https://github.com/NRWLDev/changelog-gen/commit/{hashes[0]}"),
+            ],
+            extractions={"issue_ref": ["4"]},
         ),
     ]
 

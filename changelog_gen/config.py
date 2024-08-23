@@ -27,6 +27,8 @@ SUPPORTED_TYPES = {
 
 FOOTER_PARSERS = [
     r"(Refs)(: )(#?[\w-]+)",
+    # TODO(edgy): Parse github behind a github config
+    # https://github.com/NRWLDev/changelog-gen/issues/50
     r"(closes)( )(#[\w-]+)",
     r"(fixes)( )(#[\w-]+)",
     r"(Authors)(: )(.*)",
@@ -37,7 +39,7 @@ FOOTER_PARSERS = [
 class PostProcessConfig:
     """Post Processor configuration options."""
 
-    link_parser: dict[str, str] | None = None
+    link_generator: dict[str, str] | None = None
     verb: str = "POST"
     # The body to send as a post-processing command,
     # can have the entries: ::issue_ref::, ::version::
@@ -90,7 +92,8 @@ class Config:
     date_format: str | None = None
     version_string: str = "v{new_version}"
     footer_parsers: list[str] = dataclasses.field(default_factory=lambda: FOOTER_PARSERS[::])
-    link_parsers: list[dict[str, str]] = dataclasses.field(default_factory=list)
+    extractors: list[dict[str, str]] = dataclasses.field(default_factory=list)
+    link_generators: list[dict[str, str]] = dataclasses.field(default_factory=list)
     change_template: str | None = None
 
     # Hooks

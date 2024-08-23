@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import re
 import typing as t
 from http import HTTPStatus
 
@@ -60,13 +59,6 @@ def make_client(context: Context, cfg: PostProcessConfig) -> httpx.Client:
     )
 
 
-def _get_footer(change: Change, footer: str) -> str | None:
-    for footer_ in change.footers:
-        if footer_.footer.lower() == footer.lower():
-            return footer_
-    return None
-
-
 @timer
 def per_issue_post_process(
     context: Context,
@@ -77,8 +69,8 @@ def per_issue_post_process(
     dry_run: bool = False,
 ) -> None:
     """Run post process for all provided issue references."""
-    link_parser, body_template = cfg.link_parser, cfg.body_template
-    if link_parser is None:
+    link_generator, body_template = cfg.link_generator, cfg.body_template
+    if link_generator is None:
         return
     context.warning("Post processing:")
 
@@ -87,33 +79,33 @@ def per_issue_post_process(
     for change in changes:
         link = None
 
-        footer = _get_footer(change, link_parser["target"])
-        if footer is None:
+        source = change.extractions.get(link_generator["source"].lower())
+        if not source:
             continue
 
-        text_template = link_parser.get("text", "{0}")
-        link_template = link_parser["link"]
-        matches = re.findall(link_parser["pattern"], footer.value)
-        link = Link(text_template.format(matches[0]), link_template.format(matches[0]))
+        text_template = link_generator.get("text", "{0}")
+        link_template = link_generator["link"]
+        for value in source:
+            link = Link(text_template.format(value), link_template.format(value))
 
-        rtemplate = Environment(loader=BaseLoader()).from_string(body_template)  # noqa: S701
+            rtemplate = Environment(loader=BaseLoader()).from_string(body_template)  # noqa: S701
 
-        body = rtemplate.render(link=link, change=change, version=version_tag)
-        context.indent()
-        if dry_run:
-            context.warning("Would request: %s %s %s", cfg.verb, link.link, body)
-        else:
-            context.info("Request: %s %s", cfg.verb, link.link)
-            r = client.request(
-                method=cfg.verb,
-                url=link.link,
-                content=body,
-            )
+            body = rtemplate.render(source=value, change=change, version=version_tag, **change.extractions)
             context.indent()
-            try:
-                context.info("Response: %s", HTTPStatus(r.status_code).name)
-                r.raise_for_status()
-            except httpx.HTTPError as e:
-                context.error("Post process request failed.")
-                context.warning("%s", e.response.text)
+            if dry_run:
+                context.warning("Would request: %s %s %s", cfg.verb, link.link, body)
+            else:
+                context.info("Request: %s %s", cfg.verb, link.link)
+                r = client.request(
+                    method=cfg.verb,
+                    url=link.link,
+                    content=body,
+                )
+                context.indent()
+                try:
+                    context.info("Response: %s", HTTPStatus(r.status_code).name)
+                    r.raise_for_status()
+                except httpx.HTTPError as e:
+                    context.error("Post process request failed.")
+                    context.warning("%s", e.response.text)
     context.reset()

@@ -145,10 +145,14 @@ def post_process_pyproject(cwd):
 [tool.changelog_gen]
 current_version = "0.0.0"
 commit = true
-post_process.link_parser."target" = "Refs"
-post_process.link_parser."pattern" = '#(\d+)$'
-post_process.link_parser."link" = "https://my-api/{0}/release"
+post_process.link_generator."source" = "issue_ref"
+post_process.link_generator."link" = "https://my-api/{0}/release"
 post_process.auth_env = "MY_API_AUTH"
+
+[[tool.changelog_gen.extractors]]
+footer = "Refs"
+pattern = '#(?P<issue_ref>\d+)'
+
 """,
     )
 
@@ -632,6 +636,7 @@ class TestDelegatesToPerIssuePostProcess:
                 scope="",
                 breaking=False,
                 footers=[Footer(footer="Refs", separator=": ", value="#4")],
+                extractions={"issue_ref": ["4"]},
                 links=[],
                 rendered="- Detail about 4",
             ),
@@ -644,6 +649,7 @@ class TestDelegatesToPerIssuePostProcess:
                 scope="",
                 breaking=False,
                 footers=[Footer(footer="Refs", separator=": ", value="#3")],
+                extractions={"issue_ref": ["3"]},
                 links=[],
                 rendered="- Detail about 3",
             ),
@@ -656,6 +662,7 @@ class TestDelegatesToPerIssuePostProcess:
                 scope="",
                 breaking=False,
                 footers=[Footer(footer="Refs", separator=": ", value="#2")],
+                extractions={"issue_ref": ["2"]},
                 links=[],
                 rendered="- Detail about 2",
             ),
@@ -668,6 +675,7 @@ class TestDelegatesToPerIssuePostProcess:
                 scope="",
                 breaking=False,
                 footers=[Footer(footer="Refs", separator=": ", value="#1")],
+                extractions={"issue_ref": ["1"]},
                 links=[],
                 rendered="- Detail about 1",
             ),
@@ -677,7 +685,7 @@ class TestDelegatesToPerIssuePostProcess:
             mock.call(
                 FakeContext(),
                 PostProcessConfig(
-                    link_parser={"target": "Refs", "pattern": r"#(\d+)$", "link": "https://my-api/{0}/release"},
+                    link_generator={"source": "issue_ref", "link": "https://my-api/{0}/release"},
                     auth_env="MY_API_AUTH",
                 ),
                 changes,
@@ -727,6 +735,7 @@ class TestDelegatesToPerIssuePostProcess:
                 scope="",
                 breaking=False,
                 footers=[Footer(footer="Refs", separator=": ", value="#4")],
+                extractions={"issue_ref": ["4"]},
                 links=[],
                 rendered="- Detail about 4",
             ),
@@ -739,6 +748,7 @@ class TestDelegatesToPerIssuePostProcess:
                 scope="",
                 breaking=False,
                 footers=[Footer(footer="Refs", separator=": ", value="#3")],
+                extractions={"issue_ref": ["3"]},
                 links=[],
                 rendered="- Detail about 3",
             ),
@@ -751,6 +761,7 @@ class TestDelegatesToPerIssuePostProcess:
                 scope="",
                 breaking=False,
                 footers=[Footer(footer="Refs", separator=": ", value="#2")],
+                extractions={"issue_ref": ["2"]},
                 links=[],
                 rendered="- Detail about 2",
             ),
@@ -763,6 +774,7 @@ class TestDelegatesToPerIssuePostProcess:
                 scope="",
                 breaking=False,
                 footers=[Footer(footer="Refs", separator=": ", value="#1")],
+                extractions={"issue_ref": ["1"]},
                 links=[],
                 rendered="- Detail about 1",
             ),
@@ -772,7 +784,7 @@ class TestDelegatesToPerIssuePostProcess:
             mock.call(
                 FakeContext(),
                 PostProcessConfig(
-                    link_parser={"target": "Refs", "pattern": r"#(\d+)$", "link": "https://my-api/{0}/release"},
+                    link_generator={"source": "issue_ref", "link": "https://my-api/{0}/release"},
                     auth_env="MY_API_AUTH",
                 ),
                 changes,

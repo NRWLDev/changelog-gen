@@ -6,7 +6,7 @@ import typer
 
 from changelog_gen import post_processor
 from changelog_gen.config import PostProcessConfig
-from changelog_gen.extractor import Change, Footer
+from changelog_gen.extractor import Change
 
 httpx = pytest.importorskip("httpx")
 
@@ -91,8 +91,8 @@ class TestPerIssuePostPrequest:
         "changes",
         [
             [
-                Change("header", "line1", "fix", footers=[Footer("Refs", ": ", "#1")]),
-                Change("header", "line1", "fix", footers=[Footer("Refs", ": ", "#2")]),
+                Change("header", "line1", "fix", extractions={"issue_ref": ["1"]}),
+                Change("header", "line2", "fix", extractions={"issue_ref": ["2"]}),
                 Change("header", "line3", "fix"),
             ],
             [],
@@ -106,13 +106,13 @@ class TestPerIssuePostPrequest:
         )
         cfg = PostProcessConfig(
             verb=cfg_verb,
-            link_parser={"target": "Refs", "pattern": r"#(\d+)", "link": "https://my-api.github.com/comments/{0}"},
+            link_generator={"source": "issue_ref", "link": "https://my-api.github.com/comments/{0}"},
         )
         for change in changes:
-            if change.issue_ref:
+            if "issue_ref" in change.extractions:
                 httpx_mock.add_response(
                     method=cfg_verb,
-                    url=f"https://my-api.github.com/comments/{change.issue_ref.replace('#', '')}",
+                    url=f"https://my-api.github.com/comments/{change.extractions['issue_ref'][0].replace('#', '')}",
                     status_code=HTTPStatus.OK,
                 )
 
@@ -126,13 +126,13 @@ class TestPerIssuePostPrequest:
     def test_handle_http_errors_gracefully(self, httpx_mock):
         ctx = mock.Mock()
         changes = [
-            Change("header", "line1", "fix", footers=[Footer("Refs", ": ", "#1")]),
-            Change("header", "line1", "fix", footers=[Footer("Refs", ": ", "#2")]),
+            Change("header", "line1", "fix", extractions={"issue_ref": ["1"]}),
+            Change("header", "line2", "fix", extractions={"issue_ref": ["2"]}),
             Change("header", "line3", "fix"),
         ]
 
         cfg = PostProcessConfig(
-            link_parser={"target": "Refs", "pattern": r"#(\d+)", "link": "https://my-api.github.com/comments/{0}"},
+            link_generator={"source": "issue_ref", "link": "https://my-api.github.com/comments/{0}"},
         )
 
         ep0 = "https://my-api.github.com/comments/1"
@@ -173,7 +173,7 @@ class TestPerIssuePostPrequest:
         [
             (None, '{"body": "Released on %s"}'),
             # send issue ref as an int without quotes
-            ('{"issue": {{ link.text }}, "version": "{{ version }}"}', '{"issue": 1, "version": "%s"}'),
+            ('{"issue": {{ source }}, "version": "{{ version }}"}', '{"issue": 1, "version": "%s"}'),
         ],
     )
     def test_body(self, cfg_verb, new_version, cfg_body, exp_body, httpx_mock):
@@ -183,18 +183,18 @@ class TestPerIssuePostPrequest:
         if cfg_body is not None:
             kwargs["body_template"] = cfg_body
         cfg = PostProcessConfig(
-            link_parser={"target": "Refs", "pattern": r"#(\d+)$", "link": "https://my_api.github.com/comments/{0}"},
+            link_generator={"source": "issue_ref", "link": "https://my-api.github.com/comments/{0}"},
             **kwargs,
         )
         httpx_mock.add_response(
             method=cfg_verb,
-            url="https://my_api.github.com/comments/1",
+            url="https://my-api.github.com/comments/1",
             status_code=HTTPStatus.OK,
             match_content=bytes(exp_body % new_version, "utf-8"),
         )
 
         changes = [
-            Change("header", "line", "fix", footers=[Footer(footer="Refs", separator=": ", value="#1")]),
+            Change("header", "line1", "fix", extractions={"issue_ref": ["1"]}),
         ]
         post_processor.per_issue_post_process(mock.Mock(), cfg, changes, new_version)
 
@@ -204,7 +204,7 @@ class TestPerIssuePostPrequest:
         [
             (None, '{"body": "Released on 3.2.1"}'),
             # send issue ref as an int without quotes
-            ('{"issue": {{ link.text }}, "version": "{{ version }}"}', '{"issue": ::issue_ref::, "version": "3.2.1"}'),
+            ('{"issue": {{ source }}, "version": "{{ version }}"}', '{"issue": ::issue_ref::, "version": "3.2.1"}'),
         ],
     )
     def test_dry_run(self, cfg_verb, cfg_body, exp_body):
@@ -214,14 +214,14 @@ class TestPerIssuePostPrequest:
         if cfg_body is not None:
             kwargs["body_template"] = cfg_body
         cfg = PostProcessConfig(
-            link_parser={"target": "Refs", "pattern": r"#(\d+)$", "link": "https://my_api.github.com/comments/{0}"},
+            link_generator={"source": "issue_ref", "link": "https://my-api.github.com/comments/{0}"},
             **kwargs,
         )
-        url = "https://my_api.github.com/comments/{0}"
+        url = "https://my-api.github.com/comments/{0}"
         changes = [
-            Change("header", "line", "fix", footers=[Footer(footer="Refs", separator=": ", value="#1")]),
-            Change("header", "line2", "fix", footers=[Footer(footer="Refs", separator=": ", value="#2")]),
-            Change("header", "line3", "fix", footers=[Footer(footer="Authors", separator=": ", value="edgy")]),
+            Change("header", "line1", "fix", extractions={"issue_ref": ["1"]}),
+            Change("header", "line2", "fix", extractions={"issue_ref": ["2"]}),
+            Change("header", "line3", "fix", extractions={"author": ["edgy"]}),
         ]
 
         ctx = mock.Mock()
@@ -251,9 +251,9 @@ class TestPerIssuePostPrequest:
         cfg = PostProcessConfig()
         ctx = mock.Mock()
         changes = [
-            Change("header", "line", "fix", footers=[Footer(footer="Refs", separator=": ", value="#1")]),
-            Change("header", "line2", "fix", footers=[Footer(footer="Refs", separator=": ", value="#2")]),
-            Change("header", "line3", "fix", footers=[]),
+            Change("header", "line1", "fix", extractions={"issue_ref": ["1"]}),
+            Change("header", "line2", "fix", extractions={"issue_ref": ["2"]}),
+            Change("header", "line3", "fix"),
         ]
         post_processor.per_issue_post_process(
             ctx,

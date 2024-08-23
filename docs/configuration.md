@@ -122,7 +122,7 @@ footer_parsers = [
 ]
 ```
 
-### `link_parsers`
+### `link_generators`
   _**[optional]**_<br />
   **default**: None
 
@@ -141,12 +141,12 @@ footer_parsers = [
   Example:
 
 ```toml
-[[tool.changelog_gen.link_parsers]]
+[[tool.changelog_gen.link_generators]]
 target = "Refs"
 pattern = "#(\\d+)$"
 link = "https =//github.com/NRWLDev/changelog-gen/issues/{0}"
 
-[[tool.changelog_gen.link_parsers]]
+[[tool.changelog_gen.link_generators]]
 target = "__change__"
 link = "https =//github.com/NRWLDev/changelog-gen/commit/{0.commit_hash}"
 text = "{0.short_hash}"

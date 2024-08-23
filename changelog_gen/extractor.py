@@ -3,6 +3,7 @@ from __future__ import annotations
 import dataclasses
 import re
 import typing as t
+from collections import defaultdict
 
 from changelog_gen.util import timer
 
@@ -35,6 +36,7 @@ class Change:  # noqa: D101
     scope: str = ""
     breaking: bool = False
     footers: list[Footer] = dataclasses.field(default_factory=list)
+    extractions: dict[str, list[str]] = dataclasses.field(default_factory=dict)
     links: list[Link] = dataclasses.field(default_factory=list)
     rendered: str = ""  # This is populated by the writer at run time
 
@@ -123,6 +125,17 @@ class ChangeExtractor:
                             self.context.info("  '%s' footer extracted '%s%s%s'", parser, m[1], m[2], m[3])
                             footers[m[1].lower()] = Footer(m[1], m[2], m[3])
 
+                extractions = defaultdict(list)
+
+                for extractor in self.context.config.extractors:
+                    footer = footers.get(extractor["footer"].lower())
+                    if footer is None:
+                        continue
+
+                    for m in re.finditer(extractor["pattern"], footer.value):
+                        for k, v in m.groupdict().items():
+                            extractions[k].append(v)
+
                 header = self.type_headers.get(commit_type, commit_type)
                 change = Change(
                     header=header,
@@ -133,25 +146,22 @@ class ChangeExtractor:
                     commit_hash=commit_hash,
                     commit_type=commit_type,
                     footers=list(footers.values()),
+                    extractions=extractions,
                 )
 
                 links = []
 
-                for parser in self.context.config.link_parsers:
-                    if parser["target"] == "__change__":
-                        text_template = parser.get("text", "{0}")
-                        link_template = parser["link"]
-                        links.append(Link(text_template.format(change), link_template.format(change)))
+                for generator in self.context.config.link_generators:
+                    if generator["source"] == "__change__":
+                        values = [change]
                     else:
-                        footer = footers.get(parser["target"].lower())
-                        if footer is None:
+                        values = extractions.get(generator["source"].lower())
+                        if not values:
                             continue
-                        text_template = parser.get("text", "{0}")
-                        link_template = parser["link"]
-                        matches = re.findall(parser["pattern"], footer.value)
-                        links.extend([
-                            Link(text_template.format(match), link_template.format(match)) for match in matches
-                        ])
+
+                    text_template = generator.get("text", "{0}")
+                    link_template = generator["link"]
+                    links.extend([Link(text_template.format(value), link_template.format(value)) for value in values])
 
                 change.links = links
                 changes.append(change)
