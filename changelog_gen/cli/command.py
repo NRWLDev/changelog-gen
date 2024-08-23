@@ -321,8 +321,7 @@ def _gen(  # noqa: PLR0913, C901, PLR0915
 
     w = writer.new_writer(context, extension, dry_run=dry_run, change_template=cfg.change_template)
 
-    w.add_version(version_string)
-    w.consume(cfg.type_headers, changes)
+    w.consume(version_string, cfg.type_headers, changes)
 
     change_lines = create_with_editor(context, str(w), extension) if interactive else str(w)
 
@@ -382,5 +381,4 @@ def _gen(  # noqa: PLR0913, C901, PLR0915
             context.error("httpx required to execute post process, install with `--extras post-process`.")
             return
 
-        unique_issues = [r.issue_ref.replace("#", "") for r in changes if r.issue_ref]
-        per_issue_post_process(context, post_process, sorted(unique_issues), str(new), dry_run=dry_run)
+        per_issue_post_process(context, post_process, changes, str(new), dry_run=dry_run)

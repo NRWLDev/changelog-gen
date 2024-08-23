@@ -51,47 +51,32 @@ class BaseWriter:
         self._change_template = change_template
 
     @timer
-    def add_version(self: t.Self, version: str) -> None:
-        """Add a version string to changelog file."""
-        self._add_version(version)
+    def _render_change(self: t.Self, change: Change) -> str:
+        rtemplate = Environment(loader=BaseLoader()).from_string(self._change_template.replace("\n", ""))  # noqa: S701
+
+        return rtemplate.render(change=change)
 
     @timer
-    def _add_version(self: t.Self, version: str) -> None:
-        raise NotImplementedError
-
-    @timer
-    def consume(self: t.Self, type_headers: dict[str, str], changes: list[Change]) -> None:
+    def consume(self: t.Self, version_string: str, type_headers: dict[str, str], changes: list[Change]) -> None:
         """Process sections and generate changelog file entries."""
         grouped_changes = defaultdict(list)
         for change in changes:
+            change.rendered = self._render_change(change)
             grouped_changes[change.header].append(change)
 
+        ordered_group_changes = {}
         for header in type_headers.values():
             if header not in grouped_changes:
                 continue
             # Remove processed headers to prevent rendering duplicate type -> header mappings
             changes_ = grouped_changes.pop(header)
-            self.add_section(header, changes_)
+            ordered_group_changes[header] = sorted(changes_)
+
+        self._consume(version_string, ordered_group_changes)
 
     @timer
-    def add_section(self: t.Self, header: str, changes: list[Change]) -> None:
-        """Add a section to changelog file."""
-        self._add_section_header(header)
-        for change in sorted(changes):
-            self._add_section_line(change)
-        self._post_section()
-
-    @timer
-    def _add_section_header(self: t.Self, header: str) -> None:
+    def _consume(self: t.Self, version_string: str, group_changes: dict[str, list[Change]]) -> None:
         raise NotImplementedError
-
-    @timer
-    def _add_section_line(self: t.Self, change: Change) -> None:
-        raise NotImplementedError
-
-    @timer
-    def _post_section(self: t.Self) -> None:
-        pass
 
     @timer
     def __str__(self: t.Self) -> str:  # noqa: D105
@@ -139,24 +124,21 @@ class MdWriter(BaseWriter):
         )
 
     @timer
-    def _add_version(self: t.Self, version: str) -> None:
-        self.content.extend([f"## {version}", ""])
+    def _consume(self: t.Self, version_string: str, group_changes: dict[str, list[Change]]) -> None:
+        template = """## {{ version_string }}
 
-    @timer
-    def _add_section_header(self: t.Self, header: str) -> None:
-        self.content.extend([f"### {header}", ""])
+{% for header, changes in group_changes.items() -%}
+### {{ header }}
 
-    @timer
-    def _add_section_line(self: t.Self, change: Change) -> None:
-        rtemplate = Environment(loader=BaseLoader()).from_string(self._change_template.replace("\n", ""))  # noqa: S701
+{% for change in changes -%}
+{{change.rendered}}
+{% endfor %}
+{% endfor %}
+"""
+        rtemplate = Environment(loader=BaseLoader()).from_string(template)  # noqa: S701
 
-        line = rtemplate.render(change=change)
-
-        self.content.append(line)
-
-    @timer
-    def _post_section(self: t.Self) -> None:
-        self.content.append("")
+        content = rtemplate.render(group_changes=group_changes, version_string=version_string)
+        self.content = content.split("\n")[:-1]
 
 
 class RstWriter(BaseWriter):
@@ -192,24 +174,33 @@ class RstWriter(BaseWriter):
         return [f".. _`{ref}`: {link}" for ref, link in sorted(self._links.items())]
 
     @timer
-    def _add_version(self: t.Self, version: str) -> None:
-        self.content.extend([version, "=" * len(version), ""])
+    def _consume(self: t.Self, version_string: str, group_changes: dict[str, list[Change]]) -> None:
+        template = """{{ version_string }}
+{{ "=" * version_string|length }}
+
+{% for header, changes in group_changes.items() -%}
+{{ header }}
+{{ "-" * header|length }}
+
+{% for change in changes -%}
+{{change.rendered}}
+
+{% endfor %}
+{% endfor %}
+"""
+        rtemplate = Environment(loader=BaseLoader()).from_string(template)  # noqa: S701
+
+        content = rtemplate.render(group_changes=group_changes, version_string=version_string)
+        self.content = content.split("\n")[:-2]
 
     @timer
-    def _add_section_header(self: t.Self, header: str) -> None:
-        self.content.extend([header, "-" * len(header), ""])
-
-    @timer
-    def _add_section_line(self: t.Self, change: Change) -> None:
-        rtemplate = Environment(loader=BaseLoader()).from_string(self._change_template.replace("\n", ""))  # noqa: S701
-
-        line = rtemplate.render(change=change)
-
-        self.content.extend([line, ""])
+    def _render_change(self: t.Self, change: Change) -> str:
+        line = super()._render_change(change)
 
         for link in change.links:
-            line = f"{line} [`{link.text}`_]"
             self._links[link.text] = link.link
+
+        return line
 
     @timer
     def write(self: t.Self) -> str:

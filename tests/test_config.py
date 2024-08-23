@@ -195,13 +195,15 @@ release = true
 
     def test_read_picks_up_post_process_config_pyproject(self, config_factory):
         config_factory(
-            """
+            r"""
 [tool.changelog_gen]
 current_version = "0.0.0"
 [tool.changelog_gen.post_process]
-url = "https://fake_rest_api/::commit_hash::"
+link_parser."target" = "Refs"
+link_parser."pattern" = '#(\d+)$'
+link_parser."link" = "https://fake_rest_api/{0}"
 verb = "PUT"
-body = '{"issue": "::issue_ref::", "comment": "Released in ::version::"}'
+body_template = '{"issue": "{{ link.text }}", "comment": "Released in {{ version }}"}'
 auth_env = "MY_API_AUTH"
 headers."content-type" = "application/json"
 """,
@@ -209,91 +211,11 @@ headers."content-type" = "application/json"
 
         c = config.read()
         assert c.post_process == config.PostProcessConfig(
-            url="https://fake_rest_api/::commit_hash::",
+            link_parser={"target": "Refs", "pattern": r"#(\d+)$", "link": "https://fake_rest_api/{0}"},
             verb="PUT",
-            body='{"issue": "::issue_ref::", "comment": "Released in ::version::"}',
+            body_template='{"issue": "{{ link.text }}", "comment": "Released in {{ version }}"}',
             auth_env="MY_API_AUTH",
             headers={"content-type": "application/json"},
-        )
-
-    @pytest.mark.parametrize(
-        "config_value",
-        [
-            'post_process.body = "::unexpected:: ::also-unexpected::"',
-            'post_process.url = "::unexpected:: ::also-unexpected::"',
-        ],
-    )
-    def test_read_picks_up_unexpected_replaces(self, config_factory, config_value):
-        config_factory(
-            f"""
-[tool.changelog_gen]
-current_version = "0.0.0"
-{config_value}
-        """,
-        )
-
-        with pytest.raises(errors.UnsupportedReplaceError) as e:
-            config.read()
-
-        assert str(e.value) == "Replace string(s) ('::also-unexpected::', '::unexpected::') not supported."
-
-    def test_read_picks_up_post_process_override(self, config_factory):
-        config_factory(
-            """
-[tool.changelog_gen]
-current_version = "0.0.0"
-[tool.changelog_gen.post_process]
-url = "https://initial/::issue_ref::"
-auth_env = "INITIAL"
-""",
-        )
-
-        c = config.read(
-            post_process_url="https://fake_rest_api/",
-            post_process_auth_env="MY_API_AUTH",
-        )
-        assert c.post_process == config.PostProcessConfig(
-            url="https://fake_rest_api/",
-            auth_env="MY_API_AUTH",
-        )
-
-    def test_read_picks_up_post_process_override_no_config(self, config_factory):
-        config_factory(
-            """
-[tool.changelog_gen]
-current_version = "0.0.0"
-release = true
-""",
-        )
-
-        c = config.read(
-            post_process_url="https://fake_rest_api/",
-            post_process_auth_env="MY_API_AUTH",
-        )
-        assert c.post_process == config.PostProcessConfig(
-            url="https://fake_rest_api/",
-            auth_env="MY_API_AUTH",
-        )
-
-    @pytest.mark.parametrize(("url", "auth_env"), [("", "AUTH"), ("url", "")])
-    def test_read_ignores_empty_post_process_override(self, config_factory, url, auth_env):
-        config_factory(
-            """
-[tool.changelog_gen]
-current_version = "0.0.0"
-[tool.changelog_gen.post_process]
-url = "https://initial/::issue_ref::"
-auth_env = "INITIAL"
-""",
-        )
-
-        c = config.read(
-            post_process_url=url,
-            post_process_auth_env=auth_env,
-        )
-        assert c.post_process == config.PostProcessConfig(
-            url=url or "https://initial/::issue_ref::",
-            auth_env=auth_env or "INITIAL",
         )
 
     def test_read_rejects_unknown_fields(self, config_factory):
@@ -351,20 +273,6 @@ current_version = "0.0.0"
 
     c = config.read(**{key: value})
     assert getattr(c, key) == value
-
-
-def test_process_overrides_no_post_process_values():
-    _, post_process = config._process_overrides({})
-    assert post_process is None
-
-
-def test_process_overrides_extracts_post_process_values():
-    overrides, post_process = config._process_overrides(
-        {"key": "value", "post_process_url": "url", "post_process_auth_env": "auth"},
-    )
-    assert overrides == {"key": "value"}
-    assert post_process.url == "url"
-    assert post_process.auth_env == "auth"
 
 
 def test_config_defaults():
@@ -431,10 +339,10 @@ def test_config_defaults():
 def test_post_process_defaults():
     pp = config.PostProcessConfig()
     assert pp.verb == "POST"
-    assert pp.body == '{"body": "Released on ::version::"}'
+    assert pp.body_template == '{"body": "Released on {{ version }}"}'
     assert pp.auth_type == "basic"
     for attr in [
-        "url",
+        "link_parser",
         "headers",
         "auth_env",
     ]:

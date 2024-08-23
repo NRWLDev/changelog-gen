@@ -4,10 +4,11 @@ from unittest import mock
 import pytest
 import typer
 
-httpx = pytest.importorskip("httpx")
+from changelog_gen import post_processor
+from changelog_gen.config import PostProcessConfig
+from changelog_gen.extractor import Change, Footer
 
-from changelog_gen import post_processor  # noqa: E402
-from changelog_gen.config import PostProcessConfig  # noqa: E402
+httpx = pytest.importorskip("httpx")
 
 
 def test_bearer_auth_flow():
@@ -87,13 +88,17 @@ class TestMakeClient:
 class TestPerIssuePostPrequest:
     @pytest.mark.parametrize("cfg_verb", ["POST", "PUT", "GET"])
     @pytest.mark.parametrize(
-        "issue_refs",
+        "changes",
         [
-            ["1", "2", "3"],
+            [
+                Change("header", "line1", "fix", footers=[Footer("Refs", ": ", "#1")]),
+                Change("header", "line1", "fix", footers=[Footer("Refs", ": ", "#2")]),
+                Change("header", "line3", "fix"),
+            ],
             [],
         ],
     )
-    def test_one_client_regardless_of_issue_count(self, monkeypatch, httpx_mock, cfg_verb, issue_refs):
+    def test_one_client_regardless_of_issue_count(self, monkeypatch, httpx_mock, cfg_verb, changes):
         monkeypatch.setattr(
             post_processor,
             "make_client",
@@ -101,17 +106,18 @@ class TestPerIssuePostPrequest:
         )
         cfg = PostProcessConfig(
             verb=cfg_verb,
-            url="https://my-api.github.com/comments/::issue_ref::",
+            link_parser={"target": "Refs", "pattern": r"#(\d+)", "link": "https://my-api.github.com/comments/{0}"},
         )
-        for issue in issue_refs:
-            httpx_mock.add_response(
-                method=cfg_verb,
-                url=cfg.url.replace("::issue_ref::", issue),
-                status_code=HTTPStatus.OK,
-            )
+        for change in changes:
+            if change.issue_ref:
+                httpx_mock.add_response(
+                    method=cfg_verb,
+                    url=f"https://my-api.github.com/comments/{change.issue_ref.replace('#', '')}",
+                    status_code=HTTPStatus.OK,
+                )
 
         ctx = mock.Mock()
-        post_processor.per_issue_post_process(ctx, cfg, issue_refs, "1.0.0")
+        post_processor.per_issue_post_process(ctx, cfg, changes, "1.0.0")
 
         assert post_processor.make_client.call_args_list == [
             mock.call(ctx, cfg),
@@ -119,32 +125,32 @@ class TestPerIssuePostPrequest:
 
     def test_handle_http_errors_gracefully(self, httpx_mock):
         ctx = mock.Mock()
-        issue_refs = ["1", "2", "3"]
+        changes = [
+            Change("header", "line1", "fix", footers=[Footer("Refs", ": ", "#1")]),
+            Change("header", "line1", "fix", footers=[Footer("Refs", ": ", "#2")]),
+            Change("header", "line3", "fix"),
+        ]
 
-        cfg = PostProcessConfig(url="https://my-api.github.com/comments/::issue_ref::")
+        cfg = PostProcessConfig(
+            link_parser={"target": "Refs", "pattern": r"#(\d+)", "link": "https://my-api.github.com/comments/{0}"},
+        )
 
-        ep0 = cfg.url.replace("::issue_ref::", issue_refs[0])
+        ep0 = "https://my-api.github.com/comments/1"
         httpx_mock.add_response(
             method="POST",
             url=ep0,
             status_code=HTTPStatus.OK,
         )
-        ep1 = cfg.url.replace("::issue_ref::", issue_refs[1])
-        not_found_txt = f"{issue_refs[1]} NOT FOUND"
+        ep1 = "https://my-api.github.com/comments/2"
+        not_found_txt = "2 NOT FOUND"
         httpx_mock.add_response(
             method="POST",
             url=ep1,
             status_code=HTTPStatus.NOT_FOUND,
             content=bytes(not_found_txt, "utf-8"),
         )
-        ep2 = cfg.url.replace("::issue_ref::", issue_refs[2])
-        httpx_mock.add_response(
-            method="POST",
-            url=ep2,
-            status_code=HTTPStatus.OK,
-        )
 
-        post_processor.per_issue_post_process(ctx, cfg, issue_refs, "1.0.0")
+        post_processor.per_issue_post_process(ctx, cfg, changes, "1.0.0")
 
         assert ctx.error.call_args_list == [
             mock.call("Post process request failed."),
@@ -158,8 +164,6 @@ class TestPerIssuePostPrequest:
             mock.call("Response: %s", "OK"),
             mock.call("Request: %s %s", "POST", ep1),
             mock.call("Response: %s", "NOT_FOUND"),
-            mock.call("Request: %s %s", "POST", ep2),
-            mock.call("Response: %s", "OK"),
         ]
 
     @pytest.mark.parametrize("cfg_verb", ["POST", "PUT", "GET"])
@@ -169,7 +173,7 @@ class TestPerIssuePostPrequest:
         [
             (None, '{"body": "Released on %s"}'),
             # send issue ref as an int without quotes
-            ('{"issue": ::issue_ref::, "version": "::version::"}', '{"issue": 1, "version": "%s"}'),
+            ('{"issue": {{ link.text }}, "version": "{{ version }}"}', '{"issue": 1, "version": "%s"}'),
         ],
     )
     def test_body(self, cfg_verb, new_version, cfg_body, exp_body, httpx_mock):
@@ -177,51 +181,54 @@ class TestPerIssuePostPrequest:
             "verb": cfg_verb,
         }
         if cfg_body is not None:
-            kwargs["body"] = cfg_body
+            kwargs["body_template"] = cfg_body
         cfg = PostProcessConfig(
-            url="https://my-api.github.com/comments/::issue_ref::",
+            link_parser={"target": "Refs", "pattern": r"#(\d+)$", "link": "https://my_api.github.com/comments/{0}"},
             **kwargs,
         )
         httpx_mock.add_response(
             method=cfg_verb,
-            url=cfg.url.replace("::issue_ref::", "1"),
+            url="https://my_api.github.com/comments/1",
             status_code=HTTPStatus.OK,
             match_content=bytes(exp_body % new_version, "utf-8"),
         )
 
-        post_processor.per_issue_post_process(mock.Mock(), cfg, ["1"], new_version)
+        changes = [
+            Change("header", "line", "fix", footers=[Footer(footer="Refs", separator=": ", value="#1")]),
+        ]
+        post_processor.per_issue_post_process(mock.Mock(), cfg, changes, new_version)
 
     @pytest.mark.parametrize("cfg_verb", ["POST", "PUT", "GET"])
-    @pytest.mark.parametrize(
-        "issue_refs",
-        [
-            ["1", "2", "3"],
-            [],
-        ],
-    )
     @pytest.mark.parametrize(
         ("cfg_body", "exp_body"),
         [
             (None, '{"body": "Released on 3.2.1"}'),
             # send issue ref as an int without quotes
-            ('{"issue": ::issue_ref::, "version": "::version::"}', '{"issue": ::issue_ref::, "version": "3.2.1"}'),
+            ('{"issue": {{ link.text }}, "version": "{{ version }}"}', '{"issue": ::issue_ref::, "version": "3.2.1"}'),
         ],
     )
-    def test_dry_run(self, cfg_verb, issue_refs, cfg_body, exp_body):
-        kwargs = {}
+    def test_dry_run(self, cfg_verb, cfg_body, exp_body):
+        kwargs = {
+            "verb": cfg_verb,
+        }
         if cfg_body is not None:
-            kwargs["body"] = cfg_body
+            kwargs["body_template"] = cfg_body
         cfg = PostProcessConfig(
-            url="https://my-api.github.com/comments/::issue_ref::",
-            verb=cfg_verb,
+            link_parser={"target": "Refs", "pattern": r"#(\d+)$", "link": "https://my_api.github.com/comments/{0}"},
             **kwargs,
         )
+        url = "https://my_api.github.com/comments/{0}"
+        changes = [
+            Change("header", "line", "fix", footers=[Footer(footer="Refs", separator=": ", value="#1")]),
+            Change("header", "line2", "fix", footers=[Footer(footer="Refs", separator=": ", value="#2")]),
+            Change("header", "line3", "fix", footers=[Footer(footer="Authors", separator=": ", value="edgy")]),
+        ]
 
         ctx = mock.Mock()
         post_processor.per_issue_post_process(
             ctx,
             cfg,
-            issue_refs,
+            changes,
             "3.2.1",
             dry_run=True,
         )
@@ -234,19 +241,24 @@ class TestPerIssuePostPrequest:
             mock.call(
                 "Would request: %s %s %s",
                 cfg_verb,
-                cfg.url.replace("::issue_ref::", issue),
+                url.format(issue),
                 exp_body.replace("::issue_ref::", issue),
             )
-            for issue in issue_refs
+            for issue in ["1", "2"]
         ]
 
     def test_no_url_ignored(self):
         cfg = PostProcessConfig()
         ctx = mock.Mock()
+        changes = [
+            Change("header", "line", "fix", footers=[Footer(footer="Refs", separator=": ", value="#1")]),
+            Change("header", "line2", "fix", footers=[Footer(footer="Refs", separator=": ", value="#2")]),
+            Change("header", "line3", "fix", footers=[]),
+        ]
         post_processor.per_issue_post_process(
             ctx,
             cfg,
-            ["1", "2"],
+            changes,
             "3.2.1",
             dry_run=True,
         )
