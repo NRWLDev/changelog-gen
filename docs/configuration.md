@@ -122,33 +122,57 @@ footer_parsers = [
 ]
 ```
 
-### `link_parsers`
+### `extractors`
   _**[optional]**_<br />
   **default**: None
 
-  Define parsers to extract information from footers (or changelog entry) and
-  generate a link. Define a target footer, provide a regex pattern to extract
-  information from the footer, and define the link format, optionally define
-  the link text format. Link text will default to the extracted information.
+  Define parsers to extract information from footers and store them on the
+  change object. Extractors should used named groups in regex expressions, this
+  groups are the key to retrieve the information later in link generation or
+  post processing. Extractors find all matches in a footer, so will be a
+  list of all matched values. `Refs: 1, 2` will be parsed as
+  `{"issue_ref": ["1", "2"]}` for example.
 
-  A special target `__change__` is provided to generate links using information
-  directly from the change object (namely commit hashes).
-
-  Where a pattern is matched multiple times, a link for each match will be
-  created. This allows adding links to multiple authors from the Author for for
-  example.
+  The footer configuration can be a single footer, or a list of related footers.
 
   Example:
 
 ```toml
-[[tool.changelog_gen.link_parsers]]
-target = "Refs"
-pattern = "#(\\d+)$"
-link = "https =//github.com/NRWLDev/changelog-gen/issues/{0}"
+[[tool.changelog_gen.extractors]]
+footer = "Refs"
+pattern = '(?P<issue_ref>\d+)'
 
-[[tool.changelog_gen.link_parsers]]
-target = "__change__"
-link = "https =//github.com/NRWLDev/changelog-gen/commit/{0.commit_hash}"
+[[tool.changelog_gen.extractors]]
+footer = ["closes", "fixes"]
+pattern = '#(?P<issue_ref>\d+)'
+```
+
+### `link_generators`
+  _**[optional]**_<br />
+  **default**: None
+
+  Make use of extracted information to generate links to different content.
+  Define an extraction source, provide a regex pattern to extract
+  information from the footer, and define the link format, optionally define
+  the link text format. Link text will default to the extracted information.
+
+  A special source `__change__` is provided to generate links using information
+  directly from the change object (namely commit hashes).
+
+  Where an extraction contains multiple values, a link for each match will be
+  created. This allows adding links to multiple authors from the Author footer
+  for example.
+
+  Example:
+
+```toml
+[[tool.changelog_gen.link_generators]]
+source = "issue_ref"
+link = "https://github.com/NRWLDev/changelog-gen/issues/{0}"
+
+[[tool.changelog_gen.link_generators]]
+source = "__change__"
+link = "https://github.com/NRWLDev/changelog-gen/commit/{0.commit_hash}"
 text = "{0.short_hash}"
 ```
 
@@ -404,7 +428,7 @@ pre_l = ["dev", "rc"]
 
   See example on below Jira configuration information.
 
-#### `post_process.url`
+#### `post_process.link_generator`
   _**[required]**_<br />
   **default**: None<br />
   The url to contact.
@@ -415,11 +439,14 @@ pre_l = ["dev", "rc"]
   **default**: POST<br />
   HTTP method to use.
 
-#### `post_process.body`
+#### `post_process.body_template`
   _**[optional]**_<br />
-  **default**: `{"body": "Released on ::version::"}`<br />
+  **default**: `{"body": "Released on {{ version }}"}`<br />
   The text to send to the API.
-  Can have the placeholders `::issue_ref::` and `::version::`.
+  Can have the placeholders
+  * `source` (usually the issue ref from the extracted information)
+  * `version` the version being released
+  * Any extracted key from defined extractors that had a match.
 
 #### `post_process.headers`
   _**[optional]**_<br />
@@ -444,9 +471,10 @@ pre_l = ["dev", "rc"]
 
 ```toml
 [tool.changelog_gen.post_process]
-url = "https://your-domain.atlassian.net/rest/api/2/issue/ISSUE-::issue_ref::/comment"
+link_generator.source = "issue_ref"
+link_generator.link = "https://your-domain.atlassian.net/rest/api/2/issue/ISSUE-{0}/comment"
 verb = "POST"
-body = '{"body": "Released on ::version::"}'
+body = '{"body": "Released on {{ version }}"}'
 auth_env = "JIRA_AUTH"
 headers."content-type" = "application/json"
 ```

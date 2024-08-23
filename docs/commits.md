@@ -36,8 +36,10 @@ Optional footers that are parsed by `changelog-gen` are:
 
 * `BREAKING CHANGE:[ details]`
 * `Refs: [#]<issue_ref>`
-* `PR: [#]<pull_ref>`
 * `Authors: (<author>, ...)`
+
+Parsing additional/custom footers is supported with
+[footer_parsers](https://nrwldev.github.io/changelog-gen/configuration/#footer_parsers).
 
 ### Github support
 
