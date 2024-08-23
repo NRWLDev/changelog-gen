@@ -228,8 +228,7 @@ def test_git_commit_extraction_include_all(conventional_commits):
 def test_git_commit_extraction_extractors(conventional_commits):
     hashes = conventional_commits
     extractors = [
-        {"footer": "Refs", "pattern": r"#(?P<issue_ref>\d+)"},
-        {"footer": "fixes", "pattern": r"#(?P<issue_ref>\d+)"},
+        {"footer": ["Refs", "fixes"], "pattern": r"#(?P<issue_ref>\d+)"},
         {"footer": "Authors", "pattern": r"@(?P<author>\w+)"},
     ]
     ctx = Context(Config(current_version="0.0.2", extractors=extractors))

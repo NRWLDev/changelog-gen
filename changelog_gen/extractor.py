@@ -128,13 +128,18 @@ class ChangeExtractor:
                 extractions = defaultdict(list)
 
                 for extractor in self.context.config.extractors:
-                    footer = footers.get(extractor["footer"].lower())
-                    if footer is None:
-                        continue
+                    footer_keys = extractor["footer"]
+                    if not isinstance(footer_keys, list):
+                        footer_keys = [footer_keys]
 
-                    for m in re.finditer(extractor["pattern"], footer.value):
-                        for k, v in m.groupdict().items():
-                            extractions[k].append(v)
+                    for fkey in footer_keys:
+                        footer = footers.get(fkey.lower())
+                        if footer is None:
+                            continue
+
+                        for m in re.finditer(extractor["pattern"], footer.value):
+                            for k, v in m.groupdict().items():
+                                extractions[k].append(v)
 
                 header = self.type_headers.get(commit_type, commit_type)
                 change = Change(

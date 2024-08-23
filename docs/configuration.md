@@ -130,14 +130,20 @@ footer_parsers = [
   change object. Extractors should used named groups in regex expressions, this
   groups are the key to retrieve the information later in link generation or
   post processing. Extractors find all matches in a footer, so will be a
-  list of all matched values. `Refs: #1, #2` will be parsed as
+  list of all matched values. `Refs: 1, 2` will be parsed as
   `{"issue_ref": ["1", "2"]}` for example.
+
+  The footer configuration can be a single footer, or a list of related footers.
 
   Example:
 
 ```toml
 [[tool.changelog_gen.extractors]]
 footer = "Refs"
+pattern = '(?P<issue_ref>\d+)'
+
+[[tool.changelog_gen.extractors]]
+footer = ["closes", "fixes"]
 pattern = '#(?P<issue_ref>\d+)'
 ```
 

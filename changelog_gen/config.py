@@ -92,7 +92,8 @@ class Config:
     date_format: str | None = None
     version_string: str = "v{new_version}"
     footer_parsers: list[str] = dataclasses.field(default_factory=lambda: FOOTER_PARSERS[::])
-    extractors: list[dict[str, str]] = dataclasses.field(default_factory=list)
+    # footers can be a list to simplify configuration for footers sharing related information
+    extractors: list[dict[str, str | list[str]]] = dataclasses.field(default_factory=list)
     link_generators: list[dict[str, str]] = dataclasses.field(default_factory=list)
     change_template: str | None = None
 
