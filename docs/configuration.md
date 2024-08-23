@@ -168,11 +168,11 @@ pattern = '#(?P<issue_ref>\d+)'
 ```toml
 [[tool.changelog_gen.link_generators]]
 source = "issue_ref"
-link = "https =//github.com/NRWLDev/changelog-gen/issues/{0}"
+link = "https://github.com/NRWLDev/changelog-gen/issues/{0}"
 
 [[tool.changelog_gen.link_generators]]
 source = "__change__"
-link = "https =//github.com/NRWLDev/changelog-gen/commit/{0.commit_hash}"
+link = "https://github.com/NRWLDev/changelog-gen/commit/{0.commit_hash}"
 text = "{0.short_hash}"
 ```
 

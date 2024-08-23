@@ -71,26 +71,18 @@ allowed_branches = [
 ]
 date_format = "- %Y-%m-%d"
 
-[[tool.changelog_gen.link_generators]]
-target = "closes"
-pattern = '#(\d+)$'
-link = "https =//github.com/NRWLDev/changelog-gen/issues/{0}"
+[[tool.changelog_gen.extractors]]
+footer = ["closes", "fixes", "Refs"]
+pattern = '#(?P<issue_ref>\d+)'
 
 [[tool.changelog_gen.link_generators]]
-target = "fixes"
-pattern = '#(\d+)$'
-link = "https =//github.com/NRWLDev/changelog-gen/issues/{0}"
-
-# Fall back in case a PR does not close an issue
-[[tool.changelog_gen.link_generators]]
-target = "Refs"
-pattern = '#(\d+)$'
-link = "https =//github.com/NRWLDev/changelog-gen/issues/{0}"
+source = "issue_ref"
+link = "https://github.com/NRWLDev/changelog-gen/issues/{0}"
 
 [[tool.changelog_gen.link_generators]]
-target = "__change__"
+source = "__change__"
 text = "{0.short_hash}"
-link = "https =//github.com/NRWLDev/changelog-gen/commit/{0.commit_hash}"
+link = "https://github.com/NRWLDev/changelog-gen/commit/{0.commit_hash}"
 
 [[tool.changelog_gen.files]]
 filename = "README.md"
