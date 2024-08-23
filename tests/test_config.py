@@ -179,6 +179,25 @@ commit_types = [
             "test": "Miscellaneous",
         }
 
+    def test_read_picks_up_github_config(self, config_factory):
+        config_factory(
+            """
+[tool.changelog_gen]
+current_version = "0.0.0"
+[tool.changelog_gen.github]
+strip_pr_from_description = true
+extract_pr_from_description = true
+extract_common_footers = true
+""",
+        )
+
+        c = config.read()
+        assert c.github == config.GithubConfig(
+            strip_pr_from_description=True,
+            extract_pr_from_description=True,
+            extract_common_footers=True,
+        )
+
 
 class TestPostProcessConfig:
     def test_read_picks_up_no_post_process_config(self, config_factory):

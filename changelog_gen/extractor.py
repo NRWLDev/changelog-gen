@@ -102,8 +102,12 @@ class ChangeExtractor:
                 prm = re.search(r"\(#\d+\)$", description)
                 if prm is not None:
                     # Strip githubs additional link information from description.
-                    description = re.sub(r" \(#\d+\)$", "", description)
-                    footers["pr"] = Footer("PR", ": ", prm.group()[1:-1])
+                    if self.context.config.github and self.context.config.github.strip_pr_from_description:
+                        description = re.sub(r" \(#\d+\)$", "", description)
+
+                    if self.context.config.github and self.context.config.github.extract_pr_from_description:
+                        footers["pr"] = Footer("PR", ": ", prm.group()[1:-1])
+
                 details = m[5] or ""
 
                 # Handle missing refs in commit message, skip link generation in writer
@@ -117,6 +121,20 @@ class ChangeExtractor:
 
                 if breaking:
                     self.context.info("  Breaking change detected:\n    %s: %s", commit_type, description)
+
+                footer_parsers = self.context.config.footer_parsers
+                if self.context.config.github and self.context.config.github.extract_common_footers:
+                    footer_parsers.extend([
+                        r"(close)( )(#[\w-]+)",
+                        r"(closes)( )(#[\w-]+)",
+                        r"(closed)( )(#[\w-]+)",
+                        r"(fix)( )(#[\w-]+)",
+                        r"(fixes)( )(#[\w-]+)",
+                        r"(fixed)( )(#[\w-]+)",
+                        r"(resolve)( )(#[\w-]+)",
+                        r"(resolves)( )(#[\w-]+)",
+                        r"(resolved)( )(#[\w-]+)",
+                    ])
 
                 for line in details.split("\n"):
                     for parser in self.context.config.footer_parsers:

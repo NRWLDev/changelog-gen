@@ -418,6 +418,52 @@ pre_l = ["dev", "rc"]
   Enforce strict rules based on SemVer 2.0.0 and error if non conforming parser or
   serialisers are configured.
 
+
+## Github
+
+### `strip_pr_from_description`
+  _**[optional]**_<br />
+  **default**: False
+
+  Strip the `(#\d+)` from the end of github PR commit descriptions.
+
+  Example:
+
+```toml
+[tool.changelog_gen.github]
+strip_pr_from_description = true
+```
+
+### `extract_pr_from_description`
+  _**[optional]**_<br />
+  **default**: False
+
+  Extract the `(#\d+)` from the end of github PR commit descriptions, and track
+  it as a footer for later extraction and link generation. Creates a `PR` footer entry.
+
+  Example:
+
+```toml
+[tool.changelog_gen.github]
+extract_pr_from_description = true
+```
+
+### `extract_common_footers`
+  _**[optional]**_<br />
+  **default**: False
+
+  Extract supported keyword footers from github commits, `closes #1` etc.
+
+  Supported footers can be found
+  [here](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue).
+
+  Example:
+
+```toml
+[tool.changelog_gen.github]
+extract_common_footers = true
+```
+
 ## Post processing
 
 ### `post_process`
