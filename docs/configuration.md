@@ -72,6 +72,14 @@ filename = "README.md"
 
   Also available as `--reject-empty` (e.g. `changelog generate --reject-empty`)
 
+### `statistics`
+  _**[optional]**_<br />
+  **default**: False
+
+  Output commit message statistics summary to screen after changelog generation.
+
+  Also available as `--statistics` (e.g. `changelog generate --statistics`)
+
 ### `version_string`
   _**[optional]**_<br />
   **default**: `v{new_version}`

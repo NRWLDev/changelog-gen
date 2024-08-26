@@ -73,6 +73,7 @@ class ChangeExtractor:
             self.type_headers["_misc"] = "Miscellaneous"
         self.git = git
         self.context = context
+        self._statistics = defaultdict(int)
 
     @timer
     def extract(self: t.Self) -> list[Change]:  # noqa: C901, PLR0912, PLR0915
@@ -88,10 +89,12 @@ class ChangeExtractor:
         reg = re.compile(rf"^({types})(\([\w\-\.]+\))?(!)?: (.*)([\s\S]*)", re.IGNORECASE)
         self.context.warning("Extracting commit log changes.")
 
+        self._statistics["commits"] = len(logs)
         changes = []
         for short_hash, commit_hash, log in logs:
             m = reg.match(log)
             if m:
+                self._statistics["conventional"] += 1
                 self.context.debug("  Parsing commit log: %s", log.strip())
                 footers = {}
 
@@ -188,23 +191,30 @@ class ChangeExtractor:
 
                 change.links = links
                 changes.append(change)
-            elif self.include_all:
-                self.context.debug("  Including non-conventional commit log (include-all): %s", log.strip())
-                header = self.type_headers.get("_misc", "_misc")
-                change = Change(
-                    header=header,
-                    description=log.strip().split("\n")[0],
-                    breaking=False,
-                    scope="",
-                    short_hash=short_hash,
-                    commit_hash=commit_hash,
-                    commit_type="_misc",
-                )
-                changes.append(change)
 
             else:
-                self.context.debug("  Skipping commit log (not conventional): %s", log.strip())
+                self._statistics["nonconventional"] += 1
+                if self.include_all:
+                    self.context.debug("  Including non-conventional commit log (include-all): %s", log.strip())
+                    header = self.type_headers.get("_misc", "_misc")
+                    change = Change(
+                        header=header,
+                        description=log.strip().split("\n")[0],
+                        breaking=False,
+                        scope="",
+                        short_hash=short_hash,
+                        commit_hash=commit_hash,
+                        commit_type="_misc",
+                    )
+                    changes.append(change)
+                else:
+                    self.context.debug("  Skipping commit log (not conventional): %s", log.strip())
         return changes
+
+    @property
+    def statistics(self: t.Self) -> dict[str, int]:
+        """Return captures statistics during extraction."""
+        return self._statistics
 
 
 @timer
