@@ -80,6 +80,7 @@ class Config:
     allow_dirty: bool = False
     allow_missing: bool = False
     reject_empty: bool = False
+    statistics: bool = False
 
     # Version parsing
     minor_regex: str = "feat"

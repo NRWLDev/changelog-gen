@@ -182,6 +182,10 @@ def gen(  # noqa: PLR0913
         show_default=False,
     ),
     tag: Optional[bool] = typer.Option(None, help="Tag changes made after release.", show_default=False),
+    statistics: Optional[bool] = typer.Option(
+        None,
+        help="Capture and output statistics to screen.",
+    ),
     interactive: Optional[bool] = typer.Option(
         default=None,
         help="Open changes in an editor before confirmation.",
@@ -214,6 +218,7 @@ def gen(  # noqa: PLR0913
         post_process_auth_env=post_process_auth_env,
         pre_release=pre_release,
         verbose=verbose,
+        statistics=statistics,
     )
     context = Context(cfg, verbose)
 
@@ -300,6 +305,7 @@ def _gen(  # noqa: PLR0913, C901, PLR0915
 
     e = extractor.ChangeExtractor(context=context, git=git, dry_run=dry_run, include_all=include_all)
     changes = e.extract()
+    stats = e.statistics
 
     if not changes and cfg.reject_empty:
         context.error("No changes present and reject_empty configured.")
@@ -382,3 +388,12 @@ def _gen(  # noqa: PLR0913, C901, PLR0915
             return
 
         per_issue_post_process(context, post_process, changes, str(new), dry_run=dry_run)
+
+    if cfg.statistics:
+        stats_output = f"""
+# Commit Statistics
+
+* {stats["commits"]} commits contributed to the release.
+* {stats["conventional"]} commits were parsed as conventional.
+        """
+        context.error(stats_output)

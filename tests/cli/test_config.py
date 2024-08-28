@@ -13,6 +13,7 @@ tag = true
 allow_dirty = false
 allow_missing = false
 reject_empty = false
+statistics = false
 minor_regex = 'feat'
 parser = '(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)'
 strict = false

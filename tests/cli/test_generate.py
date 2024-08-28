@@ -499,6 +499,40 @@ def test_generate_uses_supplied_version_tag(
     assert mock_git.commit.call_args == mock.call("0.0.0", "0.3.2", "v0.3.2", ["CHANGELOG.md"])
 
 
+@pytest.mark.usefixtures("changelog", "_conventional_commits")
+def test_generate_outputs_statistics(cli_runner):
+    result = cli_runner.invoke(["generate", "--statistics"])
+
+    assert result.exit_code == 0
+    assert (
+        "\n".join([f"{r.rstrip(' ')}" for r in result.output.split("\n")])
+        == """
+
+## v0.0.1
+
+### Features and Improvements
+
+- Detail about 2
+- Detail about 3
+
+### Bug fixes
+
+- Detail about 1
+- Detail about 4
+
+
+
+Write CHANGELOG for suggested version 0.0.1 [y/N]:
+
+# Commit Statistics
+
+* 6 commits contributed to the release.
+* 4 commits were parsed as conventional.
+
+"""
+    )
+
+
 @pytest.mark.usefixtures("_conventional_commits", "changelog")
 @pytest.mark.parametrize(
     "hook",
