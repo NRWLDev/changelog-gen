@@ -44,10 +44,13 @@ Parsing additional/custom footers is supported with
 ### Github support
 
 Github makes use of `closes #<issue_ref>` to close an issue when merged, this
-is supported as a footer to extract the `issue_ref`. Github also inserts
-`(#<pull_ref)` into merge request titles, if you make use of the
-title/description when merging, this format will also be used to extract the
-`pull_ref` so there is no need to use the `PR: <pull_ref>` footer.
+footer, along with other custom github footers, can be used to extract the
+`issue_ref`.  Github also inserts `(#<pull_ref)` into merge request titles, if
+you make use of the title/description when merging, this can be stripped out,
+and optionally stored in a `PR` footer.
+
+See [github](https://nrwldev.github.io/changelog-gen/configuration/#github)
+configuration for details.
 
 ## Breaking changes
 
@@ -65,3 +68,63 @@ don't fit the conventional commit format. All non conventional commits will be
 included under a `Miscellaneous` heading. Combined with the `--interactive`
 flag commits can be included under the correct headings and/or excluded
 completely.
+
+## Extracting information and using it
+
+To parse information from custom footers check out
+[footer_parsers](https://nrwldev.github.io/changelog-gen/configuration/#footer_parsers).
+
+By supplying custom regexes that split a footer into the
+`[footer][separator][footer_value]` this information can be extracted later on
+and used to generate links, or to populate the post process url/body.
+
+### Information extraction
+
+Once footers have been parsed, their information can be extracted to support templating links etc.
+
+Custom
+[extractors](https://nrwldev.github.io/changelog-gen/configuration/#extractors)
+can be defined using named group regexes, for example to extract issue_refs
+from the footer `Refs: #1, #2, #3` an extractor `#(?P<issue_ref>\d+),?`, would
+result in the extracted information `{"issue_ref": ["1", "2", "3"]}`.
+
+Multiple footers can be extracted using the same group name, and the data will
+be concatenated together (rather than overwritten) from subsequent extractors.
+
+### Links
+
+Once information has been extracted from parsed footers, it can be used to
+generate links to include in the changelog. See
+[link_generators](https://nrwldev.github.io/changelog-gen/configuration/#link_generators)
+for information on configuring link generators.
+
+In previous releases, `changelog-gen` only supported `issue_link` and
+`commit_link` configuration. These have been deprecated in favour of
+link_generators. The same behaviour can be recreated using a link generator.
+
+The following toml will generate a link for each extracted issue_ref, and will
+generate a link using the short_hash and full commit_hash of the raw change
+object.
+
+```toml
+[[tool.changelog_gen.link_generators]]
+source = "issue_ref"
+link = "https://github.com/NRWLDev/changelog-gen/issues/{0}"
+
+[[tool.changelog_gen.link_generators]]
+source = "__change__"
+text = "{0.short_hash}"
+link = "https://github.com/NRWLDev/changelog-gen/commit/{0.commit_hash}"
+```
+
+To generate a link for a PR, using the PR footer from the github helpers.
+
+```toml
+[[tool.changelog_gen.extractors]]
+footer = "PR"
+pattern = '#(?P<pull_ref>\d+)'
+
+[[tool.changelog_gen.link_generators]]
+source = "pr"
+link = "https://github.com/NRWLDev/changelog-gen/pulls/{0}"
+```

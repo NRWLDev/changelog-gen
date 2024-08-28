@@ -15,8 +15,8 @@ http verb can be changed depending on the service being called, and its
 requirements. The request
 [body](https://nrwldev.github.io/changelog-gen/configuration/#post_processbody_template)
 can also be configured with a jinja template, provided at render time will be
-the `version` string, the `source` from the extracted match, and all extracted
-key values.
+the `version` string, the `source` from the extracted match, and all
+information extracted via `extractors`.
 
 Optional
 [headers](https://nrwldev.github.io/changelog-gen/configuration/#post_processheaders)
