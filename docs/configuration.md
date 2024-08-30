@@ -510,7 +510,7 @@ extract_common_footers = true
 #### `post_process.auth_type`
   _**[optional]**_<br />
   **default**: basic<br />
-  Auth type to use for post process requests, supported options are `basic` and `bearer`.
+  Auth type to use for post process requests, supported options are `basic`, `aws4`, and `bearer`.
 
 #### `post_process.auth_env`
   _**[optional]**_<br />
@@ -519,6 +519,7 @@ extract_common_footers = true
 
   * For basic auth the content of the variable should be `{user}:{api key}`.
   * For bearer auth the content of the variable should be `{api key}`.
+  * For signed aws4 auth the content of the variable should be `{access_key_id}:{secret_access_key}:{service_name}:{region}`.
 
 ### Post process example
   Example to post to JIRA:

@@ -6,6 +6,8 @@ from http import HTTPStatus
 
 import httpx
 import typer
+from aws4.client import HttpxAWS4Auth
+from aws4.key_pair import KeyPair
 from jinja2 import BaseLoader, Environment
 
 from changelog_gen.extractor import Link
@@ -40,6 +42,16 @@ def make_client(context: Context, cfg: PostProcessConfig) -> httpx.Client:
 
         if cfg.auth_type == "bearer":
             auth = BearerAuth(user_auth)
+        elif cfg.auth_type == "aws4":
+            access_key_id, secret_access_key, service_name, region = user_auth.split(":")
+            auth = HttpxAWS4Auth(
+                KeyPair(
+                    access_key_id=access_key_id,
+                    secret_access_key=secret_access_key,
+                ),
+                service_name,
+                region,
+            )
         else:
             # Fall back to basic auth
             try:

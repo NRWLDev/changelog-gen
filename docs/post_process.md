@@ -24,7 +24,7 @@ can also be configured.
 
 ## Authorization
 
-Currently only basic auth and bearer tokens are supported, but if you find
+Currently basic auth, bearer tokens, and signed aws4 are supported, but if you find
 yourself with a usecase that needs a different form of authentication, please
 raise an issue. To provide authorization, configure an environment key to pull
 the authorization values from using
@@ -34,6 +34,8 @@ For basic auth, the environment variable should be in the format
 `{user}:{api_key}`.
 
 For bearer auth, the environment variable should be in the format `{api_key}`.
+
+For AWS4 signed auth, the environment variable should be in the format `{access_key_id}:{secret_access_key}:{service_name}:{region}`.
 
 ## Installation
 
