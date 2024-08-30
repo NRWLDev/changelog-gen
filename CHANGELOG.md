@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.12.0 - 2024-08-30
+
+### Features and Improvements
+
+- **Breaking** Drop bump-my-version dependency in favour of in house implementation. [[28](https://github.com/NRWLDev/changelog-gen/issues/28)] [[d74338a](https://github.com/NRWLDev/changelog-gen/commit/d74338ab84472a9439444968e7f7c187b690e91a)]
+- **Breaking** Simplify commit type and semver configuration. [[35](https://github.com/NRWLDev/changelog-gen/issues/35)] [[cb76db2](https://github.com/NRWLDev/changelog-gen/commit/cb76db201be2f55daac22d16f0af0bd552788462)]
+- **Breaking** Parse footers using regex, and support custom user parsers. [[36](https://github.com/NRWLDev/changelog-gen/issues/36)] [[80a335a](https://github.com/NRWLDev/changelog-gen/commit/80a335adb52679b76f6daec3e855818f5590db0f)]
+- **Breaking** Support link parsers to extract information from footers and generate links and link text. [[37](https://github.com/NRWLDev/changelog-gen/issues/37)] [[c24f246](https://github.com/NRWLDev/changelog-gen/commit/c24f2461f5feac127e3caad56549226dc3de2eb3)]
+- **Breaking** Update post process to generate link using a link parser, and build body with a jinja template. [[44](https://github.com/NRWLDev/changelog-gen/issues/44)] [[138c250](https://github.com/NRWLDev/changelog-gen/commit/138c250e8ea9adc2283f173319a249ebdcb523d8)]
+- **Breaking** Separate footer parsing, information extraction and link generation. [[47](https://github.com/NRWLDev/changelog-gen/issues/47)] [[632634d](https://github.com/NRWLDev/changelog-gen/commit/632634db1ac59ca00e51ed079e5e48f77619f9e3)]
+- Add support for PR ref extraction and links in changelog. [[33](https://github.com/NRWLDev/changelog-gen/issues/33)] [[b4eef73](https://github.com/NRWLDev/changelog-gen/commit/b4eef7368b3b6e2456fd2cc5cab886a49e1d6e7c)]
+- Use jinja template to render changelog lines, support custom user templates. [[38](https://github.com/NRWLDev/changelog-gen/issues/38)] [[7aa9705](https://github.com/NRWLDev/changelog-gen/commit/7aa9705622e4dfa8607f0c0d0e98e1c401fabbec)]
+- Output optional statistics for inclusion in release notes. [[46](https://github.com/NRWLDev/changelog-gen/issues/46)] [[5b38748](https://github.com/NRWLDev/changelog-gen/commit/5b387484021ac4e273758963fa1b4541857c3d13)]
+- Add support for signed AWS4 requests for post process requests. [[49](https://github.com/NRWLDev/changelog-gen/issues/49)] [[d7961dc](https://github.com/NRWLDev/changelog-gen/commit/d7961dc34eb350f8fc5bc9f830af11306d846543)]
+- Support special github scenarios via configuration [[50](https://github.com/NRWLDev/changelog-gen/issues/50)] [[69d5002](https://github.com/NRWLDev/changelog-gen/commit/69d50025c0e2a8fe2a43258f12c24c2115605df5)]
+
+### Bug fixes
+
+- Add github fixes footer support, and make footer lookups case insensitive [[6520681](https://github.com/NRWLDev/changelog-gen/commit/652068137176ae165b96e2722811110a8920602b)]
+
 ## v0.11.14 - 2024-08-16
 
 ### Features and Improvements
