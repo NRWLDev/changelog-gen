@@ -3,6 +3,7 @@ from unittest import mock
 
 import pytest
 import typer
+from aws4.key_pair import KeyPair
 
 from changelog_gen import post_processor
 from changelog_gen.config import PostProcessConfig
@@ -40,6 +41,17 @@ class TestMakeClient:
 
         assert client.headers["content-type"] == "application/json"
         assert client.auth.token == "Bearer hex_api_key"
+
+    def test_create_client_with_signed_auth_token(self, monkeypatch):
+        monkeypatch.setenv("AUTH_TOKEN", "access_key:secret_key:service_name:region")
+        cfg = PostProcessConfig(auth_env="AUTH_TOKEN", headers={"content-type": "application/json"}, auth_type="aws4")
+
+        client = post_processor.make_client(mock.Mock(), cfg)
+
+        assert client.headers["content-type"] == "application/json"
+        assert client.auth.key_pair == KeyPair("access_key", "secret_key")
+        assert client.auth.service == "service_name"
+        assert client.auth.region == "region"
 
     def test_create_client_without_auth_token(self):
         cfg = PostProcessConfig(headers={"content-type": "application/json"})

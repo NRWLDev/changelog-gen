@@ -23,6 +23,20 @@ test = ["anyio[trio]", "coverage[toml] (>=7)", "exceptiongroup (>=1.2.0)", "hypo
 trio = ["trio (>=0.23)"]
 
 [[package]]
+name = "auth-aws4"
+version = "0.1.7"
+description = "Usecase agnostic implementation of AWS4 signing schema."
+optional = true
+python-versions = "<4.0,>=3.8"
+files = [
+    {file = "auth_aws4-0.1.7-py3-none-any.whl", hash = "sha256:a255a8df53e0260918249d5cdd4c495915e0608b6cd043a0332629fa6d7458d5"},
+    {file = "auth_aws4-0.1.7.tar.gz", hash = "sha256:9a2a21418fbd17ba8b6ca97fc0818b32dc51804334c6702a976a023dcbd1614f"},
+]
+
+[package.dependencies]
+python-dateutil = ">=2,<3"
+
+[[package]]
 name = "certifi"
 version = "2024.7.4"
 description = "Python package for providing Mozilla's CA Bundle."
@@ -953,10 +967,10 @@ docs = ["furo (>=2023.7.26)", "proselint (>=0.13)", "sphinx (>=7.1.2,!=7.3)", "s
 test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess (>=1)", "flaky (>=3.7)", "packaging (>=23.1)", "pytest (>=7.4)", "pytest-env (>=0.8.2)", "pytest-freezer (>=0.4.8)", "pytest-mock (>=3.11.1)", "pytest-randomly (>=3.12)", "pytest-timeout (>=2.1)", "setuptools (>=68)", "time-machine (>=2.10)"]
 
 [extras]
-post-process = ["httpx"]
-test = ["httpx"]
+post-process = ["auth-aws4", "httpx"]
+test = ["auth-aws4", "httpx"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "f04ea0b85db33001468dc6d104afc441a4ac9996a54f434484c9e51c5661ebe2"
+content-hash = "5107c2a6b1954bc1a841a8af5b8758842316530f52c604c09d5f71d6ecfc631e"
