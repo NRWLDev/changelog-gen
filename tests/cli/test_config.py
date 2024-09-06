@@ -38,9 +38,9 @@ footer_parsers = [
     '(Refs)(: )(#?[\w-]+)',
     '(Authors)(: )(.*)',
 ]
-extractors = []
-link_generators = []
 hooks = []
+link_generators = []
+extractors = []
 
 [type_headers]
 feat = 'Features and Improvements'

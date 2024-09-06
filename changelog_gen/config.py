@@ -160,8 +160,10 @@ class Config:
         """Convert a Config object to a dictionary of key value pairs."""
         data = dataclasses.asdict(self)
         data["parser"] = data["parser"].pattern
-        ret = {k: v for k, v in data.items() if k != "files"}
+        ret = {k: v for k, v in data.items() if k not in ("files", "link_generators", "extractors")}
         ret["files"] = data.get("files")
+        ret["link_generators"] = data.get("link_generators")
+        ret["extractors"] = data.get("extractors")
 
         return ret
 
