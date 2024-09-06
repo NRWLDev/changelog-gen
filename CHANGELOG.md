@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.12.1 - 2024-09-06
+
+### Bug fixes
+
+- Handle rtoml issue with tables emitted before values. [[24724ca](https://github.com/NRWLDev/changelog-gen/commit/24724ca033d226f3cea83443a7f769a83823b962)]
+
 ## v0.12.0 - 2024-08-30
 
 ### Features and Improvements
