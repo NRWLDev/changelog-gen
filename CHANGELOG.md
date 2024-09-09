@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.13.0 - 2024-09-09
+
+### Miscellaneous
+
+- **Breaking** Migrate from poetry to uv for dependency and build management [[29d35f5](https://github.com/NRWLDev/changelog-gen/commit/29d35f5e83bef0306d0f99244b7b500cf254362d)]
+
 ## v0.12.1 - 2024-09-06
 
 ### Bug fixes
