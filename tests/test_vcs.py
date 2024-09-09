@@ -9,12 +9,12 @@ from changelog_gen.context import Context
 from changelog_gen.vcs import Git
 
 
-@pytest.fixture()
+@pytest.fixture
 def context():
     return Context(Config(current_version="0.0.0"))
 
 
-@pytest.fixture()
+@pytest.fixture
 def multiversion_repo(git_repo):
     path = git_repo.workspace
     f = path / "hello.txt"
@@ -34,7 +34,7 @@ def multiversion_repo(git_repo):
     return git_repo
 
 
-@pytest.fixture()
+@pytest.fixture
 def multiversion_v_repo(git_repo):
     path = git_repo.workspace
     f = path / "hello.txt"

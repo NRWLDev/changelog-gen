@@ -17,7 +17,7 @@ class Git:
     """VCS implementation for git repositories."""
 
     @timer
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self: T,
         context: Context,
         *,

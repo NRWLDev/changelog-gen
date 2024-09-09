@@ -1,17 +1,18 @@
-[tool.poetry]
+[project]
 name = "changelog_gen"
 version = "0.12.1"
 description = "Changelog generation tool"
 authors = [
-    "Daniel Edgecombe <daniel@nrwl.co>"
+    {name = "Daniel Edgecombe", email = "daniel@nrwl.co"},
 ]
 maintainers = [
-    "Daniel Edgecombe <daniel@nrwl.co>",
+    {name = "Daniel Edgecombe", email = "daniel@nrwl.co"},
 ]
 license = "Apache-2.0"
 repository="https://github.com/NRWLDev/changelog-gen/"
 homepage="https://github.com/NRWLDev/changelog-gen/"
 readme = "README.md"
+requires-python = ">=3.9"
 keywords = ["changelog", "version", "release", "bumpversion"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -24,7 +25,6 @@ classifiers = [
     "Topic :: System :: Software Distribution",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -32,37 +32,48 @@ classifiers = [
     "Programming Language :: Python :: 3",
 ]
 
-[tool.poetry.dependencies]
-python = "^3.8"
+dependencies = [
+    "typer-slim >= 0",
+    "rtoml >= 0.9",
+    "gitpython >= 3.1.43",
+    "pygments >= 2.18.0",
+    "typing_extensions >= 4.7.0; python_version <= '3.10'",
+    "jinja2 >= 3.1.4",
+]
 
-typer-slim = "^0"
-httpx = { version = "^0", optional = true, python = ">3.9"}
-auth-aws4 = { version = "^0", optional = true, python = ">3.9"}
-rtoml = ">=0.9"
-gitpython = "^3.1.43"
-pygments = "^2.18.0"
-typing_extensions = { version = "^4.7.0", python = "<3.10" }
-jinja2 = "^3.1.4"
+[project.optional-dependencies]
+post-process = [
+    "httpx >= 0",
+    "auth-aws4 >= 0",
+]
 
-[tool.poetry.extras]
-post-process = ["httpx", "auth-aws4"]
-test = ["httpx", "auth-aws4"]
+test = [
+    # Tests
+    "freezegun >= 1.2.1",
+    "pytest >= 8.2.0,<8.3",
+    "pytest-cov >= 5.0.0",
+    "pytest-random-order >= 1.1.0",
+    "pytest-git >=1.7.0,<1.8",
+    "coverage == 7.4.3",  # something breaks >7.4.4 and require passing `--cov-config=pyproject.toml` everywhere
+    "path >= 16,<17",
+    "pytest-httpx >= 0.30.0",
+    "httpx >= 0",
+    "auth-aws4 >= 0",
+]
 
-[tool.poetry.dev-dependencies]
+dev = [
+    # Style
+    "ruff >= 0.6.4",
+    "pre-commit >= 3.0.2",
 
-# Tests
-freezegun = "^1.2.1"
-pytest = "~8.2.0"
-pytest-cov = "^5.0.0"
-pytest-random-order = "^1.1.0"
-pytest-httpx = { version = "^0.30.0", python = ">3.9"}
-pytest-git = "^1.7.0"
-coverage = "7.4.3"  # something breaks >7.4.4 and require passing `--cov-config=pyproject.toml` everywhere
-path = "^16"
+    # release
+    "changelog-gen >= 0.12",
+]
 
-# Style
-ruff = "^0.4.0"
-pre-commit = "^3.0.2"
+[project.scripts]
+changelog = "changelog_gen.cli.command:app"
+changelog-gen = "changelog_gen.cli.command:gen_app"
+changelog-init = "changelog_gen.cli.command:init_app"
 
 [tool.changelog_gen]
 current_version = "0.12.1"
@@ -152,11 +163,6 @@ docstring-quotes = "double"
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
-[tool.poetry.scripts]
-changelog = "changelog_gen.cli.command:app"
-changelog-gen = "changelog_gen.cli.command:gen_app"
-changelog-init = "changelog_gen.cli.command:init_app"
-
 [build-system]
-requires = ["poetry-core>=1.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"

@@ -65,7 +65,7 @@ new features.
 pip install changelog-gen
 ```
 
-or clone this repo and install with invoke/poetry.
+or clone this repo and install with invoke/uv.
 
 ```bash
 invoke install-dev

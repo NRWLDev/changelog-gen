@@ -40,7 +40,7 @@ def mock_git(monkeypatch):
     return mock_git
 
 
-@pytest.fixture()
+@pytest.fixture
 def versions():
     return {
         "current": "0.0.0",
@@ -48,7 +48,7 @@ def versions():
     }
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_bump(monkeypatch, versions):
     mock_bump = mock.Mock()
     mock_bump.get_version_info.return_value = versions
@@ -59,7 +59,7 @@ def mock_bump(monkeypatch, versions):
     return mock_bump
 
 
-@pytest.fixture()
+@pytest.fixture
 def changelog(cwd):
     p = cwd / "CHANGELOG.md"
     p.write_text("# Changelog\n")
@@ -67,7 +67,7 @@ def changelog(cwd):
     return p
 
 
-@pytest.fixture()
+@pytest.fixture
 def commit_factory(mock_git):
     def factory(commits):
         mock_git.get_logs.return_value = [
@@ -77,11 +77,11 @@ def commit_factory(mock_git):
     return factory
 
 
-@pytest.fixture()
+@pytest.fixture
 def _empty_conventional_commits(): ...
 
 
-@pytest.fixture()
+@pytest.fixture
 def _conventional_commits(commit_factory):
     commit_factory(
         [
@@ -111,7 +111,7 @@ Refs: #1
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def _breaking_conventional_commits(commit_factory):
     commit_factory(
         [
@@ -137,7 +137,7 @@ Refs: #1
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def post_process_pyproject(cwd):
     p = cwd / "pyproject.toml"
     p.write_text(

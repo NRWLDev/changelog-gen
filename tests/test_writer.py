@@ -9,28 +9,28 @@ from changelog_gen.context import Context
 from changelog_gen.extractor import Change, Footer, Link
 
 
-@pytest.fixture()
+@pytest.fixture
 def changelog(tmp_path):
     p = tmp_path / "CHANGELOG"
     p.write_text("")
     return p
 
 
-@pytest.fixture()
+@pytest.fixture
 def changelog_md(tmp_path):
     p = tmp_path / "CHANGELOG.md"
     p.write_text("# Changelog\n")
     return p
 
 
-@pytest.fixture()
+@pytest.fixture
 def changelog_rst(tmp_path):
     p = tmp_path / "CHANGELOG.rst"
     p.write_text("=========\nChangelog\n=========\n")
     return p
 
 
-@pytest.fixture()
+@pytest.fixture
 def ctx():
     return Context(Config(current_version="0.0.0"))
 

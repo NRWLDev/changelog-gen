@@ -5,7 +5,7 @@ import pytest
 from changelog_gen import config, errors
 
 
-@pytest.fixture()
+@pytest.fixture
 def config_factory(cwd):
     def factory(contents=None):
         p = cwd / "pyproject.toml"
@@ -16,7 +16,7 @@ def config_factory(cwd):
     return factory
 
 
-@pytest.fixture()
+@pytest.fixture
 def pyproject_factory(cwd):
     def factory(contents=None):
         p = cwd / "pyproject.toml"
@@ -27,7 +27,7 @@ def pyproject_factory(cwd):
     return factory
 
 
-@pytest.fixture()
+@pytest.fixture
 def _empty_config(config_factory):
     config_factory()
 

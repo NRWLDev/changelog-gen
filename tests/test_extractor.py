@@ -9,7 +9,7 @@ from changelog_gen.extractor import Change, ChangeExtractor, Footer, Link
 from changelog_gen.vcs import Git
 
 
-@pytest.fixture()
+@pytest.fixture
 def multiversion_repo(git_repo):
     path = git_repo.workspace
     f = path / "hello.txt"
@@ -29,7 +29,7 @@ def multiversion_repo(git_repo):
     return git_repo
 
 
-@pytest.fixture()
+@pytest.fixture
 def conventional_commits(multiversion_repo):
     f = multiversion_repo.workspace / "hello.txt"
     hashes = []

@@ -5,7 +5,7 @@ import pytest
 import rtoml
 
 
-@pytest.fixture()
+@pytest.fixture
 def cwd(tmp_path):
     orig = pathlib.Path.cwd()
 
@@ -16,7 +16,7 @@ def cwd(tmp_path):
         os.chdir(orig)
 
 
-@pytest.fixture()
+@pytest.fixture
 def git_repo(git_repo):
     git_repo.run("git config user.email 'you@example.com'")
     git_repo.run("git config user.name 'Your Name'")
@@ -31,7 +31,7 @@ def git_repo(git_repo):
         os.chdir(orig)
 
 
-@pytest.fixture()
+@pytest.fixture
 def config_factory(cwd):
     def factory(**config):
         p = cwd / "pyproject.toml"

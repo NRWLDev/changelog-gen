@@ -11,11 +11,11 @@ import invoke
 @invoke.task
 def install(context):
     """Install production requirements for `backend`."""
-    context.run("poetry install --only main")
+    context.run("uv sync")
 
 
 @invoke.task
 def install_dev(context):
     """Install development requirements for `backend`."""
-    context.run("poetry install --extras test")
-    context.run("poetry run pre-commit install")
+    context.run("uv sync --extra dev --extra test")
+    context.run("uv run pre-commit install")

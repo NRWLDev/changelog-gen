@@ -18,6 +18,6 @@ class CliRunner(typer.testing.CliRunner):
         return result
 
 
-@pytest.fixture()
+@pytest.fixture
 def cli_runner():
     return CliRunner()

@@ -4,7 +4,7 @@ from changelog_gen import errors, version
 from changelog_gen.config import Config, read
 
 
-@pytest.fixture()
+@pytest.fixture
 def config_factory():
     def factory(**kwargs):
         if "current_version" not in kwargs:
@@ -135,7 +135,7 @@ class TestInHouse:
         p = cwd / "pyproject.toml"
         p.write_text(
             """
-[tool.poetry]
+[project]
 version = "0.0.0"
 
 [tool.changelog_gen]
@@ -153,7 +153,7 @@ pattern = 'version = "{version}"'
         with p.open() as f:
             assert (
                 f.read()
-                == """[tool.poetry]
+                == """[project]
 version = "1.2.3"
 
 [tool.changelog_gen]
@@ -166,7 +166,7 @@ pattern = 'version = "{version}"'"""
 
     def test_replace_dry_run(self, cwd):
         content = """
-[tool.poetry]
+[project]
 version = "0.0.0"
 
 [tool.changelog_gen]
@@ -188,7 +188,7 @@ pattern = 'version = "{version}"'
 
     def test_replace_invalid_pattern_reverts_files(self, cwd):
         content = """
-[tool.poetry]
+[project]
 version = "0.0.0"
 
 [tool.changelog_gen]
@@ -219,7 +219,7 @@ pattern = 'version = "{version}"'
 
     def test_replace_invalid_pattern_dry_run(self, cwd):
         content = """
-[tool.poetry]
+[project]
 version = "0.0.0"
 
 [tool.changelog_gen]
@@ -251,7 +251,7 @@ pattern = 'version = "{version}"'
         p = cwd / "pyproject.toml"
         p.write_text(
             """
-[tool.poetry]
+[project]
 version = "0.0.0"
 
 [tool.changelog_gen]
