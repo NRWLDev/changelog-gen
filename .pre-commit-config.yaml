@@ -14,6 +14,7 @@ repos:
     rev: v1.24.5
     hooks:
       - id: typos
+        args: [--force-exclude]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.6.4
