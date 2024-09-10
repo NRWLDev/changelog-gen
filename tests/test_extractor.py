@@ -583,7 +583,7 @@ Refs: #2
     ]
 
 
-def test_git_commit_extraction_picks_up_additional_allowed_characted(multiversion_repo):
+def test_git_commit_extraction_picks_up_additional_allowed_character(multiversion_repo):
     path = multiversion_repo.workspace
     f = path / "hello.txt"
     hashes = []

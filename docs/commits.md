@@ -23,7 +23,7 @@ but the footers are taken into account.
 [optional footer(s)]
 ```
 
-* `type` is used to determening the semantic version related to the change.
+* `type` is used to determining the semantic version related to the change.
 * `!` in the type, or `BREAKING CHANGE:` in the footer denotes a `major` release.
 * `scope` is included in the changelog message if provided.
 * `description` allows typical `[a-zA-Z ]` sentences, as well as `[.,/]`
