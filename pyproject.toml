@@ -33,18 +33,18 @@ classifiers = [
 ]
 
 dependencies = [
-    "typer-slim >= 0",
-    "rtoml >= 0.9",
-    "gitpython >= 3.1.43",
-    "pygments >= 2.18.0",
+    "jinja2",
+    "typer-slim",
+    "rtoml",
+    "gitpython",
+    "pygments",
     "typing_extensions >= 4.7.0; python_version <= '3.10'",
-    "jinja2 >= 3.1.4",
 ]
 
 [project.optional-dependencies]
 post-process = [
-    "httpx >= 0",
-    "auth-aws4 >= 0",
+    "httpx",
+    "auth-aws4",
 ]
 
 test = [

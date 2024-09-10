@@ -48,7 +48,7 @@ wheels = [
 
 [[package]]
 name = "changelog-gen"
-version = "0.12.1"
+version = "0.13.0"
 source = { editable = "." }
 dependencies = [
     { name = "gitpython" },
@@ -83,26 +83,26 @@ test = [
 
 [package.metadata]
 requires-dist = [
-    { name = "auth-aws4", marker = "extra == 'post-process'", specifier = ">=0" },
+    { name = "auth-aws4", marker = "extra == 'post-process'" },
     { name = "auth-aws4", marker = "extra == 'test'", specifier = ">=0" },
     { name = "changelog-gen", marker = "extra == 'dev'", specifier = ">=0.12" },
     { name = "coverage", marker = "extra == 'test'", specifier = "==7.4.3" },
     { name = "freezegun", marker = "extra == 'test'", specifier = ">=1.2.1" },
-    { name = "gitpython", specifier = ">=3.1.43" },
-    { name = "httpx", marker = "extra == 'post-process'", specifier = ">=0" },
+    { name = "gitpython" },
+    { name = "httpx", marker = "extra == 'post-process'" },
     { name = "httpx", marker = "extra == 'test'", specifier = ">=0" },
-    { name = "jinja2", specifier = ">=3.1.4" },
+    { name = "jinja2" },
     { name = "path", marker = "extra == 'test'", specifier = ">=16,<17" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.0.2" },
-    { name = "pygments", specifier = ">=2.18.0" },
+    { name = "pygments" },
     { name = "pytest", marker = "extra == 'test'", specifier = ">=8.2.0,<8.3" },
     { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=5.0.0" },
     { name = "pytest-git", marker = "extra == 'test'", specifier = ">=1.7.0,<1.8" },
     { name = "pytest-httpx", marker = "extra == 'test'", specifier = ">=0.30.0" },
     { name = "pytest-random-order", marker = "extra == 'test'", specifier = ">=1.1.0" },
-    { name = "rtoml", specifier = ">=0.9" },
+    { name = "rtoml" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.6.4" },
-    { name = "typer-slim", specifier = ">=0" },
+    { name = "typer-slim" },
     { name = "typing-extensions", marker = "python_full_version < '3.11'", specifier = ">=4.7.0" },
 ]
 
