@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.13.1 - 2024-09-10
+
+### Miscellaneous
+
+- Relax dependency pins [[38057b4](https://github.com/NRWLDev/changelog-gen/commit/38057b466f97ee31539203385c297bb2900ab7ab)]
+
 ## v0.13.0 - 2024-09-09
 
 ### Miscellaneous
