@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.13.2 - 2024-09-27
+
+### Features and Improvements
+
+- Add regex_replace jinja template filter. [[3418a8d](https://github.com/NRWLDev/changelog-gen/commit/3418a8de3b16441180567dae4d52108ce63b6662)]
+
 ## v0.13.1 - 2024-09-10
 
 ### Miscellaneous
