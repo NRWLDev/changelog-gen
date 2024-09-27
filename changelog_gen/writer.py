@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import typing as t
 from collections import defaultdict
 from enum import Enum
@@ -22,6 +23,11 @@ class Extension(Enum):
 
     MD = "md"
     RST = "rst"
+
+
+def regex_replace(value: str, target: str, replace: str) -> str:
+    """Regex replace filter for jinja templates."""
+    return re.sub(target, replace, value)
 
 
 class BaseWriter:
@@ -52,7 +58,10 @@ class BaseWriter:
 
     @timer
     def _render_change(self: t.Self, change: Change) -> str:
-        rtemplate = Environment(loader=BaseLoader()).from_string(self._change_template.replace("\n", ""))  # noqa: S701
+        env = Environment(loader=BaseLoader())  # noqa: S701
+
+        env.filters["regex_replace"] = regex_replace
+        rtemplate = env.from_string(self._change_template.replace("\n", ""))
 
         return rtemplate.render(change=change)
 
@@ -135,7 +144,10 @@ class MdWriter(BaseWriter):
 {% endfor %}
 {% endfor %}
 """
-        rtemplate = Environment(loader=BaseLoader()).from_string(template)  # noqa: S701
+        env = Environment(loader=BaseLoader())  # noqa: S701
+
+        env.filters["regex_replace"] = regex_replace
+        rtemplate = env.from_string(template)
 
         content = rtemplate.render(group_changes=group_changes, version_string=version_string)
         self.content = content.split("\n")[:-1]
@@ -188,7 +200,10 @@ class RstWriter(BaseWriter):
 {% endfor %}
 {% endfor %}
 """
-        rtemplate = Environment(loader=BaseLoader()).from_string(template)  # noqa: S701
+        env = Environment(loader=BaseLoader())  # noqa: S701
+
+        env.filters["regex_replace"] = regex_replace
+        rtemplate = env.from_string(template)
 
         content = rtemplate.render(group_changes=group_changes, version_string=version_string)
         self.content = content.split("\n")[:-2]

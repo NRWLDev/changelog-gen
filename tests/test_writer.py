@@ -233,6 +233,14 @@ class TestMdWriter:
 
         assert line == "- line"
 
+    def test_render_change_custom_filter(self, changelog_md, ctx):
+        w = writer.MdWriter(changelog_md, ctx)
+        w._change_template = "- {{ change.description | regex_replace('i.*e', 'ove it')}}"  # pragma: no-spell-check
+
+        line = w._render_change(Change("header", "line", "fix", footers=[Footer("Refs", ": ", "#1")]))
+
+        assert line == "- love it"
+
     def test_render_change_with_metadata(self, changelog_md, ctx):
         w = writer.MdWriter(changelog_md, ctx)
 
