@@ -43,6 +43,7 @@ class BaseWriter:
         changelog: Path,
         context: Context,
         change_template: str | None = None,
+        release_template: str | None = None,
         *,
         dry_run: bool = False,
     ) -> None:
@@ -55,15 +56,16 @@ class BaseWriter:
         self.content = []
         self.dry_run = dry_run
         self._change_template = change_template
+        self._release_template = release_template
 
     @timer
     def _render_change(self: t.Self, change: Change) -> str:
         env = Environment(loader=BaseLoader())  # noqa: S701
 
         env.filters["regex_replace"] = regex_replace
-        rtemplate = env.from_string(self._change_template.replace("\n", ""))
+        ctemplate = env.from_string(self._change_template.replace("\n", ""))
 
-        return rtemplate.render(change=change)
+        return ctemplate.render(change=change)
 
     @timer
     def consume(self: t.Self, version_string: str, type_headers: dict[str, str], changes: list[Change]) -> None:
@@ -131,10 +133,9 @@ class MdWriter(BaseWriter):
 {% for link in change.links %} [[{{ link.text }}]({{ link.link }})]{% endfor %}
 """
         )
-
-    @timer
-    def _consume(self: t.Self, version_string: str, group_changes: dict[str, list[Change]]) -> None:
-        template = """## {{ version_string }}
+        self._release_template = (
+            self._release_template
+            or """## {{ version_string }}
 
 {% for header, changes in group_changes.items() -%}
 ### {{ header }}
@@ -144,10 +145,14 @@ class MdWriter(BaseWriter):
 {% endfor %}
 {% endfor %}
 """
+        )
+
+    @timer
+    def _consume(self: t.Self, version_string: str, group_changes: dict[str, list[Change]]) -> None:
         env = Environment(loader=BaseLoader())  # noqa: S701
 
         env.filters["regex_replace"] = regex_replace
-        rtemplate = env.from_string(template)
+        rtemplate = env.from_string(self._release_template)
 
         content = rtemplate.render(group_changes=group_changes, version_string=version_string)
         self.content = content.split("\n")[:-1]
@@ -173,6 +178,22 @@ class RstWriter(BaseWriter):
 {% for link in change.links %} [`{{ link.text }}`_]{% endfor %}
 """
         )
+        self._release_template = (
+            self._release_template
+            or """{{ version_string }}
+{{ "=" * version_string|length }}
+
+{% for header, changes in group_changes.items() -%}
+{{ header }}
+{{ "-" * header|length }}
+
+{% for change in changes -%}
+{{change.rendered}}
+
+{% endfor %}
+{% endfor %}
+"""
+        )
         self._links = {}
 
     @timer
@@ -187,23 +208,10 @@ class RstWriter(BaseWriter):
 
     @timer
     def _consume(self: t.Self, version_string: str, group_changes: dict[str, list[Change]]) -> None:
-        template = """{{ version_string }}
-{{ "=" * version_string|length }}
-
-{% for header, changes in group_changes.items() -%}
-{{ header }}
-{{ "-" * header|length }}
-
-{% for change in changes -%}
-{{change.rendered}}
-
-{% endfor %}
-{% endfor %}
-"""
         env = Environment(loader=BaseLoader())  # noqa: S701
 
         env.filters["regex_replace"] = regex_replace
-        rtemplate = env.from_string(template)
+        rtemplate = env.from_string(self._release_template)
 
         content = rtemplate.render(group_changes=group_changes, version_string=version_string)
         self.content = content.split("\n")[:-2]

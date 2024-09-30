@@ -295,6 +295,34 @@ change_template = """
 """
 ```
 
+### `release_template`
+  _**[optional]**_<br />
+  **default**: None
+
+  Customise how release entries are formatted, uses
+  [Jinja2](https://jinja.palletsprojects.com/en/3.1.x/) formatting.
+
+  The template will provided with the release version string, and a dictionary
+  of headers and related changes, changes have a `rendered` property containing the
+  output of the configured `change_template` for that change.
+
+  Example:
+
+```toml
+"""
+[tool.changelog_gen]
+release_template = """## {{ version_string }}
+
+{% for header, changes in group_changes.items() -%}
+### {{ header }}
+
+{% for change in changes -%}
+{{change.rendered}}
+{% endfor %}
+{% endfor %}
+"""
+```
+
 ## Versioning
 
 Versioning configuration is very similar to
