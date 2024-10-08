@@ -106,9 +106,9 @@ class Git:
             )
         except git.exc.GitCommandError as e:
             msg = (
-                "Unable to fetch commit logs."
-                if "does not have any commits yet" not in str(e)
-                else "No commit logs available."
+                "Unable to fetch commit log."
+                if "unknown revision or path not in the working tree" not in str(e)
+                else "No commit log available."
             )
             raise errors.VcsError(msg) from e
         return next(m.split(":", 2) for m in logs.split("\x00") if m)
