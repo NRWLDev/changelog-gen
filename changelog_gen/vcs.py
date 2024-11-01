@@ -111,7 +111,7 @@ class Git:
                 else "No commit log available."
             )
             raise errors.VcsError(msg) from e
-        return next(m.split(":", 2) for m in logs.split("\x00") if m)
+        return next(m.split(":", 2) for m in logs.split("\x00") if m)  # pragma: no cover
 
     @timer
     def add_paths(self: T, paths: list[str]) -> None:
