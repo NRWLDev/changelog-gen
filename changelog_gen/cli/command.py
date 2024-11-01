@@ -91,12 +91,21 @@ def process_info(info: dict, context: Context, *, dry_run: bool) -> None:
 
 
 @app.command("config")
-def display_config() -> None:
+def display_config(
+    key: Optional[str] = typer.Option(
+        None,
+        help="Specific config key to display.",
+        show_default=False,
+    ),
+) -> None:
     """Display current configuration."""
     cfg = config.read()
+    output = cfg.to_dict()
+    if key:
+        output = {key: output[key]}
     typer.echo(
         highlight(
-            rtoml.dumps(cfg.to_dict(), pretty=True, none_value=None),
+            rtoml.dumps(output, pretty=True, none_value=None),
             lexers.TOMLLexer(),
             formatters.TerminalFormatter(),
         ),
