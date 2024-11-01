@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.13.3 - 2024-11-01
+
+### Features and Improvements
+
+- Support displaying specific config key from cli. [[454cb07](https://github.com/NRWLDev/changelog-gen/commit/454cb07cccb2d2fcbefef812ac1b9f8d16dc2f3e)]
+
 ## v0.13.2 - 2024-09-27
 
 ### Features and Improvements
