@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.13.4 - 2024-11-01
+
+### Features and Improvements
+
+- Support custom change and release templates with cli command to test template outputs. [[56](https://github.com/NRWLDev/changelog-gen/issues/56)] [[28eca08](https://github.com/NRWLDev/changelog-gen/commit/28eca083a3731bbc8559f935a3d866752ddb216f)]
+
 ## v0.13.3 - 2024-11-01
 
 ### Features and Improvements
