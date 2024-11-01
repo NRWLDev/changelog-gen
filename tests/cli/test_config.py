@@ -83,3 +83,25 @@ link = 'http://localhost'
 [files]
 
 """)
+
+
+def test_config_key_displayed(cli_runner):
+    result = cli_runner.invoke(["config", "--key", "commit_types"])
+
+    assert result.exit_code == 0
+    assert (
+        result.output.strip()
+        == r"""commit_types = [
+    'feat',
+    'fix',
+    'bug',
+    'docs',
+    'chore',
+    'ci',
+    'perf',
+    'refactor',
+    'revert',
+    'style',
+    'test',
+]"""
+    )
