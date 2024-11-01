@@ -95,6 +95,25 @@ class Git:
         return [m.split(":", 2) for m in logs.split("\x00") if m]
 
     @timer
+    def get_log(self: T, commit_hash: str) -> list:
+        """Fetch log from a commit hash."""
+        args = ["-1", commit_hash]
+        try:
+            logs = self.repo.git.log(
+                *args,
+                z=True,  # separate with \x00 rather than \n to differentiate multiline commits
+                format="%h:%H:%B",  # message only
+            )
+        except git.exc.GitCommandError as e:
+            msg = (
+                "Unable to fetch commit log."
+                if "unknown revision or path not in the working tree" not in str(e)
+                else "No commit log available."
+            )
+            raise errors.VcsError(msg) from e
+        return next(m.split(":", 2) for m in logs.split("\x00") if m)  # pragma: no cover
+
+    @timer
     def add_paths(self: T, paths: list[str]) -> None:
         """Add path to git repository."""
         if self.dry_run:

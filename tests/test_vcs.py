@@ -290,6 +290,37 @@ Formatted
     ]
 
 
+@pytest.mark.usefixtures("git_repo")
+def test_get_log_empty_repo(context):
+    with pytest.raises(errors.VcsError, match="No commit log available."):
+        Git(context).get_log("hash")
+
+
+def test_get_log(multiversion_repo, context):
+    path = multiversion_repo.workspace
+    f = path / "hello.txt"
+    f.write_text("hello world! v3")
+    multiversion_repo.run("git add hello.txt")
+    multiversion_repo.api.index.commit("commit log")
+
+    f.write_text("hello world! v4")
+    multiversion_repo.run("git add hello.txt")
+    multiversion_repo.api.index.commit("commit log 2: electric boogaloo")
+    hash2 = str(multiversion_repo.api.head.commit)
+
+    f.write_text("hello world! v5")
+    multiversion_repo.run("git add hello.txt")
+    multiversion_repo.api.index.commit(
+        """Commit message 3
+
+Formatted
+""",
+    )
+
+    log = Git(context).get_log(hash2)
+    assert log == [hash2[:7], hash2, "commit log 2: electric boogaloo"]
+
+
 @pytest.mark.usefixtures("multiversion_repo")
 def test_get_logs_no_tag(context):
     logs = Git(context).get_logs(None)

@@ -8,6 +8,7 @@ import shlex
 import subprocess
 import time
 from datetime import datetime, timezone
+from enum import Enum
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Optional
@@ -406,3 +407,42 @@ def _gen(  # noqa: PLR0913, C901, PLR0915
 * {stats["conventional"]} commits were parsed as conventional.
         """
         context.error(stats_output)
+
+
+class TemplateType(Enum):
+    """Template types available for test command."""
+
+    change = "change"
+    release = "release"
+
+
+@app.command("test")
+def test(
+    commit_hash: str,
+    template: TemplateType = typer.Option("change", help="Template type to test."),
+    file_format: writer.Extension = typer.Option("md", help="File format to test."),
+    verbose: int = typer.Option(0, "-v", "--verbose", help="Set output verbosity.", count=True, max=3),
+) -> None:
+    """Test a change or release template."""
+    cfg = config.read()
+    context = Context(cfg, verbose)
+    git = Git(context=context)
+    if template == TemplateType.change:
+        log = git.get_log(commit_hash)
+        e = extractor.ChangeExtractor(context=context, git=git)
+        c = e.process_log(*log)
+        w = writer.new_writer(context, file_format)
+        context.error(w._render_change(c))  # noqa: SLF001
+    else:
+        logs = git.get_logs(commit_hash)
+        e = extractor.ChangeExtractor(context=context, git=git)
+        w = writer.new_writer(context, file_format)
+        changes = []
+        for log in logs:
+            c = e.process_log(*log)
+            if c is not None:
+                c.rendered = w._render_change(c)  # noqa: SLF001
+                changes.append(c)
+
+        w.consume("v0.0.0", cfg.type_headers, changes)
+        context.error("\n".join(w.content))

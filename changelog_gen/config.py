@@ -105,6 +105,7 @@ class Config:
     extractors: list[dict[str, str | list[str]]] = dataclasses.field(default_factory=list)
     link_generators: list[dict[str, str]] = dataclasses.field(default_factory=list)
     change_template: str | None = None
+    release_template: str | None = None
 
     # Hooks
     post_process: PostProcessConfig | None = None
