@@ -295,6 +295,11 @@ change_template = """
 """
 ```
 
+  This can be tested using an example commit with the command
+```bash
+$ changelog test [COMMITHASH] --template change
+```
+
 ### `release_template`
   _**[optional]**_<br />
   **default**: None
@@ -321,6 +326,11 @@ release_template = """## {{ version_string }}
 {% endfor %}
 {% endfor %}
 """
+```
+
+  This can be tested using an commits since a specific hash with the command
+```bash
+$ changelog test [COMMITHASH] --template release
 ```
 
 ## Versioning
