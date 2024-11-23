@@ -119,7 +119,7 @@ class Git:
         if self.dry_run:
             self.context.warning("  Would add paths '%s' to Git", "', '".join(paths))
             return
-        self.repo.git.add(*paths, update=True)
+        self.repo.git.add(*paths)
 
     @timer
     def commit(self: T, current: str, new: str, tag: str, paths: list[str] | None = None) -> None:
