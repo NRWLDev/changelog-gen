@@ -51,8 +51,9 @@ details on providing custom configuration.
 ## Example
 
 Here is a full example used in another project to generate `.md` files from
-docstrings, this will output a `module_name/`  directory in the local `docs/`
-directory containing all modules and submodule `.md` files.
+docstrings (using pdoc3 library), this will output a `module_name/`  directory
+in the local `docs/` directory containing all modules and submodule `.md`
+files.
 
 
 ```python
