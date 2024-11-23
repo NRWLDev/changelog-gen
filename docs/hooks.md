@@ -14,7 +14,6 @@ messaging ability as well as access to the current config object.
 
 ```python
 from changelog_gen.context import Context
-from changelog_gen.version import Version
 
 def my_hook(context: Context, new: str) -> list[str]:
     # Perform desired operation
@@ -62,16 +61,15 @@ from pathlib import Path
 
 import pdoc
 from changelog_gen.context import Context
-from changelog_gen.version import Version
 
 
 def hook(context: Context, _new: str) -> list[str]:
     output_dir = Path("./docs")
     modules = ["module_name"]
-    context = pdoc.Context()
+    pcontext = pdoc.Context()
 
-    modules = [pdoc.Module(mod, context=context) for mod in modules]
-    pdoc.link_inheritance(context)
+    modules = [pdoc.Module(mod, context=pcontext) for mod in modules]
+    pdoc.link_inheritance(pcontext)
 
     def recursive_mds(mod: pdoc.Module) -> pdoc.Module:
         yield mod
