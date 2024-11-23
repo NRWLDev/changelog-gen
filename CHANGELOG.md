@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.13.5 - 2024-11-23
+
+### Bug fixes
+
+- Support adding unknown files to git for hooks. [[12d2a08](https://github.com/NRWLDev/changelog-gen/commit/12d2a08133fe442dcd9295f0b0921075286da9df)]
+
 ## v0.13.4 - 2024-11-01
 
 ### Features and Improvements
