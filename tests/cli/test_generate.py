@@ -97,7 +97,7 @@ Refs: #3
             """skip me as well
 
 multiline""",
-            """feat: Detail about 2
+            """feat: Detail about 2 is 50% done
 
 Refs: #2
 """,
@@ -123,7 +123,7 @@ Refs: #4
 
 Refs: #3
 """,
-            """feat!: Detail about 2
+            """feat!: Detail about 2 is 50% done
 
 Refs: #2
 """,
@@ -319,7 +319,7 @@ def test_generate_confirms_suggested_changes(cli_runner):
 
 ### Features and Improvements
 
-- Detail about 2
+- Detail about 2 is 50% done
 - Detail about 3
 
 ### Bug fixes
@@ -351,7 +351,7 @@ def test_generate_with_headers(cli_runner, config_factory):
 
 ### My Features
 
-- Detail about 2
+- Detail about 2 is 50% done
 - Detail about 3
 
 ### My Fixes
@@ -386,7 +386,7 @@ def test_generate_writes_to_file(
 
 ### Features and Improvements
 
-- Detail about 2
+- Detail about 2 is 50% done
 - Detail about 3
 
 ### Bug fixes
@@ -417,7 +417,7 @@ def test_generate_writes_to_file_include_all(
 
 ### Features and Improvements
 
-- Detail about 2
+- Detail about 2 is 50% done
 - Detail about 3
 
 ### Bug fixes
@@ -487,7 +487,7 @@ def test_generate_uses_supplied_version_tag(
 
 ### Features and Improvements
 
-- Detail about 2
+- Detail about 2 is 50% done
 - Detail about 3
 
 ### Bug fixes
@@ -512,7 +512,7 @@ def test_generate_outputs_statistics(cli_runner):
 
 ### Features and Improvements
 
-- Detail about 2
+- Detail about 2 is 50% done
 - Detail about 3
 
 ### Bug fixes
@@ -689,7 +689,7 @@ class TestDelegatesToPerIssuePostProcess:
             ),
             Change(
                 header="Features and Improvements",
-                description="Detail about 2",
+                description="Detail about 2 is 50% done",
                 commit_type="feat",
                 short_hash="short4",
                 commit_hash="commit-hash4",
@@ -698,7 +698,7 @@ class TestDelegatesToPerIssuePostProcess:
                 footers=[Footer(footer="Refs", separator=": ", value="#2")],
                 extractions={"issue_ref": ["2"]},
                 links=[],
-                rendered="- Detail about 2",
+                rendered="- Detail about 2 is 50% done",
             ),
             Change(
                 header="Bug fixes",
@@ -788,7 +788,7 @@ class TestDelegatesToPerIssuePostProcess:
             ),
             Change(
                 header="Features and Improvements",
-                description="Detail about 2",
+                description="Detail about 2 is 50% done",
                 commit_type="feat",
                 short_hash="short4",
                 commit_hash="commit-hash4",
@@ -797,7 +797,7 @@ class TestDelegatesToPerIssuePostProcess:
                 footers=[Footer(footer="Refs", separator=": ", value="#2")],
                 extractions={"issue_ref": ["2"]},
                 links=[],
-                rendered="- Detail about 2",
+                rendered="- Detail about 2 is 50% done",
             ),
             Change(
                 header="Bug fixes",

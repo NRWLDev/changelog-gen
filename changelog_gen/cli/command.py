@@ -342,7 +342,7 @@ def _gen(  # noqa: PLR0913, C901, PLR0915
     change_lines = create_with_editor(context, str(w), extension) if interactive else str(w)
 
     # If auto accepting don't print to screen unless verbosity set
-    context.error(change_lines) if not yes else context.warning(change_lines)
+    context.error(change_lines.replace("%", "%%")) if not yes else context.warning(change_lines.replace("%", "%%"))
     w.content = change_lines.split("\n")[2:-2]
 
     def changelog_hook(_context: Context, _new_version: str) -> list[str]:
