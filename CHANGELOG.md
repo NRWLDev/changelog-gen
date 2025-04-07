@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.13.6 - 2025-04-07
+
+### Bug fixes
+
+- Handle % chars in commit message descriptions. [[58](https://github.com/NRWLDev/changelog-gen/issues/58)] [[4baaf7e](https://github.com/NRWLDev/changelog-gen/commit/4baaf7e1e066cc3904ebf4c419488eaade3d0dd6)]
+
 ## v0.13.5 - 2024-11-23
 
 ### Bug fixes
