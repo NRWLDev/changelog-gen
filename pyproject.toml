@@ -41,6 +41,7 @@ dependencies = [
 
 [project.urls]
 homepage="https://github.com/NRWLDev/changelog-gen/"
+documentation="https://nrwldev.github.io/changelog-gen/"
 
 [project.optional-dependencies]
 post-process = [
