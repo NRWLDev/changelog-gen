@@ -9,8 +9,6 @@ maintainers = [
     {name = "Daniel Edgecombe", email = "daniel@nrwl.co"},
 ]
 license = "Apache-2.0"
-repository="https://github.com/NRWLDev/changelog-gen/"
-homepage="https://github.com/NRWLDev/changelog-gen/"
 readme = "README.md"
 requires-python = ">=3.9"
 keywords = ["changelog", "version", "release", "bumpversion"]
@@ -40,6 +38,9 @@ dependencies = [
     "pygments",
     "typing_extensions >= 4.7.0; python_version <= '3.10'",
 ]
+
+[project.urls]
+homepage="https://github.com/NRWLDev/changelog-gen/"
 
 [project.optional-dependencies]
 post-process = [
