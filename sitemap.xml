@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://nrwldev.github.io/changelog-gen/</loc>
+         <lastmod>2025-05-05</lastmod>
+    </url>
+    <url>
+         <loc>https://nrwldev.github.io/changelog-gen/commits/</loc>
+         <lastmod>2025-05-05</lastmod>
+    </url>
+    <url>
+         <loc>https://nrwldev.github.io/changelog-gen/configuration/</loc>
+         <lastmod>2025-05-05</lastmod>
+    </url>
+    <url>
+         <loc>https://nrwldev.github.io/changelog-gen/hooks/</loc>
+         <lastmod>2025-05-05</lastmod>
+    </url>
+    <url>
+         <loc>https://nrwldev.github.io/changelog-gen/post_process/</loc>
+         <lastmod>2025-05-05</lastmod>
+    </url>
+    <url>
+         <loc>https://nrwldev.github.io/changelog-gen/usage/</loc>
+         <lastmod>2025-05-05</lastmod>
+    </url>
+    <url>
+         <loc>https://nrwldev.github.io/changelog-gen/version/</loc>
+         <lastmod>2025-05-05</lastmod>
+    </url>
+</urlset>
