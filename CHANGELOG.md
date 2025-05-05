@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.13.7 - 2025-05-05
+
+### Bug fixes
+
+- Ensure urls render in pypi. [[c535c67](https://github.com/NRWLDev/changelog-gen/commit/c535c6729d81b03b8a2b05205b76a2978dae935e)]
+
 ## v0.13.6 - 2025-04-07
 
 ### Bug fixes
