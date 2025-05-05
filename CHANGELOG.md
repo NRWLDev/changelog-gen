@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.13.8 - 2025-05-05
+
+### Documentation
+
+- Add documentation url for pypi. [[478cc93](https://github.com/NRWLDev/changelog-gen/commit/478cc9349ad6b06f7f017520118852997003b059)]
+
 ## v0.13.7 - 2025-05-05
 
 ### Bug fixes
