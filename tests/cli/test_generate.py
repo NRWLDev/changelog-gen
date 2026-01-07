@@ -310,7 +310,7 @@ def test_generate_allows_supported_branch(cli_runner, config_factory):
 def test_generate_confirms_suggested_changes(cli_runner):
     result = cli_runner.invoke(["generate"])
 
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.output
     assert (
         "\n".join([f"{r.rstrip(' ')}" for r in result.output.split("\n")])
         == """
@@ -625,7 +625,7 @@ def test_generate_reject_empty(
     )
 
 
-class FakeContext:
+class FakeContext:  # noqa: PLW1641
     def __eq__(self, other):
         return isinstance(other, Context)
 
