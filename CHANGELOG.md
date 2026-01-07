@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.14.0 - 2026-01-07
+
+### Features and Improvements
+
+- **Breaking** Drop python 3.9 support. [[475d247](https://github.com/NRWLDev/changelog-gen/commit/475d2477448a804f25fcf7a3b97ea404603c9ee5)]
+
 ## v0.13.8 - 2025-05-05
 
 ### Documentation
