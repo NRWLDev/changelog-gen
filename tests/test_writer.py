@@ -47,7 +47,7 @@ def test_new_writer(extension, expected_cls, ctx):
 
 
 def test_new_writer_raises_for_unsupported_extension(ctx):
-    with pytest.raises(ValueError, match='Changelog extension "txt" not supported.'):
+    with pytest.raises(ValueError, match=r'Changelog extension "txt" not supported.'):
         writer.new_writer(ctx, mock.Mock(value="txt"))
 
 
@@ -641,7 +641,7 @@ class TestNewWriter:
         ctx = mock.Mock()
         ext = mock.Mock(value="txt")
 
-        with pytest.raises(ValueError, match='Changelog extension "txt" not supported.') as e:
+        with pytest.raises(ValueError, match=r'Changelog extension "txt" not supported.') as e:
             writer.new_writer(ctx, ext)
 
         assert str(e.value) == 'Changelog extension "txt" not supported.'

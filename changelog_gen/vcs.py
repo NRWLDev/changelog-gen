@@ -18,7 +18,7 @@ class Git:
 
     @timer
     def __init__(
-        self: T,
+        self,
         context: Context,
         *,
         commit: bool = True,
@@ -38,7 +38,7 @@ class Git:
             raise errors.VcsError(msg) from e
 
     @timer
-    def get_current_info(self: T) -> dict[str, str]:
+    def get_current_info(self) -> dict[str, str]:
         """Get current state info from git."""
         branch = self.repo.active_branch.name
         try:
@@ -67,7 +67,7 @@ class Git:
         }
 
     @timer
-    def find_tag(self: T, version_string: str) -> str | None:
+    def find_tag(self, version_string: str) -> str | None:
         """Find a version tag given the version string.
 
         Given a version string `0.1.2` find the version tag `v0.1.2`, `0.1.2` etc.
@@ -76,7 +76,7 @@ class Git:
         return tag or None
 
     @timer
-    def get_logs(self: T, tag: str | None) -> list:
+    def get_logs(self, tag: str | None) -> list:
         """Fetch logs since last tag."""
         args = [f"{tag}..HEAD"] if tag else []
         try:
@@ -95,7 +95,7 @@ class Git:
         return [m.split(":", 2) for m in logs.split("\x00") if m]
 
     @timer
-    def get_log(self: T, commit_hash: str) -> list:
+    def get_log(self, commit_hash: str) -> list:
         """Fetch log from a commit hash."""
         args = ["-1", commit_hash]
         try:
@@ -114,7 +114,7 @@ class Git:
         return next(m.split(":", 2) for m in logs.split("\x00") if m)  # pragma: no cover
 
     @timer
-    def add_paths(self: T, paths: list[str]) -> None:
+    def add_paths(self, paths: list[str]) -> None:
         """Add path to git repository."""
         if self.dry_run:
             self.context.warning("  Would add paths '%s' to Git", "', '".join(paths))
@@ -122,7 +122,7 @@ class Git:
         self.repo.git.add(*paths)
 
     @timer
-    def commit(self: T, current: str, new: str, tag: str, paths: list[str] | None = None) -> None:
+    def commit(self, current: str, new: str, tag: str, paths: list[str] | None = None) -> None:
         """Commit changes to git repository."""
         self.context.warning("Would prepare Git commit")
         paths = paths or []
@@ -158,7 +158,7 @@ class Git:
             raise errors.VcsError(msg) from e
 
     @timer
-    def revert(self: T) -> None:
+    def revert(self) -> None:
         """Revert a commit."""
         if self.dry_run:
             self.context.warning("Would revert commit in Git")

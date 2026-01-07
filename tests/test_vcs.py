@@ -249,13 +249,13 @@ def test_commit_no_changes_staged(multiversion_repo, context):
 
 @pytest.mark.usefixtures("git_repo")
 def test_get_logs_empty_repo(context):
-    with pytest.raises(errors.VcsError, match="No commit logs available."):
+    with pytest.raises(errors.VcsError, match=r"No commit logs available."):
         Git(context).get_logs(None)
 
 
 @pytest.mark.usefixtures("git_repo")
 def test_get_logs_unknown_revision(context):
-    with pytest.raises(errors.VcsError, match="Unable to fetch commit logs."):
+    with pytest.raises(errors.VcsError, match=r"Unable to fetch commit logs."):
         Git(context).get_logs("0.0.2")
 
 
@@ -292,7 +292,7 @@ Formatted
 
 @pytest.mark.usefixtures("git_repo")
 def test_get_log_empty_repo(context):
-    with pytest.raises(errors.VcsError, match="No commit log available."):
+    with pytest.raises(errors.VcsError, match=r"No commit log available."):
         Git(context).get_log("hash")
 
 

@@ -10,7 +10,7 @@ maintainers = [
 ]
 license = "Apache-2.0"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 keywords = ["changelog", "version", "release", "bumpversion"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -23,10 +23,11 @@ classifiers = [
     "Topic :: System :: Software Distribution",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: 3",
 ]
 
@@ -52,24 +53,20 @@ post-process = [
 test = [
     # Tests
     "freezegun >= 1.2.1",
-    "pytest >= 8.2.0,<8.3",
-    "pytest-cov >= 5.0.0",
-    "pytest-random-order >= 1.1.0",
+    "pytest >= 9.0.0",
+    "pytest-cov >= 7.0.0",
+    "pytest-random-order >= 1.2.0",
     "pytest-git >=1.7.0,<1.8",
-    "coverage == 7.4.3",  # something breaks >7.4.4 and require passing `--cov-config=pyproject.toml` everywhere
     "path >= 16,<17",
-    "pytest-httpx >= 0.30.0",
+    "pytest-httpx >= 0.36.0",
     "httpx >= 0",
     "auth-aws4 >= 0",
 ]
 
 dev = [
     # Style
-    "ruff >= 0.6.4",
+    "ruff >= 0.14.10",
     "pre-commit >= 3.0.2",
-
-    # release
-    "changelog-gen >= 0.12",
 ]
 
 [project.scripts]
@@ -140,7 +137,7 @@ source = ["changelog_gen"]
 
 [tool.ruff]
 line-length = 120
-target-version = "py39"
+target-version = "py310"
 
 [tool.ruff.lint]
 select = ["ALL"]
