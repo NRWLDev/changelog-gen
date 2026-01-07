@@ -219,7 +219,7 @@ def test_generate_aborts_if_dirty(cli_runner, mock_git, config_factory):
 @pytest.mark.usefixtures("changelog", "_conventional_commits")
 def test_generate_allows_dirty(cli_runner, config_factory):
     config_factory(allow_dirty=False)
-    result = cli_runner.invoke(["generate", "--allow-dirty"])
+    result = cli_runner.invoke(["generate", "--allow-dirty"], input="\n")
 
     assert result.exit_code == 0
 
@@ -227,7 +227,7 @@ def test_generate_allows_dirty(cli_runner, config_factory):
 @pytest.mark.usefixtures("changelog", "_conventional_commits")
 def test_generate_continues_if_allow_dirty_configured(cli_runner, config_factory):
     config_factory(allow_dirty=True)
-    result = cli_runner.invoke(["generate"])
+    result = cli_runner.invoke(["generate"], input="\n")
 
     assert result.exit_code == 0
 
@@ -255,7 +255,7 @@ def test_generate_continues_if_allow_missing_configured_missing_local(cli_runner
         "dirty": False,
         "branch": "main",
     }
-    result = cli_runner.invoke(["generate"])
+    result = cli_runner.invoke(["generate"], input="\n")
 
     assert result.exit_code == 0
 
@@ -284,7 +284,7 @@ def test_generate_continues_if_allow_missing_configured_missing_remote(cli_runne
         "dirty": False,
         "branch": "main",
     }
-    result = cli_runner.invoke(["generate"])
+    result = cli_runner.invoke(["generate"], input="\n")
 
     assert result.exit_code == 0
 
@@ -301,14 +301,14 @@ def test_generate_aborts_if_unsupported_current_branch(cli_runner, config_factor
 @pytest.mark.usefixtures("changelog", "_conventional_commits")
 def test_generate_allows_supported_branch(cli_runner, config_factory):
     config_factory(allow_dirty=True, allowed_branches=["main"])
-    result = cli_runner.invoke(["generate"])
+    result = cli_runner.invoke(["generate"], input="\n")
 
     assert result.exit_code == 0
 
 
 @pytest.mark.usefixtures("changelog", "_conventional_commits")
 def test_generate_confirms_suggested_changes(cli_runner):
-    result = cli_runner.invoke(["generate"])
+    result = cli_runner.invoke(["generate"], input="\n")
 
     assert result.exit_code == 0, result.output
     assert (
@@ -340,7 +340,7 @@ def test_generate_with_headers(cli_runner, config_factory):
         allow_dirty=True,
         commit_types=[{"type": "feat", "header": "My Features"}, {"type": "fix", "header": "My Fixes"}],
     )
-    result = cli_runner.invoke(["generate"])
+    result = cli_runner.invoke(["generate"], input="\n")
 
     assert result.exit_code == 0
     assert (
@@ -501,7 +501,7 @@ def test_generate_uses_supplied_version_tag(
 
 @pytest.mark.usefixtures("changelog", "_conventional_commits")
 def test_generate_outputs_statistics(cli_runner):
-    result = cli_runner.invoke(["generate", "--statistics"])
+    result = cli_runner.invoke(["generate", "--statistics"], input="\n")
 
     assert result.exit_code == 0
     assert (
