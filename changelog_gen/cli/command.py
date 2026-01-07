@@ -11,7 +11,6 @@ from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Optional
 
 import rtoml
 import typer
@@ -46,7 +45,7 @@ def _version_callback(*, value: bool) -> None:
 
 
 def _callback(
-    _version: Optional[bool] = typer.Option(
+    _version: bool | None = typer.Option(  # noqa: FBT001
         None,
         "-v",
         "--version",
@@ -92,7 +91,7 @@ def process_info(info: dict, context: Context, *, dry_run: bool) -> None:
 
 @app.command("config")
 def display_config(
-    key: Optional[str] = typer.Option(
+    key: str | None = typer.Option(
         None,
         help="Specific config key to display.",
         show_default=False,
@@ -133,27 +132,27 @@ def init(
 
 @app.command("generate")
 def gen(  # noqa: PLR0913
-    version_tag: Optional[str] = typer.Option(
+    version_tag: str | None = typer.Option(
         None,
         help="Provide the desired version tag, skip auto generation.",
         show_default=False,
     ),
-    version_part: Optional[str] = typer.Option(
+    version_part: str | None = typer.Option(
         None,
         help="Provide the desired version part, skip auto generation.",
         show_default=False,
     ),
-    post_process_url: Optional[str] = typer.Option(
+    post_process_url: str | None = typer.Option(
         None,
         help="Rest API endpoint to post release version notifications to.",
         show_default=False,
     ),
-    post_process_auth_env: Optional[str] = typer.Option(
+    post_process_auth_env: str | None = typer.Option(
         None,
         help="Name of the ENV variable that contains the rest API basic auth content.",
         show_default=False,
     ),
-    date_format: Optional[str] = typer.Option(
+    date_format: str | None = typer.Option(
         None,
         help="The date format for strftime - empty string allowed.",
         show_default=False,
@@ -165,45 +164,45 @@ def gen(  # noqa: PLR0913
         "--include-all",
         help="Include all commits, even ones that are incorrectly formatted.",
     ),
-    allow_dirty: Optional[bool] = typer.Option(
+    allow_dirty: bool | None = typer.Option(
         None,
         help="Don't abort if branch contains uncommitted changes.",
         show_default=False,
     ),
-    allow_missing: Optional[bool] = typer.Option(
+    allow_missing: bool | None = typer.Option(
         None,
         help="Don't abort if branch missing commits on origin.",
         show_default=False,
     ),
-    reject_empty: Optional[bool] = typer.Option(
+    reject_empty: bool | None = typer.Option(
         None,
         help="Don't accept changes if there are no release notes.",
         show_default=False,
     ),
-    pre_release: Optional[bool] = typer.Option(None, help="Allow/disallow pre-releases.", show_default=False),
-    release: Optional[bool] = typer.Option(
+    pre_release: bool | None = typer.Option(None, help="Allow/disallow pre-releases.", show_default=False),
+    release: bool | None = typer.Option(
         None,
         help="Update version strings in configured files.",
         show_default=False,
     ),
-    commit: Optional[bool] = typer.Option(
+    commit: bool | None = typer.Option(
         None,
         help="Commit changes made to changelog, and configured files, after writing.",
         show_default=False,
     ),
-    tag: Optional[bool] = typer.Option(None, help="Tag changes made after release.", show_default=False),
-    statistics: Optional[bool] = typer.Option(
+    tag: bool | None = typer.Option(None, help="Tag changes made after release.", show_default=False),
+    statistics: bool | None = typer.Option(
         None,
         help="Capture and output statistics to screen.",
     ),
-    interactive: Optional[bool] = typer.Option(
+    interactive: bool | None = typer.Option(
         default=None,
         help="Open changes in an editor before confirmation.",
         show_default=False,
     ),
     yes: bool = typer.Option(False, "--yes", "-y", help="Automatically accept changes."),  # noqa: FBT003
     verbose: int = typer.Option(0, "-v", "--verbose", help="Set output verbosity.", count=True, max=3),
-    _version: Optional[bool] = typer.Option(
+    _version: bool | None = typer.Option(
         None,
         "--version",
         callback=_version_callback,
@@ -259,7 +258,7 @@ def gen(  # noqa: PLR0913
 def create_with_editor(context: Context, content: str, extension: writer.Extension) -> str:
     """Open temporary file in editor to allow modifications."""
     editor = util.get_editor()
-    tmpfile = NamedTemporaryFile(
+    tmpfile = NamedTemporaryFile(  # noqa: SIM115
         mode="w",
         encoding="UTF-8",
         prefix=tempfile_prefix,
@@ -417,7 +416,7 @@ class TemplateType(Enum):
 
 
 @app.command("test")
-def test(
+def template_test(
     commit_hash: str,
     template: TemplateType = typer.Option("change", help="Template type to test."),
     file_format: writer.Extension = typer.Option("md", help="File format to test."),

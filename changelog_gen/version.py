@@ -60,14 +60,14 @@ class ModifyFile:
 
 class BumpVersion:  # noqa: D101
     @timer
-    def __init__(self: T, cfg: Config, new: str = "", *, allow_dirty: bool = False, dry_run: bool = False) -> None:
+    def __init__(self, cfg: Config, new: str = "", *, allow_dirty: bool = False, dry_run: bool = False) -> None:
         self.allow_dirty = allow_dirty
         self.dry_run = dry_run
         self.config = cfg
         self.new = new
 
     @timer
-    def get_version_info(self: T, semver: str) -> dict[str, str]:
+    def get_version_info(self, semver: str) -> dict[str, str]:
         """Get version info for a semver release."""
         current_version = parse.parse(self.config.parser, self.config.current_version)
         next_version = (
@@ -87,7 +87,7 @@ class BumpVersion:  # noqa: D101
         }
 
     @timer
-    def replace(self: T, version: str) -> list[str]:  # noqa: D102
+    def replace(self, version: str) -> list[str]:  # noqa: D102
         cwd = Path.cwd()
         files_to_modify = {
             "pyproject.toml": ModifyFile("pyproject.toml", cwd / "pyproject.toml", ['current_version = "{version}"']),

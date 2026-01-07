@@ -18,21 +18,21 @@ class TestModifyFile:
     def test_missing_file_raises(self, cwd):
         mf = version.ModifyFile("filename", cwd / "filename", [])
 
-        with pytest.raises(errors.VersionError, match="Configured file not found 'filename'"):
+        with pytest.raises(errors.VersionError, match=r"Configured file not found 'filename'"):
             mf.update("0.0.0", "0.0.1", dry_run=False)
 
     def test_invalid_pattern_raises(self, cwd):
         (cwd / "filename").write_text("0.0.0")
         mf = version.ModifyFile("filename", cwd / "filename", ["{invalid}"])
 
-        with pytest.raises(errors.VersionError, match="Incorrect pattern '{invalid}' for 'filename'."):
+        with pytest.raises(errors.VersionError, match=r"Incorrect pattern '{invalid}' for 'filename'."):
             mf.update("0.0.0", "0.0.1", dry_run=False)
 
     def test_nullop_pattern_raises(self, cwd):
         (cwd / "filename").write_text("0.0.0")
         mf = version.ModifyFile("filename", cwd / "filename", ["invalid"])
 
-        with pytest.raises(errors.VersionError, match="Pattern 'invalid' generated no change for 'filename'."):
+        with pytest.raises(errors.VersionError, match=r"Pattern 'invalid' generated no change for 'filename'."):
             mf.update("0.0.0", "0.0.1", dry_run=False)
 
     def test_pattern_no_change_raises(self, cwd):
@@ -41,7 +41,7 @@ class TestModifyFile:
 
         with pytest.raises(
             errors.VersionError,
-            match="No change for 'filename', ensure pattern 'version = {version}' is correct.",
+            match=r"No change for 'filename', ensure pattern 'version = {version}' is correct.",
         ):
             mf.update("0.0.0", "0.0.1", dry_run=False)
 

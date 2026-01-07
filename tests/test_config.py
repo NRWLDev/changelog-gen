@@ -246,7 +246,7 @@ current_version = "0.0.0"
 enabled = false
 """,
         )
-        with pytest.raises(RuntimeError, match="^Failed to create post_process: .*"):
+        with pytest.raises(RuntimeError, match=r"^Failed to create post_process: .*"):
             config.read()
 
 
@@ -391,7 +391,7 @@ def test_strict_validation():
 
 
 def test_strict_validation_bad_parser():
-    with pytest.raises(errors.UnsupportedParserError, match="major.minor.patch, pattern required at minimum."):
+    with pytest.raises(errors.UnsupportedParserError, match=r"major.minor.patch, pattern required at minimum."):
         config.Config(
             current_version="0.0.0",
             strict=True,
@@ -403,7 +403,7 @@ def test_strict_validation_bad_parser():
 
 
 def test_strict_validation_bad_parser_order():
-    with pytest.raises(errors.UnsupportedParserError, match="major.minor.patch, pattern order required."):
+    with pytest.raises(errors.UnsupportedParserError, match=r"major.minor.patch, pattern order required."):
         config.Config(
             current_version="0.0.0",
             strict=True,
@@ -418,7 +418,7 @@ def test_strict_validation_bad_parser_order():
 def test_strict_validation_incomplete_serialiser():
     with pytest.raises(
         errors.UnsupportedSerialiserError,
-        match="Not all parsed components handled by a serialiser, missing {'build'}.",
+        match=r"Not all parsed components handled by a serialiser, missing {'build'}.",
     ):
         config.Config(
             current_version="0.0.0",
