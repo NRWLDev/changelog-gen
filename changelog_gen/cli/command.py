@@ -31,7 +31,7 @@ from changelog_gen.version import BumpVersion
 try:
     from changelog_gen.post_processor import per_issue_post_process
 except ModuleNotFoundError:  # pragma: no cover
-    per_issue_post_process = None
+    per_issue_post_process = None  # type: ignore[invalid-assignment]
 
 tempfile_prefix = "_tmp_changelog"
 
@@ -105,8 +105,8 @@ def display_config(
     typer.echo(
         highlight(
             rtoml.dumps(output, pretty=True, none_value=None),
-            lexers.TOMLLexer(),
-            formatters.TerminalFormatter(),
+            lexers.TOMLLexer(),  # type: ignore[unresolved-attribute]
+            formatters.TerminalFormatter(),  # type: ignore[unresolved-attribute]
         ),
     )
 

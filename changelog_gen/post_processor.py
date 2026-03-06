@@ -22,10 +22,10 @@ if t.TYPE_CHECKING:
 class BearerAuth(httpx.Auth):
     """Implement Bearer token auth class for httpx."""
 
-    def __init__(self: t.Self, token: str) -> None:
+    def __init__(self, token: str) -> None:
         self.token = f"Bearer {token}"
 
-    def auth_flow(self: t.Self, request: httpx.Request) -> t.Generator[httpx.Request, httpx.Response, None]:
+    def auth_flow(self, request: httpx.Request) -> t.Generator[httpx.Request, httpx.Response, None]:
         """Send the request, with bearer token."""
         request.headers["Authorization"] = self.token
         yield request
@@ -117,7 +117,7 @@ def per_issue_post_process(
                 try:
                     context.info("Response: %s", HTTPStatus(r.status_code).name)
                     r.raise_for_status()
-                except httpx.HTTPError as e:
+                except httpx.HTTPStatusError as e:
                     context.error("Post process request failed.")
                     context.warning("%s", e.response.text)
     context.reset()
