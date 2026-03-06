@@ -84,7 +84,7 @@ class Config:
 
     # Version parsing
     minor_regex: str = "feat"
-    parser: t.Pattern = r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"
+    parser: t.Pattern = r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"  # type: ignore[invalid-assignment]
     serialisers: list[str] = dataclasses.field(default_factory=lambda: ["{major}.{minor}.{patch}"])
     parts: dict[str, list[str]] = dataclasses.field(default_factory=dict)
     strict: bool = False
@@ -113,7 +113,7 @@ class Config:
 
     custom: dict = dataclasses.field(default_factory=dict)
 
-    def __post_init__(self: t.Self) -> None:
+    def __post_init__(self) -> None:
         """Process parser and validate if strict check enabled."""
         self.parser = re.compile(self.parser)
 
@@ -147,13 +147,13 @@ class Config:
                 msg = f"Not all parsed components handled by a serialiser, missing {missed_keys}."
                 raise errors.UnsupportedSerialiserError(msg)
 
-    def _type_to_semver(self: t.Self, commit_type: str) -> str:
+    def _type_to_semver(self, commit_type: str) -> str:
         if re.match(self.minor_regex, commit_type):
             return "minor"
         return "patch"
 
     @property
-    def semver_mappings(self: t.Self) -> dict[str, str]:
+    def semver_mappings(self) -> dict[str, str]:
         """Generate `type: semver` mapping from commit types."""
         return {ct: self._type_to_semver(ct) for ct in self.commit_types}
 

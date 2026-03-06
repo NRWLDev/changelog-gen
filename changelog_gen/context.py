@@ -24,48 +24,48 @@ class Verbosity(IntEnum):
 class Context:
     """Global context class."""
 
-    def __init__(self: t.Self, cfg: Config, verbose: int = 0) -> None:
+    def __init__(self, cfg: Config, verbose: int = 0) -> None:
         self.config = cfg
         self._verbose = verbose
         self._indent = 0
 
-    def reset(self: t.Self) -> None:
+    def reset(self) -> None:
         """Reset context messaging indentation."""
         self._indent = 0
 
-    def indent(self: t.Self) -> None:
+    def indent(self) -> None:
         """Indent context messaging."""
         self._indent += 1
 
-    def dedent(self: t.Self) -> None:
+    def dedent(self) -> None:
         """Dedent context messaging."""
         self._indent = max(0, self._indent - 1)
 
-    def _echo(self: t.Self, message: str, *args) -> None:
+    def _echo(self, message: str, *args) -> None:
         """Echo to the console."""
         message = message % args
         click.echo(f"{'  ' * self._indent}{message}")
 
-    def error(self: t.Self, message: str, *args) -> None:
+    def error(self, message: str, *args) -> None:
         """Echo to the console."""
         self._echo(message, *args)
 
-    def warning(self: t.Self, message: str, *args) -> None:
+    def warning(self, message: str, *args) -> None:
         """Echo to the console for -v."""
         if self._verbose > Verbosity.quiet:
             self._echo(message, *args)
 
-    def info(self: t.Self, message: str, *args) -> None:
+    def info(self, message: str, *args) -> None:
         """Echo to the console for -vv."""
         if self._verbose > Verbosity.verbose1:
             self._echo(message, *args)
 
-    def debug(self: t.Self, message: str, *args) -> None:
+    def debug(self, message: str, *args) -> None:
         """Echo to the console for -vvv."""
         if self._verbose > Verbosity.verbose2:
             self._echo(message, *args)
 
-    def stacktrace(self: t.Self) -> None:
+    def stacktrace(self) -> None:
         """Echo exceptions to console for -vvv."""
         if self._verbose > Verbosity.verbose2:
             t, v, tb = sys.exc_info()

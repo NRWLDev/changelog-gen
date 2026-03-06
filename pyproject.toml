@@ -67,6 +67,7 @@ dev = [
     # Style
     "ruff >= 0.14.10",
     "pre-commit >= 3.0.2",
+    "ty>=0.0.17",
 ]
 
 [project.scripts]
@@ -161,6 +162,12 @@ docstring-quotes = "double"
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.ty.terminal]
+output-format = "concise"
+
+[tool.ty.src]
+exclude = ["tests/*"]
 
 [build-system]
 requires = ["hatchling"]

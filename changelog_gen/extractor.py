@@ -40,13 +40,13 @@ class Change:  # noqa: D101
     links: list[Link] = dataclasses.field(default_factory=list)
     rendered: str = ""  # This is populated by the writer at run time
 
-    def __lt__(self: t.Self, other: Change) -> bool:  # noqa: D105
+    def __lt__(self, other: Change) -> bool:  # noqa: D105
         s = (not self.breaking, self.scope.lower() if self.scope else "zzz", self.issue_ref.lower())
         o = (not other.breaking, other.scope.lower() if other.scope else "zzz", other.issue_ref.lower())
         return s < o
 
     @property
-    def issue_ref(self: t.Self) -> str:
+    def issue_ref(self) -> str:
         """Extract issue ref from footers."""
         for footer in self.footers:
             if footer.footer.lower() in ("refs", "closes", "fixes"):
@@ -59,7 +59,7 @@ class ChangeExtractor:
 
     @timer
     def __init__(
-        self: t.Self,
+        self,
         context: Context,
         git: Git,
         *,
@@ -148,7 +148,7 @@ class ChangeExtractor:
                     if footer is None:
                         continue
 
-                    for m in re.finditer(extractor["pattern"], footer.value):
+                    for m in re.finditer(extractor["pattern"], footer.value):  # type: ignore[no-matching-overload]
                         for k, v in m.groupdict().items():
                             extractions[k].append(v)
 
@@ -201,7 +201,7 @@ class ChangeExtractor:
         return None
 
     @timer
-    def extract(self: t.Self) -> list[Change]:
+    def extract(self) -> list[Change]:
         """Iterate over commit logs and generate list of changes."""
         current_version = self.context.config.current_version
         # find tag from current version
@@ -220,7 +220,7 @@ class ChangeExtractor:
         return changes
 
     @property
-    def statistics(self: t.Self) -> dict[str, int]:
+    def statistics(self) -> dict[str, int]:
         """Return captures statistics during extraction."""
         return self._statistics
 

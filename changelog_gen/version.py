@@ -24,7 +24,7 @@ class ModifyFile:
     path: Path
     patterns: list[str]
 
-    def update(self: t.Self, current: str, new: str, *, dry_run: bool) -> tuple[Path, Path]:
+    def update(self, current: str, new: str, *, dry_run: bool) -> tuple[Path, Path]:
         """Update file with configured patterns."""
         try:
             with self.path.open("r") as f:

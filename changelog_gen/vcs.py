@@ -38,7 +38,7 @@ class Git:
             raise errors.VcsError(msg) from e
 
     @timer
-    def get_current_info(self) -> dict[str, str]:
+    def get_current_info(self) -> dict[str, str | bool]:
         """Get current state info from git."""
         branch = self.repo.active_branch.name
         try:

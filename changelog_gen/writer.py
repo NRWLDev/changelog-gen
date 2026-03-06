@@ -39,11 +39,11 @@ class BaseWriter:
 
     @timer
     def __init__(
-        self: t.Self,
+        self,
         changelog: Path,
         context: Context,
-        change_template: str | None = None,
-        release_template: str | None = None,
+        change_template: str,
+        release_template: str,
         *,
         dry_run: bool = False,
     ) -> None:
@@ -59,7 +59,7 @@ class BaseWriter:
         self._release_template = release_template
 
     @timer
-    def _render_change(self: t.Self, change: Change) -> str:
+    def _render_change(self, change: Change) -> str:
         env = Environment(loader=BaseLoader())  # noqa: S701
 
         env.filters["regex_replace"] = regex_replace
@@ -68,7 +68,7 @@ class BaseWriter:
         return ctemplate.render(change=change)
 
     @timer
-    def consume(self: t.Self, version_string: str, type_headers: dict[str, str], changes: list[Change]) -> None:
+    def consume(self, version_string: str, type_headers: dict[str, str], changes: list[Change]) -> None:
         """Process sections and generate changelog file entries."""
         grouped_changes = defaultdict(list)
         for change in changes:
@@ -86,16 +86,16 @@ class BaseWriter:
         self._consume(version_string, ordered_group_changes)
 
     @timer
-    def _consume(self: t.Self, version_string: str, group_changes: dict[str, list[Change]]) -> None:
+    def _consume(self, version_string: str, group_changes: dict[str, list[Change]]) -> None:
         raise NotImplementedError
 
     @timer
-    def __str__(self: t.Self) -> str:  # noqa: D105
+    def __str__(self) -> str:  # noqa: D105
         content = "\n".join(self.content)
         return f"\n\n{content}\n\n"
 
     @timer
-    def write(self: t.Self) -> str:
+    def write(self) -> str:
         """Write file contents to destination."""
         self.content = [self.file_header, *self.content, *self.existing]
         self._write(self.content)
@@ -103,7 +103,7 @@ class BaseWriter:
         return str(self.changelog)
 
     @timer
-    def _write(self: t.Self, content: list[str]) -> None:
+    def _write(self, content: list[str]) -> None:
         if self.dry_run:
             self.context.warning("Would write to '%s'", self.changelog.name)
             with NamedTemporaryFile("wb") as output_file:
@@ -121,10 +121,15 @@ class MdWriter(BaseWriter):
     extension = Extension.MD
 
     @timer
-    def __init__(self: t.Self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self._change_template = (
-            self._change_template
+    def __init__(
+        self,
+        *args,
+        change_template: str | None = None,
+        release_template: str | None = None,
+        **kwargs,
+    ) -> None:
+        change_template = (
+            change_template
             or """
 -{% if change.scope %} (`{{change.scope}}`){% endif %}
 {% if change.breaking %} **Breaking**{% endif %}
@@ -133,8 +138,8 @@ class MdWriter(BaseWriter):
 {% for link in change.links %} [[{{ link.text }}]({{ link.link }})]{% endfor %}
 """
         )
-        self._release_template = (
-            self._release_template
+        release_template = (
+            release_template
             or """## {{ version_string }}
 
 {% for header, changes in group_changes.items() -%}
@@ -146,9 +151,10 @@ class MdWriter(BaseWriter):
 {% endfor %}
 """
         )
+        super().__init__(*args, change_template=change_template, release_template=release_template, **kwargs)
 
     @timer
-    def _consume(self: t.Self, version_string: str, group_changes: dict[str, list[Change]]) -> None:
+    def _consume(self, version_string: str, group_changes: dict[str, list[Change]]) -> None:
         env = Environment(loader=BaseLoader())  # noqa: S701
 
         env.filters["regex_replace"] = regex_replace
@@ -166,10 +172,15 @@ class RstWriter(BaseWriter):
     extension = Extension.RST
 
     @timer
-    def __init__(self: t.Self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self._change_template = (
-            self._change_template
+    def __init__(
+        self,
+        *args,
+        change_template: str | None = None,
+        release_template: str | None = None,
+        **kwargs,
+    ) -> None:
+        change_template = (
+            change_template
             or """
 *{% if change.scope %} (`{{change.scope}}`){% endif %}
 {% if change.breaking %} **Breaking**{% endif %}
@@ -178,8 +189,8 @@ class RstWriter(BaseWriter):
 {% for link in change.links %} [`{{ link.text }}`_]{% endfor %}
 """
         )
-        self._release_template = (
-            self._release_template
+        release_template = (
+            release_template
             or """{{ version_string }}
 {{ "=" * version_string|length }}
 
@@ -194,20 +205,21 @@ class RstWriter(BaseWriter):
 {% endfor %}
 """
         )
+        super().__init__(*args, change_template=change_template, release_template=release_template, **kwargs)
         self._links = {}
 
     @timer
-    def __str__(self: t.Self) -> str:  # noqa: D105
+    def __str__(self) -> str:  # noqa: D105
         content = "\n".join(self.content + self.links)
         return f"\n\n{content}\n\n"
 
     @property
-    def links(self: t.Self) -> list[str]:
+    def links(self) -> list[str]:
         """Generate RST supported links for inclusion in changelog."""
         return [f".. _`{ref}`: {link}" for ref, link in sorted(self._links.items())]
 
     @timer
-    def _consume(self: t.Self, version_string: str, group_changes: dict[str, list[Change]]) -> None:
+    def _consume(self, version_string: str, group_changes: dict[str, list[Change]]) -> None:
         env = Environment(loader=BaseLoader())  # noqa: S701
 
         env.filters["regex_replace"] = regex_replace
@@ -217,7 +229,7 @@ class RstWriter(BaseWriter):
         self.content = content.split("\n")[:-2]
 
     @timer
-    def _render_change(self: t.Self, change: Change) -> str:
+    def _render_change(self, change: Change) -> str:
         line = super()._render_change(change)
 
         for link in change.links:
@@ -226,7 +238,7 @@ class RstWriter(BaseWriter):
         return line
 
     @timer
-    def write(self: t.Self) -> str:
+    def write(self) -> str:
         """Write contents to destination."""
         self.content = [self.file_header, *self.content, *self.existing, *self.links]
         self._write(self.content)

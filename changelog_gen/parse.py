@@ -44,6 +44,7 @@ def bump(
         reset = component_config.get(dependent, ["0"])[0]
         version_parts[dependent] = reset
 
+    new: str | None
     if component in component_config:
         current = version_parts[component]
         options = component_config[component]
@@ -59,7 +60,7 @@ def bump(
         else:
             new = options[options.index(current) + 1]
     else:
-        new = str(int(version_parts[component]) + 1)
+        new = str(int(version_parts[component] or 0) + 1)
 
     version_parts[component] = new
 

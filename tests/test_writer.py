@@ -53,19 +53,19 @@ def test_new_writer_raises_for_unsupported_extension(ctx):
 
 class TestBaseWriter:
     def test_init(self, changelog, ctx):
-        w = writer.BaseWriter(changelog, ctx)
+        w = writer.BaseWriter(changelog, ctx, "", "")
 
         assert w.content == []
         assert w.dry_run is False
 
     def test_init_dry_run(self, changelog, ctx):
-        w = writer.BaseWriter(changelog, ctx, dry_run=True)
+        w = writer.BaseWriter(changelog, ctx, "", "", dry_run=True)
 
         assert w.content == []
         assert w.dry_run is True
 
     def test_init_no_existing_entries(self, changelog, ctx):
-        w = writer.BaseWriter(changelog, ctx)
+        w = writer.BaseWriter(changelog, ctx, "", "")
 
         assert w.existing == []
 
@@ -81,7 +81,7 @@ class TestBaseWriter:
 - line3
 """,
         )
-        w = writer.BaseWriter(changelog, ctx)
+        w = writer.BaseWriter(changelog, ctx, "", "")
 
         assert w.existing == [
             "## 0.0.1",
@@ -95,13 +95,13 @@ class TestBaseWriter:
         ]
 
     def test_content_as_str(self, changelog, ctx):
-        w = writer.BaseWriter(changelog, ctx)
+        w = writer.BaseWriter(changelog, ctx, "", "")
         w.content = ["line1", "line2", "line3"]
 
         assert str(w) == "\n\nline1\nline2\nline3\n\n"
 
     def test_base_methods_not_implemented(self, changelog, ctx):
-        w = writer.BaseWriter(changelog, ctx)
+        w = writer.BaseWriter(changelog, ctx, "", "")
 
         with pytest.raises(NotImplementedError):
             w._consume("version_string", {})
@@ -109,7 +109,7 @@ class TestBaseWriter:
     def test_consume(self, monkeypatch, changelog, ctx):
         monkeypatch.setattr(writer.BaseWriter, "_consume", mock.Mock())
 
-        w = writer.BaseWriter(changelog, ctx)
+        w = writer.BaseWriter(changelog, ctx, "", "")
         w._change_template = ""
 
         w.consume(
@@ -146,7 +146,7 @@ class TestBaseWriter:
     def test_consume_sorting(self, monkeypatch, changelog, ctx):
         monkeypatch.setattr(writer.BaseWriter, "_consume", mock.Mock())
 
-        w = writer.BaseWriter(changelog, ctx)
+        w = writer.BaseWriter(changelog, ctx, "", "")
         w._change_template = ""
 
         w.consume(
