@@ -69,7 +69,7 @@ class Config:
 
     allowed_branches: list[str] = dataclasses.field(default_factory=list)
     commit_types: list[str] = dataclasses.field(default_factory=lambda: list(SUPPORTED_TYPES.keys()))
-    type_headers: dict[str, str] = dataclasses.field(default_factory=lambda: SUPPORTED_TYPES.copy())
+    type_headers: dict[str, str] = dataclasses.field(default_factory=SUPPORTED_TYPES.copy)
 
     # CLI overrides
     verbose: int = 0

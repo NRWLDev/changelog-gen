@@ -27,6 +27,12 @@ not manage semantic version generation, instead relying on the output of
 
 ## Using git-cliff
 
+```console
+> git-cliff --config pyproject.toml --bump -o CHANGELOG.md
+> VERSION=$(git-cliff --bumped-version)
+> bumpversion $VERSION
+```
+
 For anyone using standard configuration for changelog-gen, the following
 configuration will replicate existing functionality.
 
